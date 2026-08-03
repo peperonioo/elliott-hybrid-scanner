@@ -13,7 +13,7 @@ Ondas de Elliott y confluencia técnica.
 |------|--------|--------|
 | 1 — Ingesta | `data/` | ✅ implementada |
 | 2 — Detección de swings | `structure/` | ✅ implementada |
-| 3 — Validador Elliott | `elliott/` | pendiente |
+| 3 — Validador Elliott | `elliott/` | ✅ implementada |
 | 4 — Capa de confluencia | `confluence/` | pendiente |
 | 5 — Backtest | `backtest/` | pendiente |
 | 6 — Reporte diario | `report/` | pendiente |
@@ -84,6 +84,14 @@ una reversión nunca se confirma en la misma vela que marca el extremo: con solo
 OHLC no sabemos si dentro de la vela ocurrió antes el máximo o el mínimo, y
 asumirlo sería inventarse información.
 
+**Lo ambiguo se devuelve como ambiguo.** El validador de Elliott descarta, no
+predice: responde "¿es este conteo estructuralmente posible?", nunca "¿cuál es
+el conteo correcto?". Tres tramos de precio pueden ser una corrección A-B-C
+completa o las ondas 1-2-3 de un impulso en curso, y no hay forma de saberlo
+con la secuencia sola — así que se devuelven las dos lecturas marcadas como
+ambiguas entre sí. Las diagonales son hipótesis aparte en lugar de una
+excepción metida dentro de la regla del solape.
+
 **La validación informa, no aborta.** Los huecos y las velas de volumen cero se
 reportan pero no invalidan la serie por defecto: el cripto cotiza 24/7, pero
 los exchanges tienen paradas de mantenimiento, y descartar cuatro años de datos
@@ -127,8 +135,12 @@ src/ehs/
     cache.py         caché Parquet con escritura atómica
     fetcher.py       orquestación: descarga incremental + validación
     validation.py    huecos, duplicados, volumen cero, coherencia OHLC
-  structure/         fase 2
-  elliott/           fase 3
+  structure/
+    indicators.py    ATR de Wilder, causal y estable ante prefijos
+    swings.py        ZigZag con umbral en ATR, sin lookahead
+    plotting.py      gráficos de validación visual
+  elliott/
+    validator.py     reglas duras, guías blandas e hipótesis ambiguas
   confluence/        fase 4
   backtest/          fase 5
   report/            fase 6
