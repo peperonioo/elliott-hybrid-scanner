@@ -59,7 +59,11 @@ exchanges:
 # Universo de pares
 # ---------------------------------------------------------------------------
 # Solo la base: el símbolo se construye con el `quote` de cada exchange.
-# MATIC fue renombrado a POL; el ticker antiguo ya no existe en ningún venue.
+#
+# POL (ex-MATIC) queda excluido: su histórico arranca el 2024-09-13, cuando se
+# creó el ticker tras el rename, y son ~1,9 años — por debajo del mínimo de
+# `backtest.min_history_years`. Empalmarlo con MATIC no es válido: el rename
+# implicó migración de contrato y las series no son comparables.
 universe:
   bases:
     - BTC
@@ -71,7 +75,6 @@ universe:
     - AVAX
     - LINK
     - DOT
-    - POL
 
 # ---------------------------------------------------------------------------
 # Timeframes
