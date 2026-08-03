@@ -12,7 +12,7 @@ Ondas de Elliott y confluencia técnica.
 | Fase | Módulo | Estado |
 |------|--------|--------|
 | 1 — Ingesta | `data/` | ✅ implementada |
-| 2 — Detección de swings | `structure/` | pendiente |
+| 2 — Detección de swings | `structure/` | ✅ implementada |
 | 3 — Validador Elliott | `elliott/` | pendiente |
 | 4 — Capa de confluencia | `confluence/` | pendiente |
 | 5 — Backtest | `backtest/` | pendiente |
@@ -44,6 +44,13 @@ Opciones útiles:
 Los datos se cachean en `data/cache/<exchange>/<par>/<timeframe>.parquet`. Las
 ejecuciones siguientes solo descargan las velas nuevas.
 
+Detección de swings y validación visual:
+
+```bash
+.venv/bin/python scripts/plot_swings.py --bases BTC
+.venv/bin/python scripts/plot_swings.py --bases BTC --compare 1.5 2.5 3.5 4.5
+```
+
 ## Fuente de datos
 
 Binance es la fuente primaria de la serie de precios y Kraken el fallback. La
@@ -66,6 +73,16 @@ se mueve. Si entrase en la caché, el ATR de la fase 2 y los indicadores de la
 fase 4 se calcularían sobre un valor que en producción todavía no se conocía.
 Es lookahead bias por la puerta de atrás, y por eso se corta en la ingesta y no
 más adelante.
+
+**Los swings no pueden mirar al futuro.** Un pivote se detecta en la vela de su
+extremo, pero solo se puede *saber* más tarde: cuando el precio retrocede el
+umbral y han cerrado `confirmation_bars` velas. Cada pivote lleva su
+`confirmed_index`, y de ahí sale el invariante que se testea: ejecutar la
+detección sobre `frame[:t+1]` da exactamente el mismo resultado que ejecutarla
+sobre la serie completa y filtrar por `confirmed_index <= t`. Ligado a esto,
+una reversión nunca se confirma en la misma vela que marca el extremo: con solo
+OHLC no sabemos si dentro de la vela ocurrió antes el máximo o el mínimo, y
+asumirlo sería inventarse información.
 
 **La validación informa, no aborta.** Los huecos y las velas de volumen cero se
 reportan pero no invalidan la serie por defecto: el cripto cotiza 24/7, pero
