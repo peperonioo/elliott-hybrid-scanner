@@ -1,0 +1,232 @@
+# Elliott Hybrid Scanner — configuración única del sistema.
+#
+# Regla del proyecto: ningún valor numérico ni nombre de mercado vive en el
+# código. Si algo se puede ajustar, se ajusta aquí.
+#
+# Las secciones de fases todavía no implementadas están marcadas como tal;
+# contienen únicamente valores que la especificación ya fija (no inventados).
+
+# ---------------------------------------------------------------------------
+# Rutas y entorno
+# ---------------------------------------------------------------------------
+paths:
+  data_dir: data # relativo a la raíz del repo
+  cache_dir: data/cache # Parquet de OHLCV
+  reports_dir: reports # informes de la fase 6
+  plots_dir: plots # gráficos de validación visual
+
+# ---------------------------------------------------------------------------
+# Exchanges — SOLO endpoints públicos. Este sistema nunca usa API keys.
+# ---------------------------------------------------------------------------
+#
+# Nota importante sobre la elección de fuente (verificado empíricamente):
+# el endpoint público de OHLC de Kraken IGNORA el parámetro `since` y devuelve
+# siempre las últimas ~720 velas, sin paginación hacia atrás. Eso son 4 meses
+# en 4h y 30 días en 1h — insuficiente para el walk-forward de la fase 5.
+# Binance sí respeta `since` y pagina histórico completo, así que es la fuente
+# primaria de la SERIE DE PRECIOS. Kraken queda como fallback para pares que
+# Binance no liste, y como referencia de COMISIONES en el backtest.
+exchanges:
+  primary:
+    id: binance
+    quote: USDT
+  fallback:
+    id: kraken
+    quote: USD
+
+  # Excepciones puntuales base -> símbolo completo, por si algún ticker no
+  # sigue el patrón "{base}/{quote}".
+  symbol_overrides:
+    binance: {}
+    kraken: {}
+
+  # ccxt aplica su propio throttle por exchange cuando enable_throttle=true.
+  # extra_sleep_ms añade margen por encima de ese throttle si vemos 429s.
+  rate_limit:
+    enable_throttle: true
+    extra_sleep_ms: 0
+
+  # Reintentos con backoff exponencial ante errores transitorios de red o
+  # rate limit. Los errores permanentes (símbolo inexistente) no se reintentan.
+  retry:
+    max_attempts: 5
+    base_delay_s: 1.0
+    backoff_factor: 2.0
+    max_delay_s: 60.0
+    jitter: true
+
+# ---------------------------------------------------------------------------
+# Universo de pares
+# ---------------------------------------------------------------------------
+# Solo la base: el símbolo se construye con el `quote` de cada exchange.
+# MATIC fue renombrado a POL; el ticker antiguo ya no existe en ningún venue.
+universe:
+  bases:
+    - BTC
+    - ETH
+    - SOL
+    - BNB
+    - XRP
+    - ADA
+    - AVAX
+    - LINK
+    - DOT
+    - POL
+
+# ---------------------------------------------------------------------------
+# Timeframes
+# ---------------------------------------------------------------------------
+# context   -> alineación de tendencia mayor (fase 4)
+# structure -> conteo de ondas y detección de swings (fases 2-3)
+# timing    -> afinado de la zona de entrada (fase 4)
+timeframes:
+  context: 1d
+  structure: 4h
+  timing: 1h
+
+# ---------------------------------------------------------------------------
+# Descarga e histórico
+# ---------------------------------------------------------------------------
+history:
+  # La fase 5 exige un mínimo de 2 años. Con margen para el warm-up de
+  # indicadores y para que el walk-forward tenga varios folds.
+  start_date: "2022-01-01"
+
+  # Velas por página. Binance admite 1000; ccxt recorta al máximo del venue.
+  page_limit: 1000
+
+  # Al hacer descarga incremental se re-piden las últimas N velas ya cacheadas.
+  # Cubre revisiones tardías del exchange sin re-bajar el histórico entero.
+  overlap_candles: 2
+
+  # CRÍTICO: descarta la vela en curso (aún sin cerrar). Una vela parcial tiene
+  # un `close` que todavía se mueve; dejarla entrar contamina swings, ATR e
+  # indicadores con información que en producción no existiría.
+  drop_incomplete_candle: true
+
+# ---------------------------------------------------------------------------
+# Validación de integridad de los datos
+# ---------------------------------------------------------------------------
+# Política por tipo de anomalía:
+#   warn     -> se registra en el informe, el dato pasa
+#   raise    -> aborta la ingesta del par
+#   fix/drop -> se corrige o elimina automáticamente
+#
+# Por qué los huecos son `warn` y no `raise`: aunque el cripto cotiza 24/7,
+# los exchanges tienen paradas de mantenimiento y ventanas sin trades en pares
+# poco líquidos. Abortar ante el primer hueco dejaría el sistema sin datos por
+# un incidente de hace dos años. Se reportan y se decide con el ratio.
+validation:
+  on_gap: warn
+  on_zero_volume: warn
+  on_duplicate: fix
+  on_ohlc_inconsistency: warn
+
+  # Si la proporción de velas ausentes supera este ratio, el par se marca como
+  # no apto independientemente de la política anterior.
+  max_gap_ratio: 0.01
+
+  # Mínimo de velas para considerar utilizable una serie.
+  min_candles: 200
+
+# ===========================================================================
+# FASE 2 — Detección de swings (aún no implementada)
+# ===========================================================================
+swings:
+  atr_period: 14
+
+  # Umbral del ZigZag expresado en múltiplos de ATR. Es el parámetro MÁS
+  # sensible del sistema: gobierna cuántos pivotes se detectan y, por tanto,
+  # qué conteos de Elliott son siquiera posibles.
+  #
+  # Rango razonable: 1.0 - 5.0
+  #   < 1.5  ruido: pivotes de grado menor, conteos que se invalidan solos
+  #   2.0-3.0 zona de trabajo para 4h en majors (punto de partida: 2.5)
+  #   > 4.0  solo swings mayores: pocos pivotes, se pierden ondas 4 y 5
+  # Debe recalibrarse por timeframe; lo que funciona en 4h no funciona en 1h.
+  atr_threshold: 2.5
+
+  # Un pivote no se confirma hasta que han cerrado N velas posteriores sin
+  # invalidarlo. Es lo que garantiza la ausencia de lookahead bias: en la vela
+  # t solo son visibles los pivotes confirmados en t-N o antes.
+  confirmation_bars: 3
+
+# ===========================================================================
+# FASE 3 — Validador Elliott (aún no implementada)
+# ===========================================================================
+elliott:
+  hard_rules:
+    wave2_max_retrace: 1.0 # onda 2 no retrocede >100% de la onda 1
+    wave3_never_shortest: true
+    wave4_no_overlap_wave1: true
+    allow_diagonals: true # las diagonales se tratan como caso aparte
+
+  soft_guides:
+    wave2_retrace_range: [0.5, 0.786]
+    wave3_extension_target: 1.618
+    alternation_bonus: true
+
+  # Tolerancia relativa al comparar niveles de precio con ratios de Fibonacci.
+  ratio_tolerance: 0.05
+
+# ===========================================================================
+# FASE 4 — Capa de confluencia (aún no implementada)
+# ===========================================================================
+confluence:
+  # Cada factor devuelve un score normalizado 0-1.
+  weights:
+    fibonacci: 0.25
+    rsi_divergence: 0.20
+    market_structure: 0.20
+    volume_profile: 0.15
+    higher_timeframe_trend: 0.20
+
+  # Umbral por factor para contarlo como "activo".
+  thresholds:
+    fibonacci: 0.6
+    rsi_divergence: 0.6
+    market_structure: 0.6
+    volume_profile: 0.6
+    higher_timeframe_trend: 0.6
+
+  # Un solo factor fuerte no basta: se exigen N factores por encima de umbral.
+  min_active_factors: 3
+
+  rsi_period: 14
+
+# ===========================================================================
+# FASE 5 — Backtest (aún no implementada)
+# ===========================================================================
+backtest:
+  min_history_years: 2
+  walk_forward:
+    train_months: 12
+    test_months: 3
+
+  # Costes reales. Sin esto los números mienten.
+  # Kraken taker del tier base; ajustar si el volumen mensual cambia de tier.
+  costs:
+    taker_fee_pct: 0.26
+    maker_fee_pct: 0.16
+    slippage_pct: 0.05
+    spread_pct: 0.03
+
+  baselines:
+    buy_and_hold: true
+    random_signals: true
+    random_trials: 1000
+
+# ===========================================================================
+# FASE 6 — Reporte diario (aún no implementada)
+# ===========================================================================
+report:
+  format: markdown
+  top_n: 10
+  include_alternate_counts: true
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+logging:
+  level: INFO
+  format: "%(asctime)s | %(levelname)-7s | %(name)s | %(message)s"

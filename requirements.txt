@@ -1,0 +1,23 @@
+# Núcleo (fase 1)
+ccxt>=4.5,<5
+pandas>=2.2,<3
+numpy>=2.0,<3
+pyarrow>=16
+PyYAML>=6
+
+# Indicadores.
+# Nota: pandas-ta 0.3.14b está roto con numpy>=2 (importa `numpy.NaN`, retirado
+# en numpy 2.0). Se usa `ta`, que es numpy-2 safe. Si en la fase 4 hiciera falta
+# algo que solo tiene pandas-ta, se revisa entonces.
+ta>=0.11
+
+# Gráficos de validación visual (fase 2)
+matplotlib>=3.8
+
+# Calidad
+pytest>=8
+ruff>=0.6
+black>=24
+
+# vectorbt / backtesting.py se añaden en la fase 5, tras verificar que
+# compilan en ARM con Python 3.12.
