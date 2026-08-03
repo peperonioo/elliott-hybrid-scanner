@@ -8,9 +8,10 @@ from __future__ import annotations
 
 from typing import Any
 
+import numpy as np
 import pandas as pd
 
-from ehs.data.schema import frame_from_ccxt, timeframe_to_ms
+from ehs.data.schema import OHLCV_COLUMNS, frame_from_ccxt, normalise, timeframe_to_ms
 
 
 def ts(value: str) -> pd.Timestamp:
@@ -37,6 +38,75 @@ def make_rows(
 
 def make_frame(start: str, timeframe: str, count: int, **kwargs: Any) -> pd.DataFrame:
     return frame_from_ccxt(make_rows(start, timeframe, count, **kwargs))
+
+
+def frame_from_closes(
+    closes: np.ndarray | list[float],
+    *,
+    start: str = "2024-01-01",
+    timeframe: str = "4h",
+    wick: float = 0.0,
+    volume: float = 100.0,
+) -> pd.DataFrame:
+    """Construye una serie OHLCV coherente a partir de una curva de cierres.
+
+    Cada vela abre en el cierre anterior; `wick` añade mecha simétrica por
+    encima y por debajo del cuerpo.
+    """
+    closes = np.asarray(closes, dtype="float64")
+    opens = np.empty_like(closes)
+    if len(closes):
+        opens[0] = closes[0]
+        opens[1:] = closes[:-1]
+
+    body_high = np.maximum(opens, closes)
+    body_low = np.minimum(opens, closes)
+    index = pd.date_range(ts(start), periods=len(closes), freq=timeframe, tz="UTC")
+
+    frame = pd.DataFrame(
+        {
+            "open": opens,
+            "high": body_high + wick,
+            "low": body_low - wick,
+            "close": closes,
+            "volume": np.full(len(closes), volume),
+        },
+        index=index,
+    )
+    frame.index.name = "timestamp"
+    return normalise(frame[list(OHLCV_COLUMNS)])
+
+
+def random_walk_frame(
+    count: int,
+    *,
+    seed: int = 0,
+    start_price: float = 100.0,
+    sigma: float = 0.01,
+    wick: float = 0.3,
+) -> pd.DataFrame:
+    """Camino aleatorio reproducible, para tests que necesitan una serie realista."""
+    rng = np.random.default_rng(seed)
+    steps = rng.normal(0.0, sigma, size=count)
+    closes = start_price * np.exp(np.cumsum(steps))
+    return frame_from_closes(closes, wick=wick)
+
+
+def zigzag_closes(
+    leg_lengths: list[int], amplitude: float, start_price: float = 100.0
+) -> np.ndarray:
+    """Curva en dientes de sierra con tramos alternos de subida y bajada.
+
+    El primer tramo sube. Cada tramo recorre `amplitude` en `leg_lengths[k]`
+    pasos, de modo que los puntos de giro son conocidos de antemano.
+    """
+    closes = [start_price]
+    direction = 1.0
+    for length in leg_lengths:
+        step = direction * amplitude / length
+        closes.extend(closes[-1] + step * (i + 1) for i in range(length))
+        direction *= -1.0
+    return np.asarray(closes, dtype="float64")
 
 
 class FakeExchange:
