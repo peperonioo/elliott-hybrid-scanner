@@ -147,7 +147,8 @@ swings:
   #   2.0-3.0 zona de trabajo para 4h en majors (punto de partida: 2.5)
   #   > 4.0  solo swings mayores: pocos pivotes, se pierden ondas 4 y 5
   # Debe recalibrarse por timeframe; lo que funciona en 4h no funciona en 1h.
-  atr_threshold: 2.5
+  # Fijado en 3.0 tras validar a ojo la comparativa sobre BTC/USDT 4h.
+  atr_threshold: 3.0
 
   # Un pivote no se confirma hasta que han cerrado N velas posteriores sin
   # invalidarlo. Es lo que garantiza la ausencia de lookahead bias: en la vela
