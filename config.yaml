@@ -133,7 +133,7 @@ validation:
   min_candles: 200
 
 # ===========================================================================
-# FASE 2 — Detección de swings (aún no implementada)
+# FASE 2 — Detección de swings
 # ===========================================================================
 swings:
   atr_period: 14
@@ -153,6 +153,23 @@ swings:
   # invalidarlo. Es lo que garantiza la ausencia de lookahead bias: en la vela
   # t solo son visibles los pivotes confirmados en t-N o antes.
   confirmation_bars: 3
+
+  # Qué ATR mide el umbral de reversión:
+  #   extreme -> el ATR de la vela donde está el extremo candidato. El umbral
+  #              queda anclado a la volatilidad del swing que se está midiendo,
+  #              y no se mueve mientras se espera la reversión.
+  #   current -> el ATR de la vela que se está evaluando. Se adapta más rápido
+  #              a cambios de volatilidad, pero un pico de volatilidad puede
+  #              impedir que se confirme un pivote ya formado.
+  atr_reference: extreme
+
+# ---------------------------------------------------------------------------
+# Gráficos de validación visual
+# ---------------------------------------------------------------------------
+plots:
+  lookback_candles: 400 # velas mostradas; null para la serie entera
+  figsize: [17, 9]
+  dpi: 130
 
 # ===========================================================================
 # FASE 3 — Validador Elliott (aún no implementada)
