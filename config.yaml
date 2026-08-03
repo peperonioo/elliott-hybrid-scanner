@@ -173,8 +173,12 @@ plots:
   dpi: 130
 
 # ===========================================================================
-# FASE 3 — Validador Elliott (aún no implementada)
+# FASE 3 — Validador Elliott
 # ===========================================================================
+#
+# Enfoque descartador: el validador dice si un conteo es estructuralmente
+# posible, no cuál es el conteo correcto. Cuando la secuencia admite más de una
+# lectura, devuelve todas las hipótesis marcadas como tales.
 elliott:
   hard_rules:
     wave2_max_retrace: 1.0 # onda 2 no retrocede >100% de la onda 1
@@ -185,9 +189,17 @@ elliott:
   soft_guides:
     wave2_retrace_range: [0.5, 0.786]
     wave3_extension_target: 1.618
-    alternation_bonus: true
 
-  # Tolerancia relativa al comparar niveles de precio con ratios de Fibonacci.
+  # Pesos de las guías blandas en el score. Solo puntúan: ninguna invalida.
+  # Se normalizan al sumar, así que importan las proporciones, no la escala.
+  guide_weights:
+    wave2_retracement: 0.35
+    wave3_extension: 0.40
+    alternation: 0.25
+
+  # Tolerancia relativa al comparar con ratios de Fibonacci. El score vale 1
+  # dentro de esta distancia relativa al objetivo y decae hasta 0 a cuatro
+  # veces esa distancia.
   ratio_tolerance: 0.05
 
 # ===========================================================================
