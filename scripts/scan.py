@@ -101,8 +101,8 @@ def main() -> int:
         if resultado.zone:
             print(
                 f"    zona de interés {resultado.zone[0]:,.2f}–{resultado.zone[1]:,.2f} | "
-                f"invalidación {resultado.invalidation:,.2f}"
-                if resultado.invalidation is not None
+                f"invalidación de señal {resultado.signal_invalidation:,.2f}"
+                if resultado.signal_invalidation is not None
                 else f"    zona de interés {resultado.zone[0]:,.2f}–{resultado.zone[1]:,.2f}"
             )
         if resultado.count.is_ambiguous:

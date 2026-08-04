@@ -455,7 +455,8 @@ def result_with(scores: dict[str, float], *, min_active: int = 3) -> ConfluenceR
         factors=factors,
         min_active_factors=min_active,
         zone=None,
-        invalidation=None,
+        count_invalidation=None,
+        signal_invalidation=0.0,
     )
 
 
@@ -529,7 +530,8 @@ def test_score_confluence_devuelve_los_cinco_factores():
         HIGHER_TIMEFRAME_TREND,
     ]
     assert all(0.0 <= f.score <= 1.0 for f in resultado.factors)
-    assert resultado.invalidation == 100.0
+    assert resultado.count_invalidation == 100.0
+    assert resultado.signal_invalidation == 320.0
     assert resultado.zone is not None and resultado.zone[0] < resultado.zone[1]
 
 

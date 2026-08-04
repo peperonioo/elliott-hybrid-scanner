@@ -188,7 +188,10 @@ class ConfluenceResult:
     factors: tuple[FactorScore, ...]
     min_active_factors: int
     zone: tuple[float, float] | None
-    invalidation: float | None
+    # Dos niveles distintos y fáciles de confundir: uno mata el conteo, el otro
+    # mata la señal. El stop de una operación es siempre el segundo.
+    count_invalidation: float | None
+    signal_invalidation: float
 
     @property
     def active_factors(self) -> tuple[FactorScore, ...]:
@@ -231,6 +234,25 @@ def signal_direction(count: WaveCount) -> str:
         return opposite
     # Impulso 1-2-3 en curso: se espera la 4 contra y la 5 a favor.
     return count.direction
+
+
+def signal_invalidation(count: WaveCount) -> float:
+    """Precio que, de alcanzarse, deja sin sentido la señal.
+
+    No es lo mismo que `WaveCount.invalidation_level()`, que es el nivel que
+    invalida el **conteo**. Para un impulso alcista completado el conteo muere
+    por debajo del origen de la onda 1, pero la señal —bajista, esperando la
+    corrección— muere por encima del final de la onda 5. Confundirlos pondría
+    el stop de un corto por debajo de la entrada.
+
+      - Cinco ondas o A-B-C completos: la señal es de giro desde el pivote
+        terminal, así que se invalida al superarlo.
+      - Impulso 1-2-3 en curso: la señal va a favor y el nivel que la sostiene
+        es el final de la onda 1, que la onda 4 no puede solapar.
+    """
+    if count.hypothesis == IMPULSE_PARTIAL:
+        return count.waves[0].end.price
+    return count.pivots[-1].price
 
 
 # ---------------------------------------------------------------------------
@@ -629,7 +651,8 @@ def score_confluence(
         factors=factors,
         min_active_factors=params.min_active_factors,
         zone=zone,
-        invalidation=count.invalidation_level(),
+        count_invalidation=count.invalidation_level(),
+        signal_invalidation=signal_invalidation(count),
     )
 
 
