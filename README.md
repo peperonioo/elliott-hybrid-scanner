@@ -15,7 +15,7 @@ Ondas de Elliott y confluencia técnica.
 | 2 — Detección de swings | `structure/` | ✅ implementada |
 | 3 — Validador Elliott | `elliott/` | ✅ implementada |
 | 4 — Capa de confluencia | `confluence/` | ✅ implementada |
-| 5 — Backtest | `backtest/` | pendiente |
+| 5 — Backtest | `backtest/` | ✅ implementada |
 | 6 — Reporte diario | `report/` | pendiente |
 | 7 — Automatización | `.github/` | pendiente |
 
@@ -57,6 +57,12 @@ Escaneo de confluencia:
 .venv/bin/python scripts/scan.py --explain
 ```
 
+Backtest:
+
+```bash
+.venv/bin/python scripts/backtest.py --trades trades.csv
+```
+
 ## Fuente de datos
 
 Binance es la fuente primaria de la serie de precios y Kraken el fallback. La
@@ -71,6 +77,41 @@ binance  BTC/USDT  4h  since=2023-01-01 -> n=1000  first=2022-12-31 (pagina)
 ```
 
 Kraken sigue siendo la referencia de **comisiones** en el backtest.
+
+## Resultados del backtest
+
+Walk-forward sobre 9 pares en 4h, del 2022-01-01 al 2026-08-03. **289
+operaciones fuera de muestra.**
+
+| | bruto | neto |
+|---|---|---|
+| esperanza por operación | **+0,50%** | **−0,18%** |
+| profit factor | 1,18 | 0,94 |
+| acierto | 43,9% | 43,3% |
+
+**El sistema tiene una ventaja bruta pequeña y los costes se la comen entera.**
+El coste medio por operación es del 0,68%, un 136% de la ventaja bruta. No es
+un problema de la señal: es que la señal no es lo bastante grande para pagar el
+peaje de Kraken con este horizonte.
+
+Contra los baselines:
+
+- **Buy & hold**: −40,9% de media en el periodo. El sistema hizo −75,3%.
+- **Señales aleatorias** (1.000 simulaciones, misma frecuencia, misma mezcla de
+  direcciones, mismas reglas de salida): el sistema queda en el percentil 86,8,
+  con **p = 0,133**.
+
+> **No hay evidencia de que el sistema bata al azar.** Un 13% de las carteras
+> aleatorias lo igualan o superan. Que quede por encima de la media aleatoria
+> sugiere que puede haber algo, pero con 289 operaciones no se sostiene al 5%.
+
+El lado corto es el que pierde: +0,89% de esperanza neta en largos frente a
+−1,50% en cortos.
+
+Aviso sobre el drawdown: la curva de capital compone las 289 operaciones en
+serie a tamaño completo, lo que supone meter todo el capital en cada una. El
+86,4% de caída máxima refleja ese supuesto, no un dimensionamiento realista
+entre 9 pares.
 
 ## Decisiones de diseño
 
@@ -174,6 +215,10 @@ src/ehs/
     validator.py     reglas duras, guías blandas e hipótesis ambiguas
   confluence/
     scorer.py        cinco factores independientes y regla de emisión
-  backtest/          fase 5
+  backtest/
+    engine.py        simulación de operaciones y modelo de costes
+    metrics.py       métricas y distribución de resultados
+    baselines.py     buy & hold y señales aleatorias
+    walkforward.py   folds y selección del parámetro
   report/            fase 6
 ```
