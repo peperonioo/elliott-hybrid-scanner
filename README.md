@@ -14,7 +14,7 @@ Ondas de Elliott y confluencia técnica.
 | 1 — Ingesta | `data/` | ✅ implementada |
 | 2 — Detección de swings | `structure/` | ✅ implementada |
 | 3 — Validador Elliott | `elliott/` | ✅ implementada |
-| 4 — Capa de confluencia | `confluence/` | pendiente |
+| 4 — Capa de confluencia | `confluence/` | ✅ implementada |
 | 5 — Backtest | `backtest/` | pendiente |
 | 6 — Reporte diario | `report/` | pendiente |
 | 7 — Automatización | `.github/` | pendiente |
@@ -49,6 +49,12 @@ Detección de swings y validación visual:
 ```bash
 .venv/bin/python scripts/plot_swings.py --bases BTC
 .venv/bin/python scripts/plot_swings.py --bases BTC --compare 1.5 2.5 3.5 4.5
+```
+
+Escaneo de confluencia:
+
+```bash
+.venv/bin/python scripts/scan.py --explain
 ```
 
 ## Fuente de datos
@@ -105,6 +111,18 @@ desactivadas por defecto (`allow_expanding_diagonals`). El dato lo respalda:
 activarlas añade 110 conteos, más que todas las contractivas juntas, lo que
 indica que el patrón expansivo se satisface por accidente con facilidad.
 
+**La dirección de la señal no es la del conteo.** Un impulso alcista
+*completado* no es una señal alcista: es la antesala de la corrección. Lo mismo
+con un A-B-C, que al terminar anticipa la reanudación de la tendencia previa. La
+excepción es el impulso parcial 1-2-3, que sigue vivo y sí apunta a favor. La
+especificación no lo fijaba y cambia el signo de todo el sistema.
+
+**Emitir señal no es puntuar alto.** El score es la media ponderada de los cinco
+factores, pero la condición de emisión es que al menos tres superen su propio
+umbral. Un factor aislado en 1.0 no emite nada. Sobre 4.543 evaluaciones
+históricas eso deja un 7,7% de conteos con señal, y nunca se activan los cinco
+a la vez — señal de que los factores son de verdad independientes.
+
 **La validación informa, no aborta.** Los huecos y las velas de volumen cero se
 reportan pero no invalidan la serie por defecto: el cripto cotiza 24/7, pero
 los exchanges tienen paradas de mantenimiento, y descartar cuatro años de datos
@@ -154,7 +172,8 @@ src/ehs/
     plotting.py      gráficos de validación visual
   elliott/
     validator.py     reglas duras, guías blandas e hipótesis ambiguas
-  confluence/        fase 4
+  confluence/
+    scorer.py        cinco factores independientes y regla de emisión
   backtest/          fase 5
   report/            fase 6
 ```
