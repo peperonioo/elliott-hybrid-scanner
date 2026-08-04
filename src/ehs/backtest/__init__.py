@@ -1,1 +1,1 @@
-"""Pendiente de implementar."""
+"""Backtest walk-forward con costes reales."""

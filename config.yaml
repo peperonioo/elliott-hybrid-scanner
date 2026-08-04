@@ -274,19 +274,37 @@ confluence:
     strength_atr: 2.0
 
 # ===========================================================================
-# FASE 5 — Backtest (aún no implementada)
+# FASE 5 — Backtest
 # ===========================================================================
 backtest:
   min_history_years: 2
+
   walk_forward:
     train_months: 12
     test_months: 3
+    # Único parámetro que se elige con datos. El resto se fijaron por criterio,
+    # así que sobre ellos el walk-forward no aporta nada y no se finge que sí.
+    min_active_grid: [2, 3, 4]
+    # Por debajo de estas operaciones el tramo de entrenamiento no decide nada
+    # y se usa el valor por defecto de `confluence.min_active_factors`.
+    min_train_trades: 10
 
-  # Costes reales. Sin esto los números mienten.
+  # Reglas de salida. Son una decisión del backtest, no de la señal: la
+  # especificación define cuándo se emite pero no cuándo se cierra. No se
+  # optimizan; ajustarlas para mejorar el resultado sería sobreajuste.
+  exits:
+    target_r: 2.0 # objetivo como múltiplo del riesgo
+    max_bars: 30 # cierre por tiempo, en velas del timeframe de estructura
+
+  # Con `false` se ignora una señal si aún hay posición abierta en ese par.
+  allow_overlap: false
+
+  # Costes reales, en porcentaje y **por lado**. El viaje completo los paga dos
+  # veces: 2 × (0.26 + 0.05 + 0.03) = 0.68%. Sin esto los números mienten.
   # Kraken taker del tier base; ajustar si el volumen mensual cambia de tier.
   costs:
     taker_fee_pct: 0.26
-    maker_fee_pct: 0.16
+    maker_fee_pct: 0.16 # no se usa: se asume ejecución agresiva siempre
     slippage_pct: 0.05
     spread_pct: 0.03
 
@@ -294,6 +312,8 @@ backtest:
     buy_and_hold: true
     random_signals: true
     random_trials: 1000
+    seed: 20240101
+    alpha: 0.05
 
 # ===========================================================================
 # FASE 6 — Reporte diario (aún no implementada)
