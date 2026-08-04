@@ -28,6 +28,27 @@ implementa por tanto sobre longitudes de tramo:
 La tercera no se aplica a las diagonales, que se tratan como hipótesis aparte
 en lugar de meterlas como excepción dentro de la regla general.
 
+## Diagonales
+
+Una diagonal no es "un impulso al que se le perdona el solape". En la
+formulación de Frost & Prechter el solape de la onda 4 con la 1 es su rasgo
+**definitorio** —obligatorio, no tolerado— y además la estructura tiene que ser
+una cuña, con las ondas variando de forma consistente:
+
+  - contractiva: onda 3 < onda 1, onda 5 < onda 3 y onda 4 < onda 2
+  - expansiva:   onda 3 > onda 1, onda 5 > onda 3 y onda 4 > onda 2
+
+La variante contractiva es con diferencia la habitual; la expansiva es rara y
+se puede desactivar desde la configuración.
+
+Nótese que ambas cuñas satisfacen automáticamente la regla 2: si las longitudes
+son monótonas, la onda 3 queda siempre en medio y nunca es la más corta.
+
+Lo que **no** se puede comprobar a este grado es la subdivisión en 3-3-3-3-3 de
+la diagonal terminal, ni distinguir una diagonal inicial de una terminal: eso
+depende de las subondas y de la posición en el grado superior, que una
+secuencia de seis pivotes no contiene. Queda anotado en cada conteo.
+
 Hay además una condición de forma previa a las reglas —los pivotes deben
 alternar máximo y mínimo, y la onda 3 debe superar el final de la onda 1— sin
 la cual la secuencia no es un impulso en absoluto. No es una de las tres reglas
@@ -61,7 +82,9 @@ BULLISH = "bullish"
 BEARISH = "bearish"
 
 IMPULSE = "impulse"
-DIAGONAL = "diagonal"
+DIAGONAL_CONTRACTING = "diagonal_contracting"
+DIAGONAL_EXPANDING = "diagonal_expanding"
+DIAGONAL_HYPOTHESES = (DIAGONAL_CONTRACTING, DIAGONAL_EXPANDING)
 CORRECTIVE_ABC = "corrective_abc"
 IMPULSE_PARTIAL = "impulse_1_2_3"
 
@@ -176,7 +199,7 @@ class WaveCount:
         Para un impulso es el origen de la onda 1: si el precio lo atraviesa,
         la regla de la onda 2 queda rota y el conteo deja de ser posible.
         """
-        if self.hypothesis in (IMPULSE, DIAGONAL, IMPULSE_PARTIAL):
+        if self.hypothesis in (IMPULSE, *DIAGONAL_HYPOTHESES, IMPULSE_PARTIAL):
             return self.pivots[0].price
         return None
 
@@ -295,6 +318,38 @@ def _rule_wave4_no_overlap(waves: tuple[Wave, ...], direction: str) -> RuleResul
     )
 
 
+def _rule_wave4_overlaps_wave1(waves: tuple[Wave, ...], direction: str) -> RuleResult:
+    """Rasgo definitorio de la diagonal: aquí el solape es obligatorio."""
+    no_overlap = _rule_wave4_no_overlap(waves, direction)
+    return RuleResult(
+        name="onda4_solapa_onda1",
+        passed=not no_overlap.passed,
+        detail=no_overlap.detail,
+    )
+
+
+def _rule_diagonal_wedge(waves: tuple[Wave, ...], *, contracting: bool) -> RuleResult:
+    """Forma de cuña, en la formulación canónica por longitudes de onda."""
+    len1, len2, len3, len4, len5 = (wave.length for wave in waves)
+    if contracting:
+        passed = len3 < len1 and len5 < len3 and len4 < len2
+        exigencia = "se exige 3<1, 5<3 y 4<2"
+        nombre = "cuna_contractiva"
+    else:
+        passed = len3 > len1 and len5 > len3 and len4 > len2
+        exigencia = "se exige 3>1, 5>3 y 4>2"
+        nombre = "cuna_expansiva"
+
+    return RuleResult(
+        name=nombre,
+        passed=passed,
+        detail=(
+            f"longitudes 1={len1:,.4f} 2={len2:,.4f} 3={len3:,.4f} "
+            f"4={len4:,.4f} 5={len5:,.4f}; {exigencia}"
+        ),
+    )
+
+
 def _rule_wave3_exceeds_wave1(waves: tuple[Wave, ...], direction: str) -> RuleResult:
     """Condición de forma: sin esto la secuencia no es un impulso."""
     end_wave1 = waves[0].end.price
@@ -377,6 +432,7 @@ class ElliottParams:
     wave3_never_shortest: bool = True
     wave4_no_overlap_wave1: bool = True
     allow_diagonals: bool = True
+    allow_expanding_diagonals: bool = False
     wave2_retrace_range: tuple[float, float] = (0.5, 0.786)
     wave3_extension_target: float = 1.618
     ratio_tolerance: float = 0.05
@@ -395,6 +451,7 @@ class ElliottParams:
             wave3_never_shortest=bool(hard.get("wave3_never_shortest", True)),
             wave4_no_overlap_wave1=bool(hard.get("wave4_no_overlap_wave1", True)),
             allow_diagonals=bool(hard.get("allow_diagonals", True)),
+            allow_expanding_diagonals=bool(hard.get("allow_expanding_diagonals", False)),
             wave2_retrace_range=(float(low), float(high)),
             wave3_extension_target=float(soft.get("wave3_extension_target", 1.618)),
             ratio_tolerance=float(cfg.get("elliott.ratio_tolerance", 0.05)),
@@ -469,12 +526,10 @@ def _analyse_five_legs(pivots: tuple[Pivot, ...], params: ElliottParams) -> list
         _guide_alternation(waves, params.weight_alternation),
     )
 
-    overlap_rule = _rule_wave4_no_overlap(waves, direction)
-
-    # Hipótesis de impulso: aplica la regla de solape.
+    # Hipótesis de impulso: la onda 4 no puede solapar la 1.
     impulse_rules = list(base_rules)
     if params.wave4_no_overlap_wave1:
-        impulse_rules.append(overlap_rule)
+        impulse_rules.append(_rule_wave4_no_overlap(waves, direction))
 
     impulse = WaveCount(
         hypothesis=IMPULSE,
@@ -492,26 +547,39 @@ def _analyse_five_legs(pivots: tuple[Pivot, ...], params: ElliottParams) -> list
     )
     counts = [impulse]
 
-    # Hipótesis de diagonal: mismas cinco ondas, pero el solape de la onda 4 con
-    # la 1 es su rasgo característico, no un defecto. Se trata como hipótesis
-    # aparte en vez de como excepción dentro de la regla general.
-    if params.allow_diagonals and not overlap_rule.passed:
-        diagonal = WaveCount(
-            hypothesis=DIAGONAL,
-            direction=direction,
-            pivots=pivots,
-            waves=waves,
-            rules=tuple(base_rules),
-            guides=guides,
-            notes=(
-                "La onda 4 solapa el territorio de la onda 1, lo que descarta el impulso "
-                "pero es precisamente lo que caracteriza a una diagonal.",
-                "No se distingue aquí entre diagonal inicial y terminal: eso depende de "
-                "dónde se sitúe la estructura en el grado superior, que esta secuencia "
-                "no contiene.",
-            ),
-        )
-        counts.append(diagonal)
+    # Hipótesis de diagonal: el solape es obligatorio, no tolerado, y además la
+    # estructura tiene que ser una cuña. Sin esta segunda exigencia cualquier
+    # tramo lateral de cinco piernas pasaría por diagonal.
+    if params.allow_diagonals:
+        overlap_required = _rule_wave4_overlaps_wave1(waves, direction)
+        varieties = [(DIAGONAL_CONTRACTING, True)]
+        if params.allow_expanding_diagonals:
+            varieties.append((DIAGONAL_EXPANDING, False))
+
+        for hypothesis, contracting in varieties:
+            forma = "contractiva" if contracting else "expansiva"
+            counts.append(
+                WaveCount(
+                    hypothesis=hypothesis,
+                    direction=direction,
+                    pivots=pivots,
+                    waves=waves,
+                    rules=(
+                        *base_rules,
+                        overlap_required,
+                        _rule_diagonal_wedge(waves, contracting=contracting),
+                    ),
+                    guides=guides,
+                    notes=(
+                        f"Cuña {forma}: el solape de la onda 4 con la 1 no es un defecto, "
+                        "es el rasgo que define a la diagonal.",
+                        "No se comprueba la subdivisión 3-3-3-3-3 de la diagonal terminal: "
+                        "exige conocer las subondas, que a este grado no tenemos.",
+                        "Tampoco se distingue entre diagonal inicial y terminal: eso depende "
+                        "de la posición en el grado superior, que esta secuencia no contiene.",
+                    ),
+                )
+            )
 
     valid_names = [c.hypothesis for c in counts if c.valid]
     if len(valid_names) > 1:

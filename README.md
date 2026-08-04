@@ -89,8 +89,21 @@ predice: responde "¿es este conteo estructuralmente posible?", nunca "¿cuál e
 el conteo correcto?". Tres tramos de precio pueden ser una corrección A-B-C
 completa o las ondas 1-2-3 de un impulso en curso, y no hay forma de saberlo
 con la secuencia sola — así que se devuelven las dos lecturas marcadas como
-ambiguas entre sí. Las diagonales son hipótesis aparte en lugar de una
-excepción metida dentro de la regla del solape.
+ambiguas entre sí.
+
+**Una diagonal no es un impulso con el solape perdonado.** Siguiendo la
+formulación de Frost & Prechter, el solape de la onda 4 con la 1 es su rasgo
+*definitorio* —obligatorio— y además la estructura tiene que ser una cuña, con
+las longitudes variando de forma consistente (contractiva: 3<1, 5<3, 4<2). Sin
+la exigencia de cuña, cualquier lateral de cinco piernas pasaba por diagonal:
+sobre los 9 pares en 4H eso daba 724 diagonales frente a 260 impulsos, justo al
+revés de lo que dice la literatura. Con la cuña quedan 89, y la proporción de
+ventanas con algún conteo válido baja del 25% al 8,9%.
+
+Las diagonales expansivas existen en la teoría pero son raras, así que vienen
+desactivadas por defecto (`allow_expanding_diagonals`). El dato lo respalda:
+activarlas añade 110 conteos, más que todas las contractivas juntas, lo que
+indica que el patrón expansivo se satisface por accidente con facilidad.
 
 **La validación informa, no aborta.** Los huecos y las velas de volumen cero se
 reportan pero no invalidan la serie por defecto: el cripto cotiza 24/7, pero

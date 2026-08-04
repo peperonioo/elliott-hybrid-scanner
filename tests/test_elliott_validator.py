@@ -15,7 +15,8 @@ from ehs.elliott.validator import (
     BEARISH,
     BULLISH,
     CORRECTIVE_ABC,
-    DIAGONAL,
+    DIAGONAL_CONTRACTING,
+    DIAGONAL_EXPANDING,
     IMPULSE,
     IMPULSE_PARTIAL,
     ElliottParams,
@@ -58,6 +59,14 @@ def sequence(prices: list[float], *, bullish: bool = True, spacing: int = 10) ->
 # Impulso alcista de libro: onda 2 retrocede 0.6, onda 3 mide 1.618 de la 1,
 # onda 4 no solapa. Sirve de base a la que aplicar un único defecto cada vez.
 TEXTBOOK = [100.0, 200.0, 140.0, 301.8, 240.0, 320.0]
+
+# Diagonal contractiva: la onda 4 (190) entra en el territorio de la onda 1
+# (100-200) y las longitudes contraen — 1=100, 3=80, 5=60, con 4=40 < 2=50.
+CONTRACTING_DIAGONAL = [100.0, 200.0, 150.0, 230.0, 190.0, 250.0]
+
+# Diagonal expansiva: 1=50, 3=100, 5=160, con 4=80 > 2=30 y la onda 4 (140)
+# dentro del territorio de la onda 1 (100-150).
+EXPANDING_DIAGONAL = [100.0, 150.0, 120.0, 220.0, 140.0, 300.0]
 
 
 # --------------------------------------------------------------------------
@@ -125,26 +134,55 @@ def test_regla_3_la_onda_4_no_solapa_el_territorio_de_la_onda_1():
     assert "onda4_no_solapa_onda1" in {r.name for r in impulso.violations}
 
 
-def test_el_solape_de_la_onda_4_produce_la_hipotesis_de_diagonal():
-    """El solape descarta el impulso pero es el rasgo propio de una diagonal."""
-    solapado = [100.0, 200.0, 150.0, 300.0, 190.0, 320.0]
-    counts = validate_sequence(sequence(solapado), PARAMS)
+def test_una_cuna_contractiva_con_solape_es_una_diagonal():
+    """El solape descarta el impulso, pero con forma de cuña es una diagonal."""
+    counts = validate_sequence(sequence(CONTRACTING_DIAGONAL), PARAMS)
 
-    assert [c.hypothesis for c in counts] == [DIAGONAL]
+    assert [c.hypothesis for c in counts] == [DIAGONAL_CONTRACTING]
     assert counts[0].valid
-    assert any("diagonal" in nota for nota in counts[0].notes)
+    assert any("cuña" in nota.lower() for nota in counts[0].notes)
+
+
+def test_un_solape_sin_forma_de_cuna_no_es_nada():
+    """La exigencia de cuña es lo que impide que cualquier lateral de cinco
+    piernas pase por diagonal.
+
+    Longitudes 1=100, 3=150, 5=130: ni contrae (3>1) ni expande (5<3).
+    """
+    solapado_sin_cuna = [100.0, 200.0, 150.0, 300.0, 190.0, 320.0]
+    permisivo = ElliottParams(allow_expanding_diagonals=True)
+    assert validate_sequence(sequence(solapado_sin_cuna), permisivo) == []
 
 
 def test_las_diagonales_se_pueden_desactivar():
-    solapado = [100.0, 200.0, 150.0, 300.0, 190.0, 320.0]
     sin_diagonales = ElliottParams(allow_diagonals=False)
-    assert validate_sequence(sequence(solapado), sin_diagonales) == []
+    assert validate_sequence(sequence(CONTRACTING_DIAGONAL), sin_diagonales) == []
+
+
+def test_la_diagonal_expansiva_esta_desactivada_por_defecto():
+    """Es una variante rara; se admite solo si se pide explícitamente."""
+    assert validate_sequence(sequence(EXPANDING_DIAGONAL), PARAMS) == []
+
+
+def test_la_diagonal_expansiva_se_puede_activar():
+    permisivo = ElliottParams(allow_expanding_diagonals=True)
+    counts = validate_sequence(sequence(EXPANDING_DIAGONAL), permisivo)
+
+    assert [c.hypothesis for c in counts] == [DIAGONAL_EXPANDING]
+
+
+def test_una_cuna_satisface_sola_la_regla_de_la_onda_3():
+    """Si las longitudes son monótonas la onda 3 queda en medio y nunca es la
+    más corta: la regla 2 y la forma de cuña son consistentes entre sí."""
+    count = validate_sequence(sequence(CONTRACTING_DIAGONAL), PARAMS)[0]
+    regla = next(r for r in count.rules if r.name == "onda3_nunca_la_mas_corta")
+    assert regla.passed
 
 
 def test_una_diagonal_sigue_sujeta_a_las_demas_reglas():
     """El solape se perdona; la onda 2 y la onda 3 no."""
-    # Solapa Y la onda 2 retrocede más del 100%.
-    doble_fallo = [100.0, 200.0, 90.0, 300.0, 190.0, 320.0]
+    # Cuña contractiva, pero la onda 2 retrocede más del 100%.
+    doble_fallo = [100.0, 200.0, 90.0, 230.0, 190.0, 250.0]
     assert validate_sequence(sequence(doble_fallo), PARAMS) == []
 
 
@@ -180,10 +218,12 @@ def test_un_impulso_bajista_se_valida_igual():
     assert counts[0].hypothesis == IMPULSE
 
 
-def test_el_solape_bajista_tambien_da_diagonal():
-    solapado = [400.0, 300.0, 350.0, 200.0, 310.0, 180.0]
-    counts = validate_sequence(sequence(solapado, bullish=False), PARAMS)
-    assert [c.hypothesis for c in counts] == [DIAGONAL]
+def test_la_cuna_bajista_tambien_da_diagonal():
+    espejo = [300.0, 200.0, 250.0, 170.0, 210.0, 150.0]
+    counts = validate_sequence(sequence(espejo, bullish=False), PARAMS)
+
+    assert [c.hypothesis for c in counts] == [DIAGONAL_CONTRACTING]
+    assert counts[0].direction == BEARISH
 
 
 # --------------------------------------------------------------------------
@@ -211,7 +251,7 @@ def test_un_impulso_completo_advierte_de_su_papel_en_el_grado_superior():
 
 def test_impulso_y_diagonal_no_pueden_ser_validos_a_la_vez():
     """El solape es excluyente: o no lo hay (impulso) o lo hay (diagonal)."""
-    for prices in (TEXTBOOK, [100.0, 200.0, 150.0, 300.0, 190.0, 320.0]):
+    for prices in (TEXTBOOK, CONTRACTING_DIAGONAL):
         counts = validate_sequence(sequence(prices), PARAMS)
         assert len(counts) == 1
         assert not counts[0].is_ambiguous
@@ -400,4 +440,5 @@ def test_los_parametros_se_leen_del_yaml():
     assert params.wave3_extension_target == 1.618
     assert params.wave2_retrace_range == (0.5, 0.786)
     assert params.allow_diagonals is True
+    assert params.allow_expanding_diagonals is False
     assert params.weight_wave3_extension > 0

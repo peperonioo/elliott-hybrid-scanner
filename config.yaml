@@ -184,7 +184,14 @@ elliott:
     wave2_max_retrace: 1.0 # onda 2 no retrocede >100% de la onda 1
     wave3_never_shortest: true
     wave4_no_overlap_wave1: true
-    allow_diagonals: true # las diagonales se tratan como caso aparte
+
+    # Las diagonales son hipótesis aparte, no una excepción dentro de la regla
+    # del solape. Siguiendo a Frost & Prechter, el solape de la onda 4 con la 1
+    # es su rasgo definitorio (obligatorio) y además exigen forma de cuña:
+    #   contractiva: 3<1, 5<3, 4<2   — la variante habitual
+    #   expansiva:   3>1, 5>3, 4>2   — rara; desactivada por defecto
+    allow_diagonals: true
+    allow_expanding_diagonals: false
 
   soft_guides:
     wave2_retrace_range: [0.5, 0.786]
