@@ -99,6 +99,29 @@ def normalise(frame: pd.DataFrame) -> pd.DataFrame:
     return out.sort_index()
 
 
+def closed_candles(frame: pd.DataFrame, timeframe: str, now_ms: int) -> pd.DataFrame:
+    """Velas de `frame` que ya habían cerrado en el instante `now_ms`.
+
+    Una vela con apertura en `t` cierra en `t + tf`, así que solo es conocida
+    cuando `now >= t + tf`.
+
+    Es la pieza que evita dos fugas de información distintas: la vela en curso
+    en la ingesta, y —más traicionera— el desfase entre timeframes. Al evaluar
+    una señal en la vela de 4h de las 08:00, la vela diaria de hoy todavía no
+    ha cerrado: usar su `close` sería leer el futuro.
+    """
+    if frame.empty:
+        return frame
+    tf_ms = timeframe_to_ms(timeframe)
+    open_ms = frame.index.astype("int64") // 1_000_000
+    return frame[open_ms + tf_ms <= now_ms]
+
+
+def close_time_ms(timestamp: pd.Timestamp, timeframe: str) -> int:
+    """Instante en el que cierra la vela abierta en `timestamp`."""
+    return int(timestamp.timestamp() * 1000) + timeframe_to_ms(timeframe)
+
+
 def assert_valid(frame: pd.DataFrame) -> None:
     """Comprobación defensiva del esquema. Lanza `SchemaError` si no cumple."""
     if list(frame.columns) != list(OHLCV_COLUMNS):

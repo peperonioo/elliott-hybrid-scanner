@@ -26,7 +26,13 @@ import pandas as pd
 from ehs.config import Config
 from ehs.data.cache import ParquetCache, merge_frames
 from ehs.data.gateway import ExchangeGateway, FetchError, RetryPolicy, SymbolUnavailable
-from ehs.data.schema import empty_frame, frame_from_ccxt, normalise, timeframe_to_ms
+from ehs.data.schema import (
+    closed_candles,
+    empty_frame,
+    frame_from_ccxt,
+    normalise,
+    timeframe_to_ms,
+)
 from ehs.data.validation import ValidationReport, validate
 
 LOGGER = logging.getLogger(__name__)
@@ -239,16 +245,8 @@ class OHLCVFetcher:
 
 
 def drop_incomplete_candles(frame: pd.DataFrame, timeframe: str, now_ms: int) -> pd.DataFrame:
-    """Elimina las velas que aún no han cerrado.
-
-    Una vela con apertura en `t` cierra en `t + tf`; solo es definitiva cuando
-    `now >= t + tf`.
-    """
-    if frame.empty:
-        return frame
-    tf_ms = timeframe_to_ms(timeframe)
-    open_ms = frame.index.astype("int64") // 1_000_000
-    return frame[open_ms + tf_ms <= now_ms]
+    """Elimina las velas que aún no han cerrado."""
+    return closed_candles(frame, timeframe, now_ms)
 
 
 def _page_budget(since_ms: int, until_ms: int, tf_ms: int, page_limit: int) -> int:
