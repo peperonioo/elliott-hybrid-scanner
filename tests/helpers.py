@@ -62,6 +62,11 @@ def frame_from_closes(
     body_high = np.maximum(opens, closes)
     body_low = np.minimum(opens, closes)
     index = pd.date_range(ts(start), periods=len(closes), freq=timeframe, tz="UTC")
+    volumes = (
+        np.full(len(closes), float(volume))
+        if np.isscalar(volume)
+        else np.asarray(volume, dtype="float64")
+    )
 
     frame = pd.DataFrame(
         {
@@ -69,12 +74,23 @@ def frame_from_closes(
             "high": body_high + wick,
             "low": body_low - wick,
             "close": closes,
-            "volume": np.full(len(closes), volume),
+            "volume": volumes,
         },
         index=index,
     )
     frame.index.name = "timestamp"
     return normalise(frame[list(OHLCV_COLUMNS)])
+
+
+def path_closes(waypoints: list[tuple[int, float]]) -> np.ndarray:
+    """Curva de cierres que pasa exactamente por los puntos indicados.
+
+    Interpola linealmente entre cada par consecutivo, de modo que los índices
+    de los waypoints son giros conocidos y sirven de pivotes en los tests.
+    """
+    positions = [int(w[0]) for w in waypoints]
+    prices = [float(w[1]) for w in waypoints]
+    return np.interp(np.arange(positions[-1] + 1), positions, prices)
 
 
 def random_walk_frame(

@@ -210,10 +210,14 @@ elliott:
   ratio_tolerance: 0.05
 
 # ===========================================================================
-# FASE 4 — Capa de confluencia (aún no implementada)
+# FASE 4 — Capa de confluencia
 # ===========================================================================
+#
+# Cinco factores independientes, cada uno con score normalizado 0-1. El score
+# final es su media ponderada, pero la condición de emisión no es el score:
+# hacen falta al menos `min_active_factors` por encima de su umbral. Un solo
+# factor fuerte no basta por muy alto que puntúe.
 confluence:
-  # Cada factor devuelve un score normalizado 0-1.
   weights:
     fibonacci: 0.25
     rsi_divergence: 0.20
@@ -229,10 +233,45 @@ confluence:
     volume_profile: 0.6
     higher_timeframe_trend: 0.6
 
-  # Un solo factor fuerte no basta: se exigen N factores por encima de umbral.
   min_active_factors: 3
 
   rsi_period: 14
+
+  fibonacci:
+    retracements: [0.618, 0.786]
+    extensions: [1.618]
+    # Distancia al nivel, medida en ATR, a la que el score cae a 0. En ATR y no
+    # en porcentaje para que signifique lo mismo en cualquier par.
+    tolerance_atr: 0.75
+
+  rsi_divergence:
+    # Diferencia de RSI entre los dos extremos que satura el score.
+    full_scale_points: 10.0
+
+  market_structure:
+    # Antigüedad máxima, en velas del timeframe de contexto, de un BOS o CHoCH
+    # para que siga contando. La antigüedad se mide desde que ocurrió la
+    # ruptura, no desde que se formó el nivel roto: un BOS es un evento.
+    lookback_bars: 20
+    # El ZigZag del timeframe de contexto lleva su propio umbral. El de la
+    # fase 2 está calibrado en 4h; aplicado al diario deja pivotes tan escasos
+    # que la estructura casi nunca llega a romperse.
+    swing_atr_period: 14
+    swing_atr_threshold: 2.0
+    swing_confirmation_bars: 2
+
+  volume_profile:
+    # vol(onda 3) / vol(onda 1) que satura la parte de expansión.
+    expansion_target: 1.5
+    # vol(onda 4) / vol(onda 3) que satura la parte de contracción.
+    contraction_target: 0.7
+
+  higher_timeframe_trend:
+    ema_period: 50
+    atr_period: 14
+    # Desviación del precio respecto a la EMA, en ATR, que satura la fuerza de
+    # la tendencia diaria.
+    strength_atr: 2.0
 
 # ===========================================================================
 # FASE 5 — Backtest (aún no implementada)
