@@ -1,0 +1,78 @@
+# Escaneo diario: descarga las velas nuevas, genera el informe y lo commitea.
+#
+# No necesita ningún secreto: los datos vienen de endpoints públicos y el
+# commit del informe usa el GITHUB_TOKEN automático del workflow. Si algún día
+# se añade una integración (Telegram, Notion), sus credenciales irán en
+# GitHub Secrets — nunca en el código ni en este fichero.
+#
+# La caché Parquet se conserva entre ejecuciones vía actions/cache, así que
+# cada día solo se descargan las velas nuevas.
+
+name: daily-scan
+
+on:
+  schedule:
+    # 00:20 UTC: tras el cierre de la vela diaria, con margen para que el
+    # exchange consolide. El cron de GitHub puede retrasarse varios minutos.
+    - cron: "20 0 * * *"
+  workflow_dispatch: {} # permite lanzarlo a mano desde la pestaña Actions
+
+permissions:
+  contents: write # necesario solo para commitear el informe
+
+concurrency:
+  group: daily-scan
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dependencias
+        run: pip install -r requirements.txt
+
+      - name: Restaurar caché de velas
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          # La clave cambia cada día: se restaura la más reciente por prefijo
+          # y se guarda la actualizada al terminar.
+          key: ohlcv-${{ github.run_id }}
+          restore-keys: |
+            ohlcv-
+
+      - name: Tests (barrera de seguridad)
+        run: python -m pytest -q
+
+      - name: Descargar velas nuevas y generar informe
+        run: python scripts/daily_report.py
+
+      - name: Commitear el informe
+        run: |
+          git config user.name "ehs-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add reports/
+          if git diff --cached --quiet; then
+            echo "Sin cambios en el informe"
+          else
+            git commit -m "informe: $(date -u +%Y-%m-%d)"
+            git push
+          fi
+
+      - name: Subir informe como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-${{ github.run_id }}
+          path: reports/latest.md
+          retention-days: 30

@@ -16,8 +16,8 @@ Ondas de Elliott y confluencia técnica.
 | 3 — Validador Elliott | `elliott/` | ✅ implementada |
 | 4 — Capa de confluencia | `confluence/` | ✅ implementada |
 | 5 — Backtest | `backtest/` | ✅ implementada |
-| 6 — Reporte diario | `report/` | pendiente |
-| 7 — Automatización | `.github/` | pendiente |
+| 6 — Reporte diario | `report/` | ✅ implementada |
+| 7 — Automatización | `.github/` | ✅ implementada |
 
 ## Instalación
 
@@ -62,6 +62,15 @@ Backtest:
 ```bash
 .venv/bin/python scripts/backtest.py --trades trades.csv
 ```
+
+Informe diario (descarga las velas nuevas y escribe `reports/scan_<fecha>.md`):
+
+```bash
+.venv/bin/python scripts/daily_report.py
+```
+
+En GitHub, el workflow `daily-scan` lo hace solo cada día a las 00:20 UTC y
+commitea el informe al repo. No necesita secretos.
 
 ## Fuente de datos
 
@@ -222,5 +231,6 @@ src/ehs/
     metrics.py       métricas y distribución de resultados
     baselines.py     buy & hold y señales aleatorias
     walkforward.py   folds y selección del parámetro
-  report/            fase 6
+  report/
+    daily.py         informe diario en Markdown, mismo pipeline que el backtest
 ```
