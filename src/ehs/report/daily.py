@@ -18,9 +18,11 @@ import pandas as pd
 
 from ehs.backtest.engine import TradeFilters
 from ehs.config import Config
-from ehs.confluence.scorer import ConfluenceResult
+from ehs.confluence.scorer import ConfluenceResult, score_confluence
 from ehs.data.cache import ParquetCache
+from ehs.elliott.validator import scan_recent
 from ehs.pipeline import PipelineParams, generate_signals
+from ehs.structure.swings import detect_swings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -74,8 +76,65 @@ def collect_entries(
                 ReportEntry(result=result, is_signal=result.emits_signal, bars_ago=bars_ago)
             )
 
+        # Radar: la mejor estructura vigente del par, re-evaluada al precio de
+        # AHORA. No es una señal causal —eso solo lo decide el bloque
+        # anterior— pero es lo que un lector humano quiere vigilar: qué niveles
+        # tiene delante cada par hoy.
+        watch = _best_current_read(structure, context, symbol, params, filters)
+        if watch is not None and not any(e.result.symbol == symbol for e in entries):
+            entries.append(watch)
+
+    # Señales causales: todas. Radar: una sola lectura por par, la mejor.
+    signals = [e for e in entries if e.is_signal]
+    radar: dict[str, ReportEntry] = {}
+    for e in entries:
+        if e.is_signal:
+            continue
+        current = radar.get(e.result.symbol)
+        if current is None or e.result.score > current.result.score:
+            radar[e.result.symbol] = e
+
+    entries = signals + list(radar.values())
     entries.sort(key=lambda e: (not e.is_signal, -e.result.score))
     return entries, warnings
+
+
+def _best_current_read(
+    structure: pd.DataFrame,
+    context: pd.DataFrame,
+    symbol: str,
+    params: PipelineParams,
+    filters: TradeFilters,
+) -> ReportEntry | None:
+    """La mejor lectura alcista del par evaluada en la última vela cerrada.
+
+    Solo se acepta si su geometría es operable: la invalidación tiene que
+    quedar por debajo de la zona de compra. Devuelve None si no hay ninguna.
+    """
+    pivots = detect_swings(structure, **params.swing)
+    best: ConfluenceResult | None = None
+    for count in scan_recent(pivots, params.elliott):
+        try:
+            result = score_confluence(
+                count,
+                structure=structure,
+                context=context,
+                symbol=symbol,
+                structure_timeframe=params.structure_timeframe,
+                context_timeframe=params.context_timeframe,
+                params=params.confluence,
+            )
+        except ValueError:
+            continue
+        if not filters.allows_direction(result.signal_direction):
+            continue
+        if result.zone is None or result.signal_invalidation >= result.zone[0]:
+            continue
+        if best is None or result.score > best.score:
+            best = result
+    if best is None:
+        return None
+    return ReportEntry(result=best, is_signal=False, bars_ago=0)
 
 
 def _fmt_price(value: float) -> str:
@@ -134,7 +193,7 @@ def render_markdown(
 ) -> str:
     """Construye el documento Markdown completo."""
     signals = [e for e in entries if e.is_signal]
-    near = [e for e in entries if not e.is_signal and len(e.result.active_factors) >= 2]
+    near = [e for e in entries if not e.is_signal]
 
     lines = [
         f"# Elliott Hybrid Scanner — {now:%Y-%m-%d %H:%M} UTC",
@@ -167,16 +226,20 @@ def render_markdown(
     if near:
         lines.append(f"## Cerca del umbral ({len(near)})")
         lines.append("")
-        lines.append("Conteos válidos con 2 factores activos, a uno de emitir señal:")
+        lines.append(
+            "La mejor estructura alcista vigente de cada par, re-evaluada al precio "
+            "actual. NO son señales (les faltan factores): son los niveles a vigilar."
+        )
         lines.append("")
-        lines.append("| par | dirección | hipótesis | score | factores activos |")
-        lines.append("|---|---|---|---|---|")
+        lines.append("| par | hipótesis | score | factores activos | zona de compra | stop |")
+        lines.append("|---|---|---|---|---|---|")
         for entry in near:
             r = entry.result
             activos = ", ".join(f.name for f in r.active_factors) or "—"
+            zona = f"{_fmt_price(r.zone[0])}–{_fmt_price(r.zone[1])}" if r.zone else "—"
             lines.append(
-                f"| {r.symbol} | {r.signal_direction} | `{r.count.hypothesis}` "
-                f"| {r.score:.3f} | {activos} |"
+                f"| {r.symbol} | `{r.count.hypothesis}` | {r.score:.3f} | {activos} "
+                f"| {zona} | {_fmt_price(r.signal_invalidation)} |"
             )
         lines.append("")
 

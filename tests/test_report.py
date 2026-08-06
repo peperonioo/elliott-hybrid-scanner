@@ -97,10 +97,15 @@ def test_los_casi_umbral_van_en_su_propia_seccion():
     assert "fibonacci, rsi_divergence" in md
 
 
-def test_un_conteo_con_un_solo_factor_no_aparece_ni_como_cercano():
+def test_una_lectura_de_un_solo_factor_aparece_en_el_radar_con_sus_niveles():
+    """El radar muestra la mejor lectura de cada par aunque esté lejos de
+    disparar: lo que el lector quiere son los niveles."""
     lejos = ReportEntry(result=make_result([0.9, 0.1, 0.1, 0.1, 0.1]), is_signal=False, bars_ago=1)
     md = render_markdown([lejos], [], cfg=make_config(), now=NOW)
-    assert "Cerca del umbral" not in md
+
+    assert "Cerca del umbral (1)" in md
+    assert "60,000.00–61,000.00" in md  # zona de compra
+    assert "58,000.00" in md  # stop
 
 
 def test_los_avisos_se_incluyen():

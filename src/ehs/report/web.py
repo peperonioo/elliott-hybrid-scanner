@@ -142,13 +142,14 @@ def _near_table(near: list[ReportEntry]) -> str:
             f"<td><code>{_esc(e.result.count.hypothesis)}</code></td>"
             f"<td>{e.result.score:.2f}</td>"
             f"<td>{_esc(', '.join(f.name for f in e.result.active_factors) or '—')}</td>"
-            f"<td>{_fmt(e.result.zone[0])} – {_fmt(e.result.zone[1])}</td></tr>"
+            f"<td>{_fmt(e.result.zone[0])} – {_fmt(e.result.zone[1])}</td>"
+            f"<td>{_fmt(e.result.signal_invalidation)}</td></tr>"
             if e.result.zone
             else f"<tr><td>{_esc(e.result.symbol)}</td>"
             f"<td><code>{_esc(e.result.count.hypothesis)}</code></td>"
             f"<td>{e.result.score:.2f}</td>"
             f"<td>{_esc(', '.join(f.name for f in e.result.active_factors) or '—')}</td>"
-            f"<td>—</td></tr>"
+            f"<td>—</td><td>{_fmt(e.result.signal_invalidation)}</td></tr>"
         )
         for e in near
     )
@@ -156,12 +157,14 @@ def _near_table(near: list[ReportEntry]) -> str:
 <div class="scroll">
 <table>
   <tr><th>par</th><th>estructura</th><th>score</th><th>factores activos</th>
-    <th>zona a vigilar</th></tr>
+    <th>zona de compra</th><th>stop</th></tr>
   {filas}
 </table>
 </div>
-<p style="color:var(--muted);font-size:.88rem">Les falta un factor para emitir señal.
-Si el precio visita la zona o aparece la ruptura que falta, pueden dispararse.</p>"""
+<p style="color:var(--muted);font-size:.88rem">La mejor estructura alcista vigente de
+cada par, re-evaluada al precio actual. <b>No son señales</b> (les faltan factores):
+son los niveles a vigilar. Si el precio visita la zona y se encienden 3 de 5
+factores, pasará a señal de compra.</p>"""
 
 
 LEGEND = """
@@ -195,7 +198,7 @@ def render_html(
     now: pd.Timestamp,
 ) -> str:
     signals = [e for e in entries if e.is_signal]
-    near = [e for e in entries if not e.is_signal and len(e.result.active_factors) >= 2]
+    near = [e for e in entries if not e.is_signal]
 
     if signals:
         cuerpo_senales = "".join(_signal_card(e) for e in signals)
