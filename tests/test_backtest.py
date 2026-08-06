@@ -574,3 +574,170 @@ def test_las_reglas_de_salida_se_leen_del_yaml():
     rules = ExitRules.from_config(cfg)
     assert rules.target_r == 2.0
     assert rules.max_bars == 30
+
+
+# --------------------------------------------------------------------------
+# Entrada limitada, filtros y costes maker/taker
+# --------------------------------------------------------------------------
+
+from ehs.backtest.engine import ENTRY_LIMIT_ZONE, EntryRules, TradeFilters  # noqa: E402
+
+LIMIT = EntryRules(mode=ENTRY_LIMIT_ZONE, limit_valid_bars=10)
+
+
+def test_la_limitada_solo_se_ejecuta_si_el_precio_visita_la_zona():
+    # El precio sube sin retroceder: la limitada por debajo nunca se toca.
+    frame = flat_frame(path_closes([(0, 100.0), (30, 150.0)]))
+    resultado = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=80.0,
+        rules=RULES,
+        costs=FREE,
+        entry=LIMIT,
+        limit_price=95.0,
+    )
+    assert resultado == SkipReason.NOT_FILLED
+
+
+def test_la_limitada_entra_al_precio_de_la_zona_cuando_el_precio_la_visita():
+    # Retrocede hasta 94 en la vela 5 y luego sube.
+    frame = flat_frame(path_closes([(0, 100.0), (5, 94.0), (30, 150.0)]))
+    trade = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=80.0,
+        rules=ExitRules(target_r=2.0, max_bars=28),
+        costs=FREE,
+        entry=LIMIT,
+        limit_price=95.0,
+    )
+    assert not isinstance(trade, str)
+    assert trade.entry_price == pytest.approx(95.0)
+    assert trade.entry_index <= 5
+
+
+def test_una_limitada_marketable_se_ejecuta_al_abrir_pagando_taker():
+    """Si el precio ya está por debajo del nivel, la orden cruza el libro."""
+    frame = flat_frame(path_closes([(0, 90.0), (30, 150.0)]))
+    trade = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=70.0,
+        rules=ExitRules(target_r=2.0, max_bars=28),
+        costs=COSTS,
+        entry=LIMIT,
+        limit_price=95.0,
+    )
+    assert not isinstance(trade, str)
+    assert trade.entry_price == pytest.approx(frame["open"].iloc[1])
+    # Entrada agresiva (0.34) aunque la orden fuese limitada.
+    assert trade.cost_pct >= COSTS.aggressive_pct
+
+
+def test_sin_zona_la_entrada_limitada_no_puede_operar():
+    frame = flat_frame(np.full(20, 100.0))
+    resultado = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=90.0,
+        rules=RULES,
+        costs=FREE,
+        entry=LIMIT,
+        limit_price=None,
+    )
+    assert resultado == SkipReason.NO_ZONE
+
+
+def test_la_entrada_maker_y_salida_en_objetivo_pagan_el_coste_reducido():
+    """Limitada + objetivo: 0.16 + 0.16 = 0.32% frente al 0.68% agresivo."""
+    frame = flat_frame(path_closes([(0, 100.0), (5, 94.0), (30, 160.0)]))
+    trade = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=85.0,
+        rules=ExitRules(target_r=2.0, max_bars=28),
+        costs=COSTS,
+        entry=LIMIT,
+        limit_price=95.0,
+    )
+    assert not isinstance(trade, str)
+    assert trade.exit_reason == EXIT_TARGET
+    assert trade.cost_pct == pytest.approx(2 * COSTS.maker_fee_pct)
+
+
+def test_el_stop_paga_salida_agresiva_aunque_la_entrada_fuese_maker():
+    frame = flat_frame(path_closes([(0, 100.0), (5, 94.0), (15, 70.0)]))
+    trade = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=88.0,
+        rules=ExitRules(target_r=5.0, max_bars=28),
+        costs=COSTS,
+        entry=LIMIT,
+        limit_price=95.0,
+    )
+    assert not isinstance(trade, str)
+    assert trade.exit_reason == EXIT_STOP
+    assert trade.cost_pct == pytest.approx(COSTS.maker_fee_pct + COSTS.aggressive_pct)
+
+
+def test_el_filtro_de_direccion_descarta_cortos():
+    frame = flat_frame(np.full(20, 100.0))
+    solo_largos = TradeFilters(directions=("bullish",))
+    resultado = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BEARISH,
+        stop_price=110.0,
+        rules=RULES,
+        costs=FREE,
+        filters=solo_largos,
+    )
+    assert resultado == SkipReason.DIRECTION_FILTERED
+
+
+def test_el_filtro_recompensa_coste_descarta_objetivos_pequenos():
+    """Stop pegado -> objetivo pegado -> el recorrido no cubre el peaje."""
+    frame = flat_frame(np.full(20, 100.0), wick=0.0)
+    exigente = TradeFilters(min_reward_cost_ratio=4.0)
+    resultado = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=99.7,  # riesgo 0.3% -> objetivo 0.6% < 4×0.68%
+        rules=ExitRules(target_r=2.0, max_bars=10),
+        costs=COSTS,
+        filters=exigente,
+    )
+    assert resultado == SkipReason.REWARD_TOO_SMALL
+
+
+def test_el_filtro_recompensa_coste_deja_pasar_objetivos_suficientes():
+    frame = flat_frame(path_closes([(0, 100.0), (19, 120.0)]))
+    exigente = TradeFilters(min_reward_cost_ratio=4.0)
+    trade = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=95.0,  # riesgo ~5% -> objetivo ~10% > 2.72%
+        rules=ExitRules(target_r=2.0, max_bars=18),
+        costs=COSTS,
+        filters=exigente,
+    )
+    assert not isinstance(trade, str)

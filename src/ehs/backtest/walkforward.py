@@ -27,7 +27,14 @@ from dataclasses import dataclass
 
 import pandas as pd
 
-from ehs.backtest.engine import CostModel, ExitRules, Trade, run_signals
+from ehs.backtest.engine import (
+    CostModel,
+    EntryRules,
+    ExitRules,
+    Trade,
+    TradeFilters,
+    run_signals,
+)
 from ehs.backtest.metrics import Metrics, compute_metrics
 from ehs.confluence.scorer import ConfluenceResult
 
@@ -135,6 +142,8 @@ def trades_for(
     end: pd.Timestamp,
     rules: ExitRules,
     costs: CostModel,
+    entry: EntryRules | None = None,
+    filters: TradeFilters | None = None,
     allow_overlap: bool = False,
 ) -> list[Trade]:
     """Operaciones de una ventana temporal con un mínimo de factores dado."""
@@ -149,7 +158,13 @@ def trades_for(
         if not seleccion:
             continue
         symbol_trades, _ = run_signals(
-            frame, seleccion, rules=rules, costs=costs, allow_overlap=allow_overlap
+            frame,
+            seleccion,
+            rules=rules,
+            costs=costs,
+            entry=entry,
+            filters=filters,
+            allow_overlap=allow_overlap,
         )
         trades.extend(symbol_trades)
     return trades
@@ -164,6 +179,8 @@ def walk_forward(
     rules: ExitRules,
     costs: CostModel,
     default_min_active: int,
+    entry: EntryRules | None = None,
+    filters: TradeFilters | None = None,
     min_train_trades: int = 10,
     allow_overlap: bool = False,
 ) -> WalkForwardResult:
@@ -184,6 +201,8 @@ def walk_forward(
                 end=fold.train_end,
                 rules=rules,
                 costs=costs,
+                entry=entry,
+                filters=filters,
                 allow_overlap=allow_overlap,
             )
             if len(train_trades) < min_train_trades:
@@ -208,6 +227,8 @@ def walk_forward(
             end=fold.test_end,
             rules=rules,
             costs=costs,
+            entry=entry,
+            filters=filters,
             allow_overlap=allow_overlap,
         )
 

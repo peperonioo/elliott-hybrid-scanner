@@ -23,7 +23,7 @@ from ehs.backtest.baselines import (
     random_baseline,
     summarise_buy_and_hold,
 )
-from ehs.backtest.engine import CostModel, ExitRules, trades_to_frame
+from ehs.backtest.engine import CostModel, EntryRules, ExitRules, TradeFilters, trades_to_frame
 from ehs.backtest.metrics import compute_metrics
 from ehs.backtest.walkforward import make_folds, walk_forward
 from ehs.config import Config, setup_logging
@@ -37,6 +37,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bases", nargs="*", default=None)
     parser.add_argument("--trials", type=int, default=None, help="Simulaciones aleatorias")
     parser.add_argument("--trades", default=None, help="Vuelca las operaciones a este CSV")
+    parser.add_argument(
+        "--holdout",
+        action="store_true",
+        help="Evalúa el periodo reservado (backtest.holdout_start en adelante). "
+        "Solo debe ejecutarse al final del desarrollo.",
+    )
     return parser.parse_args()
 
 
@@ -50,6 +56,9 @@ def main() -> int:
     params = PipelineParams.from_config(cfg)
     costs = CostModel.from_config(cfg)
     rules = ExitRules.from_config(cfg)
+    entry = EntryRules.from_config(cfg)
+    filters = TradeFilters.from_config(cfg)
+    holdout_start = pd.Timestamp(str(cfg.get("backtest.holdout_start")), tz="UTC")
 
     bases = args.bases if args.bases else cfg.bases
     frames: dict[str, pd.DataFrame] = {}
@@ -76,6 +85,15 @@ def main() -> int:
         print("No hay datos. Ejecuta antes scripts/fetch_data.py")
         return 1
 
+    # Desarrollo: todo lo anterior al holdout. Con --holdout, solo el holdout,
+    # entrenando el último fold con los meses previos a la frontera.
+    if args.holdout:
+        print(f"\n*** EVALUACIÓN DEL HOLDOUT ({holdout_start:%Y-%m-%d} en adelante) ***")
+    else:
+        frames = {s: f[f.index < holdout_start] for s, f in frames.items()}
+        signals = {s: [x for x in sig if x.timestamp < holdout_start] for s, sig in signals.items()}
+        print(f"\nModo desarrollo: datos hasta {holdout_start:%Y-%m-%d} (holdout intacto)")
+
     start = min(f.index[0] for f in frames.values())
     end = max(f.index[-1] for f in frames.values())
     years = (end - start).days / 365.25
@@ -84,12 +102,18 @@ def main() -> int:
     if years < minimo:
         print(f"AVISO: menos de {minimo} años de histórico; los resultados no son concluyentes.")
 
-    folds = make_folds(
-        start,
-        end,
-        train_months=int(cfg.get("backtest.walk_forward.train_months")),
-        test_months=int(cfg.get("backtest.walk_forward.test_months")),
-    )
+    train_months = int(cfg.get("backtest.walk_forward.train_months"))
+    test_months = int(cfg.get("backtest.walk_forward.test_months"))
+    if args.holdout:
+        # Los folds del holdout entrenan con los meses previos a la frontera.
+        folds = make_folds(
+            holdout_start - pd.DateOffset(months=train_months),
+            end,
+            train_months=train_months,
+            test_months=test_months,
+        )
+    else:
+        folds = make_folds(start, end, train_months=train_months, test_months=test_months)
     resultado = walk_forward(
         signals,
         frames,
@@ -98,6 +122,8 @@ def main() -> int:
         rules=rules,
         costs=costs,
         default_min_active=int(cfg.get("confluence.min_active_factors")),
+        entry=entry,
+        filters=filters,
         min_train_trades=int(cfg.get("backtest.walk_forward.min_train_trades", 10)),
         allow_overlap=bool(cfg.get("backtest.allow_overlap", False)),
     )
@@ -110,7 +136,10 @@ def main() -> int:
     trades = resultado.test_trades
     metrics = compute_metrics(trades)
     print("\n" + "-" * 78)
-    print(f"AGREGADO  (costes: {costs.round_trip_pct:.2f}% ida y vuelta)")
+    print(
+        f"AGREGADO  (entrada {entry.mode}, filtros: R/C≥{filters.min_reward_cost_ratio}, "
+        f"direcciones {list(filters.directions) or 'todas'})"
+    )
     print("-" * 78)
     print(metrics.detail() if trades else "sin operaciones fuera de muestra")
 
@@ -128,11 +157,24 @@ def main() -> int:
     else:
         trials = args.trials or int(cfg.get("backtest.baselines.random_trials", 1000))
         print(f"mezcla de direcciones replicada: {direction_mix(trades)}")
+        # Al azar se le imputa el coste medio que pagó de hecho el sistema, para
+        # que el contraste mida la señal y no la diferencia de comisiones.
+        coste_medio_por_lado = sum(t.cost_pct for t in trades) / len(trades) / 2
+        costes_equivalentes = CostModel(
+            taker_fee_pct=coste_medio_por_lado,
+            maker_fee_pct=coste_medio_por_lado,
+            slippage_pct=0.0,
+            spread_pct=0.0,
+        )
+        print(
+            f"coste imputado al azar: {2 * coste_medio_por_lado:.3f}% ida y vuelta "
+            f"(el mismo que pagó el sistema)"
+        )
         baseline = random_baseline(
             frames,
             trades,
             rules=rules,
-            costs=costs,
+            costs=costes_equivalentes,
             trials=trials,
             seed=int(cfg.get("backtest.baselines.seed", 20240101)),
         )

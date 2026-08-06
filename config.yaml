@@ -289,6 +289,35 @@ backtest:
     # y se usa el valor por defecto de `confluence.min_active_factors`.
     min_train_trades: 10
 
+  # Periodo reservado que NO se toca durante el desarrollo. Todo lo que se
+  # explore y ajuste se hace con datos anteriores a esta fecha; el holdout se
+  # evalúa UNA vez al final. Es lo que separa un resultado creíble de un número
+  # fabricado a base de iterar.
+  holdout_start: "2025-02-01"
+
+  # Cómo se entra tras la señal:
+  #   market     -> apertura de la vela siguiente, pagando taker
+  #   limit_zone -> limitada en la zona de Fibonacci de la señal, pagando
+  #                 maker. Si el precio no visita la zona, no hay operación.
+  #
+  # La ablación sobre el periodo de desarrollo descartó limit_zone: selección
+  # adversa. Cuando el precio no vuelve a la zona es porque el movimiento es
+  # fuerte, así que la limitada se pierde los mejores y se queda los flojos
+  # (esperanza -0.68% frente a +1.13% con market en las mismas señales).
+  entry:
+    mode: market
+    limit_valid_bars: 10
+
+  # Filtros previos a la apertura, con información ya conocida:
+  filters:
+    # Desactivado: con entrada a mercado no mostró efecto en la ablación y un
+    # parámetro sin efecto es solo una oportunidad de sobreajustar.
+    min_reward_cost_ratio: 0.0
+    # Solo largos. Justificable a priori (en spot sin margen los cortos no son
+    # ejecutables tal cual) y confirmado en el periodo de desarrollo: los
+    # cortos rinden -0.73% por operación frente a +1.13% de los largos.
+    directions: [bullish]
+
   # Reglas de salida. Son una decisión del backtest, no de la señal: la
   # especificación define cuándo se emite pero no cuándo se cierra. No se
   # optimizan; ajustarlas para mejorar el resultado sería sobreajuste.

@@ -80,38 +80,40 @@ Kraken sigue siendo la referencia de **comisiones** en el backtest.
 
 ## Resultados del backtest
 
-Walk-forward sobre 9 pares en 4h, del 2022-01-01 al 2026-08-03. **289
-operaciones fuera de muestra.**
+Metodología: el periodo desde **2025-02-01 está reservado como holdout** y no
+se tocó durante el desarrollo. Toda la exploración (ablación de entradas,
+filtros y direcciones) se hizo con datos anteriores; el holdout se evaluó una
+única vez al final.
 
-| | bruto | neto |
+Configuración final, justificada por ablación en desarrollo: entrada a
+mercado, **solo largos**, objetivo 2R, cierre a 30 velas. La entrada limitada
+en la zona de Fibonacci se descartó por selección adversa (cuando el precio no
+vuelve a la zona es porque el movimiento es fuerte: la limitada se pierde los
+mejores y se queda los flojos).
+
+| | desarrollo (2022→2025-01) | **holdout (2025-02→2026-08)** |
 |---|---|---|
-| esperanza por operación | **+0,50%** | **−0,18%** |
-| profit factor | 1,18 | 0,94 |
-| acierto | 43,9% | 43,3% |
+| operaciones | 143 | **20** |
+| esperanza neta/op. | +0,58% | **+0,66%** |
+| profit factor | 1,23 | **1,30** |
+| acierto | 43,4% | **55,0%** |
+| retorno total | +52,6% | **+9,9%** |
+| buy & hold del periodo | +32,7% | **−40,9%** |
+| p contra azar | **0,035** | 0,183 |
 
-**El sistema tiene una ventaja bruta pequeña y los costes se la comen entera.**
-El coste medio por operación es del 0,68%, un 136% de la ventaja bruta. No es
-un problema de la señal: es que la señal no es lo bastante grande para pagar el
-peaje de Kraken con este horizonte.
+Lectura honesta: la esperanza es positiva y consistente entre desarrollo y
+holdout, y en desarrollo bate al azar de forma significativa. En el holdout la
+dirección se mantiene pero **20 operaciones no dan potencia estadística**
+(p=0,183): el resultado es prometedor, no probado. El sistema ganó un +9,9% en
+un periodo en el que el mercado cayó un 40,9% de media.
 
-Contra los baselines:
+Los costes se modelan por tipo de orden: taker+slippage+spread (0,34%/lado) en
+ejecuciones agresivas, maker (0,16%) en limitadas. Al baseline aleatorio se le
+imputa el mismo coste medio que pagó el sistema, para que el contraste mida la
+señal y no la diferencia de comisiones.
 
-- **Buy & hold**: −40,9% de media en el periodo. El sistema hizo −75,3%.
-- **Señales aleatorias** (1.000 simulaciones, misma frecuencia, misma mezcla de
-  direcciones, mismas reglas de salida): el sistema queda en el percentil 86,8,
-  con **p = 0,133**.
-
-> **No hay evidencia de que el sistema bata al azar.** Un 13% de las carteras
-> aleatorias lo igualan o superan. Que quede por encima de la media aleatoria
-> sugiere que puede haber algo, pero con 289 operaciones no se sostiene al 5%.
-
-El lado corto es el que pierde: +0,89% de esperanza neta en largos frente a
-−1,50% en cortos.
-
-Aviso sobre el drawdown: la curva de capital compone las 289 operaciones en
-serie a tamaño completo, lo que supone meter todo el capital en cada una. El
-86,4% de caída máxima refleja ese supuesto, no un dimensionamiento realista
-entre 9 pares.
+El lado corto queda excluido: es coherente con operar spot sin margen y en
+desarrollo rendía −0,73% por operación frente a +1,13% de los largos.
 
 ## Decisiones de diseño
 

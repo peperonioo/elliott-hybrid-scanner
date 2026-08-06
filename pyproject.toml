@@ -28,7 +28,7 @@ src = ["src", "tests"]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
 # RUF001: el proyecto escribe en castellano y usa tipografía real (×, —) en
 # etiquetas de gráfico y comentarios. No es ambigüedad accidental.
-ignore = ["RUF001"]
+ignore = ["RUF001", "RUF003"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
