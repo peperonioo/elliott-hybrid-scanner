@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from ehs.config import Config, setup_logging
 from ehs.data.fetcher import OHLCVFetcher
 from ehs.report.daily import write_report
+from ehs.report.web import write_web
 
 
 def main() -> int:
@@ -34,7 +35,9 @@ def main() -> int:
             print(f"AVISO: {resultado.report.summary()}")
 
     path = write_report(cfg)
+    web = write_web(cfg)
     print(f"Informe: {path}")
+    print(f"Web: {web}")
     return 0
 
 

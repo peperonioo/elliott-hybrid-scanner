@@ -14,6 +14,7 @@ paths:
   cache_dir: data/cache # Parquet de OHLCV
   reports_dir: reports # informes de la fase 6
   plots_dir: plots # gráficos de validación visual
+  web_dir: docs # dashboard HTML para GitHub Pages
 
 # ---------------------------------------------------------------------------
 # Exchanges — SOLO endpoints públicos. Este sistema nunca usa API keys.
