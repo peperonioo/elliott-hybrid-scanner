@@ -10,6 +10,8 @@ dist/
 # Datos descargados: reproducibles desde el exchange, no se versionan.
 data/cache/
 plots/
-reports/
+
+# Los informes SÍ se versionan: el workflow diario los commitea y el historial
+# de informes es justamente el registro del forward test.
 
 .DS_Store
