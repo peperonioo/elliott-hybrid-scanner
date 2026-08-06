@@ -1,1 +1,1 @@
-"""Pendiente de implementar."""
+"""Informe diario en Markdown."""
