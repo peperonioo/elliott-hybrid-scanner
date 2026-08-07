@@ -88,6 +88,7 @@ class ExchangeGateway:
         retry: RetryPolicy | None = None,
         exchange: Any | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        public_api_url: str | None = None,
     ) -> None:
         self.exchange_id = exchange_id
         self.retry = retry or RetryPolicy()
@@ -95,6 +96,15 @@ class ExchangeGateway:
         self._sleep = sleep
         self._exchange = exchange if exchange is not None else self._build(enable_throttle)
         self._markets_loaded = False
+
+        # Endpoint alternativo para los datos públicos. El caso que lo motiva:
+        # Binance geo-bloquea las IPs de los runners de GitHub (EE.UU.), pero
+        # su endpoint oficial solo-datos (data-api.binance.vision) no. Solo se
+        # toca la ruta `public`: este sistema no usa ninguna otra.
+        if public_api_url:
+            urls = getattr(self._exchange, "urls", None)
+            if isinstance(urls, dict) and "api" in urls and isinstance(urls["api"], dict):
+                urls["api"]["public"] = public_api_url
 
     def _build(self, enable_throttle: bool) -> Any:
         if not hasattr(ccxt, self.exchange_id):

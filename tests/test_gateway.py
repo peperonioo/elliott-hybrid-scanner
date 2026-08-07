@@ -117,3 +117,34 @@ def test_el_gateway_no_lleva_credenciales():
     gw = ExchangeGateway("kraken")
     assert not gw._exchange.apiKey
     assert not gw._exchange.secret
+
+
+def test_el_endpoint_publico_alternativo_se_aplica():
+    """Binance geo-bloquea los runners de CI; data-api.binance.vision no."""
+
+    class ConUrls(FakeExchange):
+        def __init__(self):
+            super().__init__()
+            self.urls = {"api": {"public": "https://api.original.com", "private": "x"}}
+
+    exchange = ConUrls()
+    ExchangeGateway(
+        "binance",
+        exchange=exchange,
+        retry=NO_RETRY,
+        sleep=lambda _: None,
+        public_api_url="https://data-api.binance.vision/api/v3",
+    )
+    assert exchange.urls["api"]["public"] == "https://data-api.binance.vision/api/v3"
+    assert exchange.urls["api"]["private"] == "x"  # lo demás no se toca
+
+
+def test_sin_override_las_urls_no_se_tocan():
+    class ConUrls(FakeExchange):
+        def __init__(self):
+            super().__init__()
+            self.urls = {"api": {"public": "https://api.original.com"}}
+
+    exchange = ConUrls()
+    ExchangeGateway("binance", exchange=exchange, retry=NO_RETRY, sleep=lambda _: None)
+    assert exchange.urls["api"]["public"] == "https://api.original.com"

@@ -31,6 +31,10 @@ exchanges:
   primary:
     id: binance
     quote: USDT
+    # Binance geo-bloquea las IPs de los runners de GitHub (EE.UU.). Su
+    # endpoint oficial solo-datos no tiene esa restricción y sirve exactamente
+    # los mismos datos públicos, así que se usa siempre.
+    public_api_url: https://data-api.binance.vision/api/v3
   fallback:
     id: kraken
     quote: USD

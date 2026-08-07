@@ -97,6 +97,7 @@ class OHLCVFetcher:
                 enable_throttle=bool(rate_limit.get("enable_throttle", True)),
                 extra_sleep_ms=int(rate_limit.get("extra_sleep_ms", 0)),
                 retry=RetryPolicy.from_config(self.cfg.section("exchanges.retry")),
+                public_api_url=str(self.cfg.get(f"exchanges.{role}.public_api_url", "")) or None,
             )
         return self._gateways[role]
 
