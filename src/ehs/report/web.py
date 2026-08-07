@@ -1,9 +1,11 @@
-"""Página web del scanner: dashboard HTML con gráficos.
+"""Página web del scanner: dashboard con gráficos interactivos.
 
-Genera un `index.html` autocontenido (sin librerías externas, tema claro y
-oscuro, apto para móvil) pensado para GitHub Pages. Cada par se presenta como
-una tarjeta con un gráfico SVG generado aquí mismo: precio reciente, ZigZag de
-la estructura, zona de compra sombreada y líneas de stop y objetivo.
+Genera un `index.html` para GitHub Pages con un gráfico de velas real por
+moneda, usando Lightweight Charts (la librería open-source de TradingView,
+cargada por CDN). Sobre cada gráfico se dibujan la zona de compra, el stop y
+el objetivo 2R, y la estructura de ondas detectada. Los datos de las velas
+van embebidos en la propia página como JSON: no hay peticiones a exchanges
+desde el navegador.
 
 Usa las mismas entradas que el informe Markdown —`collect_entries`—, así que
 la web y el informe no pueden contar cosas distintas.
@@ -12,8 +14,10 @@ la web y el informe no pueden contar cosas distintas.
 from __future__ import annotations
 
 import html
+import json
 import logging
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -25,7 +29,10 @@ from ehs.structure.swings import detect_swings
 
 LOGGER = logging.getLogger(__name__)
 
-CHART_BARS = 180  # ~30 días de velas de 4h
+CHART_BARS = 240  # ~40 días de velas de 4h
+LIGHTWEIGHT_CHARTS_CDN = (
+    "https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"
+)
 
 # Traducciones a lenguaje llano. La web es la cara del sistema para un lector
 # no técnico: los nombres internos se quedan en el código y en el Markdown.
@@ -58,19 +65,19 @@ CSS = """
 :root {
   --bg:#f6f8fa; --fg:#1f2328; --muted:#656d76; --card:#ffffff;
   --border:#d0d7de; --accent:#0969da; --green:#1a7f37; --red:#d1242f;
-  --amber:#9a6700; --zone:rgba(9,105,218,.10); --zonefill:rgba(9,105,218,.16);
+  --amber:#9a6700; --zone:rgba(9,105,218,.10);
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg:#0d1117; --fg:#e6edf3; --muted:#8b949e; --card:#161b22;
     --border:#30363d; --accent:#4493f8; --green:#3fb950; --red:#f85149;
-    --amber:#d29922; --zone:rgba(68,147,248,.12); --zonefill:rgba(68,147,248,.20);
+    --amber:#d29922; --zone:rgba(68,147,248,.12);
   }
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);
   font:15px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:820px;margin:0 auto;padding:24px 16px 56px}
+.wrap{max-width:860px;margin:0 auto;padding:24px 16px 56px}
 h1{font-size:1.45rem;margin:0}
 .updated{color:var(--muted);font-size:.9rem;margin:4px 0 14px}
 .disclaimer{color:var(--muted);font-size:.82rem;margin-bottom:22px}
@@ -86,8 +93,9 @@ h2{font-size:1.12rem;margin:30px 0 10px;border-bottom:1px solid var(--border);
 .badge.long{background:var(--green);color:#fff}
 .badge.score{background:var(--zone);color:var(--accent)}
 .card .meta{color:var(--muted);font-size:.82rem;margin:0 0 8px}
-.chart{margin:4px 0}
-.chart svg{width:100%;height:auto;display:block}
+.tvchart{height:300px;margin:6px 0 2px}
+.tvlink{font-size:.8rem;margin:2px 0 6px}
+.tvlink a{color:var(--accent);text-decoration:none}
 .levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
   gap:8px;margin:10px 0 2px}
 .level{background:var(--bg);border:1px solid var(--border);border-radius:8px;
@@ -125,112 +133,6 @@ def _esc(text: str) -> str:
     return html.escape(str(text), quote=True)
 
 
-# ---------------------------------------------------------------------------
-# Gráfico SVG
-# ---------------------------------------------------------------------------
-
-
-def price_chart_svg(
-    closes: list[float],
-    pivots_rel: list[tuple[int, float]],
-    *,
-    zone: tuple[float, float] | None,
-    stop: float | None,
-    target: float | None,
-) -> str:
-    """Gráfico de línea con la zona de compra, el stop y el objetivo.
-
-    Todo son coordenadas calculadas aquí: sin JavaScript ni librerías, así que
-    funciona en cualquier navegador y pesa poco.
-    """
-    if len(closes) < 2:
-        return ""
-
-    width, height = 680.0, 240.0
-    left, right, top, bottom = 6.0, 74.0, 12.0, 12.0
-    plot_w, plot_h = width - left - right, height - top - bottom
-
-    candidates = list(closes)
-    if zone:
-        candidates += [zone[0], zone[1]]
-    if stop is not None:
-        candidates.append(stop)
-    if target is not None:
-        candidates.append(target)
-    lo, hi = min(candidates), max(candidates)
-    span = (hi - lo) or abs(hi) or 1.0
-    lo, hi = lo - span * 0.05, hi + span * 0.05
-
-    def x(i: int) -> float:
-        return left + plot_w * i / (len(closes) - 1)
-
-    def y(price: float) -> float:
-        return top + plot_h * (1 - (price - lo) / (hi - lo))
-
-    parts: list[str] = [
-        f'<svg viewBox="0 0 {width:.0f} {height:.0f}" role="img" '
-        f'xmlns="http://www.w3.org/2000/svg">'
-    ]
-
-    # Banda de la zona de compra, de lado a lado.
-    if zone:
-        z_top, z_bot = y(zone[1]), y(zone[0])
-        parts.append(
-            f'<rect x="{left}" y="{z_top:.1f}" width="{plot_w:.1f}" '
-            f'height="{max(z_bot - z_top, 2):.1f}" fill="var(--zonefill)"/>'
-        )
-        parts.append(
-            f'<text x="{left + 4}" y="{z_top - 4:.1f}" font-size="11" '
-            f'fill="var(--accent)">compra {_fmt(zone[0])}–{_fmt(zone[1])}</text>'
-        )
-
-    # Líneas de stop y objetivo, con etiqueta en el margen derecho.
-    def hline(price: float, color: str, label: str, dy: float) -> None:
-        yy = y(price)
-        parts.append(
-            f'<line x1="{left}" y1="{yy:.1f}" x2="{left + plot_w:.1f}" y2="{yy:.1f}" '
-            f'stroke="{color}" stroke-width="1.3" stroke-dasharray="6 4"/>'
-        )
-        parts.append(
-            f'<text x="{left + plot_w + 4:.1f}" y="{yy + dy:.1f}" font-size="11" '
-            f'fill="{color}">{label}</text>'
-        )
-
-    if stop is not None:
-        hline(stop, "var(--red)", f"stop {_fmt(stop)}", 4)
-    if target is not None:
-        hline(target, "var(--green)", f"2R {_fmt(target)}", 4)
-
-    # Precio.
-    line = " ".join(f"{x(i):.1f},{y(c):.1f}" for i, c in enumerate(closes))
-    parts.append(
-        f'<polyline points="{line}" fill="none" stroke="var(--muted)" '
-        f'stroke-width="1.4" stroke-linejoin="round"/>'
-    )
-
-    # ZigZag de la estructura por encima del precio.
-    visible = [(i, p) for i, p in pivots_rel if 0 <= i < len(closes)]
-    if len(visible) >= 2:
-        zigzag = " ".join(f"{x(i):.1f},{y(p):.1f}" for i, p in visible)
-        parts.append(
-            f'<polyline points="{zigzag}" fill="none" stroke="var(--accent)" '
-            f'stroke-width="1.8" stroke-linejoin="round"/>'
-        )
-        for i, p in visible:
-            parts.append(f'<circle cx="{x(i):.1f}" cy="{y(p):.1f}" r="3" fill="var(--accent)"/>')
-
-    # Último precio.
-    last_x, last_y = x(len(closes) - 1), y(closes[-1])
-    parts.append(f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="3.5" fill="var(--fg)"/>')
-    parts.append(
-        f'<text x="{left + plot_w + 4:.1f}" y="{last_y - 6:.1f}" font-size="11" '
-        f'font-weight="700" fill="var(--fg)">{_fmt(closes[-1])}</text>'
-    )
-
-    parts.append("</svg>")
-    return "".join(parts)
-
-
 def _target_for(entry: ReportEntry) -> float | None:
     r = entry.result
     if r.zone is None:
@@ -241,16 +143,77 @@ def _target_for(entry: ReportEntry) -> float | None:
     return mid + 2 * (mid - r.signal_invalidation)
 
 
+def _chart_id(symbol: str) -> str:
+    return "chart-" + symbol.replace("/", "-")
+
+
+def _tradingview_url(symbol: str) -> str:
+    return "https://www.tradingview.com/chart/?symbol=BINANCE:" + symbol.replace("/", "")
+
+
+# ---------------------------------------------------------------------------
+# Datos para los gráficos
+# ---------------------------------------------------------------------------
+
+
+def build_chart_data(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[str, Any]]:
+    """Velas, pivotes y niveles de cada par, listos para embeber como JSON."""
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    data: dict[str, dict[str, Any]] = {}
+
+    for entry in entries:
+        r = entry.result
+        if r.symbol in data:
+            continue
+        base = r.symbol.split("/")[0]
+        _, structure, _ = _read_pair(cfg, cache, base, params)
+        if structure.empty:
+            continue
+
+        window = structure.iloc[-CHART_BARS:]
+        candles = [
+            {
+                "time": int(ts.timestamp()),
+                "open": round(float(row["open"]), 6),
+                "high": round(float(row["high"]), 6),
+                "low": round(float(row["low"]), 6),
+                "close": round(float(row["close"]), 6),
+            }
+            for ts, row in window.iterrows()
+        ]
+
+        first_ts = int(window.index[0].timestamp())
+        pivots = [
+            {"time": int(p.timestamp.timestamp()), "value": round(p.price, 6)}
+            for p in detect_swings(structure, **params.swing)
+            if int(p.timestamp.timestamp()) >= first_ts
+        ]
+
+        data[r.symbol] = {
+            "candles": candles,
+            "pivots": pivots,
+            "zone": [round(r.zone[0], 6), round(r.zone[1], 6)] if r.zone else None,
+            "stop": round(r.signal_invalidation, 6),
+            "target": (round(_target_for(entry), 6) if _target_for(entry) is not None else None),
+        }
+    return data
+
+
 # ---------------------------------------------------------------------------
 # Tarjetas
 # ---------------------------------------------------------------------------
 
 
-def _card(entry: ReportEntry, chart: str) -> str:
+def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = None) -> str:
     r = entry.result
     target = _target_for(entry)
+    price_now = current_price if current_price is not None else r.price
 
-    levels = []
+    levels = [
+        f'<div class="level"><div class="lab">Precio ahora</div>'
+        f'<div class="val">{_fmt(price_now)}</div></div>'
+    ]
     if r.zone:
         levels.append(
             f'<div class="level buy"><div class="lab">Zona de compra</div>'
@@ -287,7 +250,13 @@ def _card(entry: ReportEntry, chart: str) -> str:
     ambiguo = " · la estructura admite otra lectura (ver detalle)" if r.count.is_ambiguous else ""
     confirmada = f" · señal confirmada el {r.timestamp:%d-%m %H:%M} UTC" if entry.is_signal else ""
 
-    chart_html = f'<div class="chart">{chart}</div>' if chart else ""
+    chart_html = (
+        f'<div class="tvchart" id="{_chart_id(r.symbol)}"></div>'
+        f'<p class="tvlink"><a href="{_tradingview_url(r.symbol)}" target="_blank" '
+        f'rel="noopener">ver {_esc(base)} en TradingView ↗</a></p>'
+        if has_chart
+        else ""
+    )
 
     return f"""
 <div class="{card_class}">
@@ -313,12 +282,13 @@ LEGEND = """
   <dt>Los precios están en dólares</dt>
   <dd>Cotizaciones de Binance contra USDT, un "dólar digital" que vale lo mismo que
   un dólar estadounidense. Cuando pone BTC 64.665, son ~64.665 $.</dd>
-  <dt>El gráfico</dt>
-  <dd>Línea gris: el precio (velas de 4 horas, último mes). Línea azul: la estructura
-  de ondas de Elliott que el sistema ha detectado. Banda azul: la zona donde comprar
-  sería técnicamente favorable. Línea roja: el stop (si el precio cae ahí, la idea ha
-  fallado y se sale). Línea verde: el objetivo, que gana el doble de lo que arriesga
-  el stop ("2R").</dd>
+  <dt>El gráfico (interactivo)</dt>
+  <dd>Velas de 4 horas del último mes y medio: arrastra para moverte y usa la rueda o
+  el gesto de pellizcar para hacer zoom. La línea azul es la estructura de ondas de
+  Elliott detectada. Las líneas horizontales marcan la <b>zona de compra</b> (azul),
+  el <b>stop</b> (rojo: si el precio cae ahí, la idea ha fallado) y el
+  <b>objetivo</b> (verde: gana el doble de lo que arriesga el stop, "2R"). El enlace
+  de debajo abre la misma moneda en TradingView.</dd>
   <dt>Señal de compra vs radar</dt>
   <dd>El sistema hace 5 comprobaciones sobre cada moneda (precio en nivel Fibonacci,
   divergencia del RSI, ruptura en el gráfico diario, volumen coherente y tendencia
@@ -335,6 +305,68 @@ LEGEND = """
 </details>"""
 
 
+CHART_SCRIPT = """
+<script>
+(function () {
+  if (typeof LightweightCharts === "undefined") return;
+  var css = getComputedStyle(document.documentElement);
+  var v = function (name) { return css.getPropertyValue(name).trim(); };
+
+  Object.keys(EHS_DATA).forEach(function (symbol) {
+    var d = EHS_DATA[symbol];
+    var el = document.getElementById("chart-" + symbol.replace("/", "-"));
+    if (!el || !d.candles || d.candles.length < 2) return;
+
+    var chart = LightweightCharts.createChart(el, {
+      autoSize: true,
+      layout: { background: { color: "transparent" }, textColor: v("--muted") },
+      grid: {
+        vertLines: { color: v("--border") },
+        horzLines: { color: v("--border") },
+      },
+      rightPriceScale: { borderColor: v("--border") },
+      timeScale: { borderColor: v("--border"), timeVisible: true },
+      crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+    });
+
+    var candles = chart.addCandlestickSeries({
+      upColor: v("--green"), downColor: v("--red"),
+      wickUpColor: v("--green"), wickDownColor: v("--red"),
+      borderVisible: false,
+    });
+    candles.setData(d.candles);
+
+    if (d.pivots && d.pivots.length >= 2) {
+      var zigzag = chart.addLineSeries({
+        color: v("--accent"), lineWidth: 2,
+        priceLineVisible: false, lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+      zigzag.setData(d.pivots);
+    }
+
+    var line = function (price, color, title, style) {
+      if (price === null || price === undefined) return;
+      candles.createPriceLine({
+        price: price, color: color, lineWidth: 1,
+        lineStyle: style, axisLabelVisible: true, title: title,
+      });
+    };
+    var dashed = LightweightCharts.LineStyle.Dashed;
+    var solid = LightweightCharts.LineStyle.Solid;
+    if (d.zone) {
+      line(d.zone[0], v("--accent"), "zona compra", solid);
+      line(d.zone[1], v("--accent"), "", solid);
+    }
+    line(d.stop, v("--red"), "stop", dashed);
+    line(d.target, v("--green"), "objetivo 2R", dashed);
+
+    chart.timeScale().fitContent();
+  });
+})();
+</script>"""
+
+
 # ---------------------------------------------------------------------------
 # Página
 # ---------------------------------------------------------------------------
@@ -346,22 +378,29 @@ def render_html(
     *,
     cfg: Config,
     now: pd.Timestamp,
-    charts: dict[str, str] | None = None,
+    chart_data: dict[str, dict[str, Any]] | None = None,
 ) -> str:
-    charts = charts or {}
+    chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
     near = [e for e in entries if not e.is_signal]
 
+    def last_close(symbol: str) -> float | None:
+        candles = chart_data.get(symbol, {}).get("candles")
+        return float(candles[-1]["close"]) if candles else None
+
+    def card(e: ReportEntry) -> str:
+        return _card(e, e.result.symbol in chart_data, last_close(e.result.symbol))
+
     if signals:
-        cuerpo_senales = "".join(_card(e, charts.get(e.result.symbol, "")) for e in signals)
+        cuerpo_senales = "".join(card(e) for e in signals)
     else:
         cuerpo_senales = """
 <div class="empty"><b>Hoy no hay señal de compra.</b><br>
 Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara con
-3 de 5 factores a favor.</div>"""
+3 de 5 comprobaciones a favor.</div>"""
 
     cuerpo_radar = (
-        "".join(_card(e, charts.get(e.result.symbol, "")) for e in near)
+        "".join(card(e) for e in near)
         if near
         else '<p style="color:var(--muted)">Ningún par tiene ahora mismo una estructura '
         "alcista operable.</p>"
@@ -372,6 +411,15 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
         if warnings
         else ""
     )
+
+    scripts = ""
+    if chart_data:
+        payload = json.dumps(chart_data, separators=(",", ":"))
+        scripts = (
+            f"<script>var EHS_DATA = {payload};</script>\n"
+            f'<script src="{LIGHTWEIGHT_CHARTS_CDN}"></script>\n'
+            f"{CHART_SCRIPT}"
+        )
 
     return f"""<!doctype html>
 <html lang="es">
@@ -406,50 +454,18 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
     Historial de informes</a> (registro del forward test)
   </footer>
 </div>
+{scripts}
 </body>
 </html>
 """
-
-
-def build_charts(cfg: Config, entries: list[ReportEntry]) -> dict[str, str]:
-    """Genera el SVG de cada par presente en las entradas."""
-    cache = ParquetCache(cfg.path("paths.cache_dir"))
-    params = PipelineParams.from_config(cfg)
-    charts: dict[str, str] = {}
-
-    for entry in entries:
-        r = entry.result
-        if r.symbol in charts:
-            continue
-        base = r.symbol.split("/")[0]
-        _, structure, _ = _read_pair(cfg, cache, base, params)
-        if structure.empty:
-            continue
-
-        window = structure.iloc[-CHART_BARS:]
-        offset = len(structure) - len(window)
-        closes = [float(v) for v in window["close"]]
-        pivots_rel = [
-            (p.index - offset, p.price)
-            for p in detect_swings(structure, **params.swing)
-            if p.index >= offset
-        ]
-        charts[r.symbol] = price_chart_svg(
-            closes,
-            pivots_rel,
-            zone=r.zone,
-            stop=r.signal_invalidation,
-            target=_target_for(entry),
-        )
-    return charts
 
 
 def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     """Genera `docs/index.html` para GitHub Pages."""
     now = now if now is not None else pd.Timestamp.now(tz="UTC")
     entries, warnings = collect_entries(cfg)
-    charts = build_charts(cfg, entries)
-    content = render_html(entries, warnings, cfg=cfg, now=now, charts=charts)
+    chart_data = build_chart_data(cfg, entries)
+    content = render_html(entries, warnings, cfg=cfg, now=now, chart_data=chart_data)
 
     web_dir = cfg.path("paths.web_dir")
     web_dir.mkdir(parents=True, exist_ok=True)

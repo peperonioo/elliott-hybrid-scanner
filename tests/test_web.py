@@ -1,9 +1,22 @@
-"""Tests del dashboard HTML."""
+"""Tests del dashboard HTML con gráficos interactivos."""
 
 from __future__ import annotations
 
-from ehs.report.web import price_chart_svg, render_html
+from ehs.report.web import render_html
 from tests_report_fixtures import NOW, make_config, make_entry
+
+CHART = {
+    "BTC/USDT": {
+        "candles": [
+            {"time": 1, "open": 100.0, "high": 110.0, "low": 95.0, "close": 105.0},
+            {"time": 2, "open": 105.0, "high": 112.0, "low": 101.0, "close": 63500.0},
+        ],
+        "pivots": [{"time": 1, "value": 100.0}, {"time": 2, "value": 110.0}],
+        "zone": [60000.0, 61000.0],
+        "stop": 58000.0,
+        "target": 66500.0,
+    }
+}
 
 
 def test_una_senal_se_renderiza_con_niveles_y_lenguaje_llano():
@@ -14,15 +27,26 @@ def test_una_senal_se_renderiza_con_niveles_y_lenguaje_llano():
     assert "Señales de compra activas (1)" in page
     assert "COMPRA" in page
     assert "3 de 5 comprobaciones a favor" in page
+    assert "Precio ahora" in page
     assert "Zona de compra" in page and "60,000" in page
     assert "Stop" in page and "58,000" in page
     assert "Objetivo 2R" in page
     assert "ni ejecuta órdenes" in page
     assert "Cómo leer esta página" in page
-    # Lenguaje llano, no jerga interna.
     assert "precio en nivel Fibonacci" in page
-    assert "corrective_abc" not in page.replace("corrective_abc", "", 0)  # placeholder
     assert "Lectura:" in page
+
+
+def test_sin_grafico_el_precio_actual_es_el_de_la_senal():
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([entry], [], cfg=make_config(), now=NOW)
+    assert "63,000" in page  # r.price del fixture
+
+
+def test_con_grafico_el_precio_actual_es_el_ultimo_cierre():
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([entry], [], cfg=make_config(), now=NOW, chart_data=CHART)
+    assert "63,500" in page  # último cierre de las velas embebidas
 
 
 def test_sin_senales_muestra_el_estado_vacio():
@@ -41,38 +65,23 @@ def test_el_radar_muestra_tarjetas_con_niveles():
     assert "60,000 – 61,000" in page
 
 
-def test_el_grafico_se_incrusta_cuando_se_proporciona():
+def test_con_datos_se_embebe_el_grafico_interactivo():
     entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
-    svg = price_chart_svg(
-        [100.0, 105.0, 103.0, 108.0],
-        [(0, 100.0), (3, 108.0)],
-        zone=(101.0, 102.0),
-        stop=99.0,
-        target=106.0,
-    )
-    page = render_html([entry], [], cfg=make_config(), now=NOW, charts={"BTC/USDT": svg})
+    page = render_html([entry], [], cfg=make_config(), now=NOW, chart_data=CHART)
 
-    assert "<svg" in page
-    assert "compra 101" in page  # etiqueta de la banda
-    assert "stop 99" in page
-    assert "2R 106" in page
+    assert "lightweight-charts" in page  # CDN de la librería de TradingView
+    assert 'id="chart-BTC-USDT"' in page
+    assert "EHS_DATA" in page
+    assert '"stop":58000.0' in page
+    assert "ver BTC en TradingView" in page
+    assert "tradingview.com/chart/?symbol=BINANCE:BTCUSDT" in page
 
 
-def test_el_svg_dibuja_precio_zigzag_y_niveles():
-    svg = price_chart_svg(
-        [100.0, 110.0, 105.0, 120.0, 115.0],
-        [(1, 110.0), (2, 105.0)],
-        zone=(102.0, 104.0),
-        stop=98.0,
-        target=130.0,
-    )
-    assert svg.count("<polyline") == 2  # precio + zigzag
-    assert "<rect" in svg  # banda de compra
-    assert svg.count("stroke-dasharray") == 2  # stop y objetivo
-
-
-def test_el_svg_sin_datos_suficientes_devuelve_vacio():
-    assert price_chart_svg([100.0], [], zone=None, stop=None, target=None) == ""
+def test_sin_datos_no_se_carga_ninguna_libreria():
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([entry], [], cfg=make_config(), now=NOW)
+    assert "lightweight-charts" not in page
+    assert "<script" not in page
 
 
 def test_el_html_escapa_el_contenido():
