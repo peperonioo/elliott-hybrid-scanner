@@ -12,9 +12,9 @@ name: daily-scan
 
 on:
   schedule:
-    # 00:20 UTC: tras el cierre de la vela diaria, con margen para que el
-    # exchange consolide. El cron de GitHub puede retrasarse varios minutos.
-    - cron: "20 0 * * *"
+    # Cada 4 horas, a los 20 min del cierre de cada vela de 4h. El cron de
+    # GitHub puede retrasarse varios minutos; con caché el run tarda ~3 min.
+    - cron: "20 0,4,8,12,16,20 * * *"
   workflow_dispatch: {} # permite lanzarlo a mano desde la pestaña Actions
 
 permissions:

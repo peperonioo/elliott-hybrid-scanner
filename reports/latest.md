@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-07 12:18 UTC
+# Elliott Hybrid Scanner — 2026-08-07 23:34 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -18,14 +18,14 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| BTC/USDT | `corrective_abc` | 0.595 | fibonacci, rsi_divergence, volume_profile | 64,700.42–65,503.87 | 62,742.47 |
-| DOT/USDT | `corrective_abc` | 0.502 | rsi_divergence, volume_profile | 0.8042–0.8217 | 0.7430 |
-| ADA/USDT | `corrective_abc` | 0.435 | market_structure, higher_timeframe_trend | 0.1626–0.1712 | 0.1578 |
-| TRX/USDT | `corrective_abc` | 0.395 | fibonacci | 0.3271–0.3291 | 0.3254 |
-| BNB/USDT | `corrective_abc` | 0.246 | volume_profile, higher_timeframe_trend | 570.12–577.79 | 562.03 |
-| SOL/USDT | `corrective_abc` | 0.176 | volume_profile | 74.2379–75.4753 | 70.5800 |
-| AVAX/USDT | `corrective_abc` | 0.093 | — | 6.4521–6.6080 | 6.1370 |
-| DOGE/USDT | `corrective_abc` | 0.077 | — | 0.0711–0.0722 | 0.0677 |
+| DOT/USDT | `corrective_abc` | 0.479 | rsi_divergence, volume_profile | 0.8038–0.8221 | 0.7430 |
+| BTC/USDT | `corrective_abc` | 0.444 | rsi_divergence, volume_profile | 64,205.54–64,990.03 | 62,742.47 |
+| ADA/USDT | `corrective_abc` | 0.435 | market_structure, higher_timeframe_trend | 0.1624–0.1714 | 0.1578 |
+| TRX/USDT | `impulse_1_2_3` | 0.402 | fibonacci, volume_profile | 0.3266–0.3287 | 0.3297 |
+| BNB/USDT | `corrective_abc` | 0.246 | volume_profile, higher_timeframe_trend | 570.36–577.55 | 562.03 |
+| SOL/USDT | `corrective_abc` | 0.176 | volume_profile | 74.2300–75.4831 | 70.5800 |
+| DOGE/USDT | `corrective_abc` | 0.077 | — | 0.0710–0.0722 | 0.0677 |
+| AVAX/USDT | `corrective_abc` | 0.048 | — | 6.4477–6.6124 | 6.1370 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*

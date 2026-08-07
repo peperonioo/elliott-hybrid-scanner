@@ -128,10 +128,29 @@ def test_la_leyenda_explica_operativa_y_objetivo():
     assert "100 + 2×5" in page  # el ejemplo numérico del 2R
 
 
-def test_hay_boton_de_actualizacion_manual():
+def test_hay_boton_de_actualizacion_de_precios_y_enlace_a_reanalisis():
     page = render_html([], [], cfg=make_config(), now=NOW)
-    assert "Actualizar ahora" in page
-    assert "actions/workflows/daily-scan.yml" in page
+    assert 'id="btn-live"' in page
+    assert "Actualizar precios" in page
+    assert "actions/workflows/daily-scan.yml" in page  # re-análisis completo
+
+
+def test_con_overview_se_embebe_el_refresco_en_vivo():
+    overview = [
+        {
+            "base": "BTC",
+            "symbol": "BTC/USDT",
+            "price": 64810.0,
+            "state": "radar",
+            "cls": "rad",
+            "link": True,
+        }
+    ]
+    page = render_html([], [], cfg=make_config(), now=NOW, overview=overview)
+
+    assert "EHS_LIVE" in page
+    assert "data-api.binance.vision" in page
+    assert '"sym":"BTC/USDT"' in page
 
 
 def test_explica_que_los_precios_son_dolares():

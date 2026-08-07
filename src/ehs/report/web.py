@@ -284,7 +284,14 @@ def build_overview(cfg: Config, entries: list[ReportEntry]) -> list[dict[str, An
         else:
             state, cls = "sin estructura", "non"
         out.append(
-            {"base": base, "price": price, "state": state, "cls": cls, "link": entry is not None}
+            {
+                "base": base,
+                "symbol": symbol,
+                "price": price,
+                "state": state,
+                "cls": cls,
+                "link": entry is not None,
+            }
         )
     return out
 
@@ -296,7 +303,7 @@ def _overview_html(overview: list[dict[str, Any]]) -> str:
         inner = (
             f'<span class="mono" style="{_mono_style(o["base"])}">{_esc(o["base"][:1])}</span>'
             f'<span><span class="nm">{_esc(o["base"])}</span><br>'
-            f'<span class="pr">{precio}</span></span>'
+            f'<span class="pr" id="ov-{_esc(o["base"])}">{precio}</span></span>'
             f'<span class="st {o["cls"]}">{_esc(o["state"])}</span>'
         )
         if o["link"]:
@@ -313,12 +320,13 @@ def _overview_html(overview: list[dict[str, Any]]) -> str:
 
 def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = None) -> str:
     r = entry.result
+    base = r.symbol.split("/")[0]
     target = _target_for(entry)
     price_now = current_price if current_price is not None else r.price
 
     levels = [
         f'<div class="level"><div class="lab">Precio ahora</div>'
-        f'<div class="val">{_fmt(price_now)}</div></div>'
+        f'<div class="val" id="now-{_esc(base)}">{_fmt(price_now)}</div></div>'
     ]
 
     # Distancia del precio a la zona de compra, en cristiano.
@@ -361,7 +369,6 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
         badge = ""
         card_class = "card"
 
-    base = r.symbol.split("/")[0]
     n_activos = len(r.active_factors)
     activos = ", ".join(_factor_label(f.name) for f in r.active_factors) or "ninguna"
     detalles = "".join(
@@ -383,7 +390,7 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
         else ""
     )
 
-    zona_html = f'<p class="meta2">{zona_txt}</p>' if zona_txt else ""
+    zona_html = f'<p class="meta2" id="zt-{_esc(base)}">{zona_txt}</p>' if zona_txt else ""
 
     return f"""
 <div class="{card_class}" id="card-{_esc(base)}">
@@ -478,6 +485,10 @@ CHART_SCRIPT = """
                      minMove: d.minMove || 0.01 },
     });
     candles.setData(d.candles);
+    window.EHS_SERIES = window.EHS_SERIES || {};
+    window.EHS_SERIES[symbol] = candles;
+    window.EHS_LAST = window.EHS_LAST || {};
+    window.EHS_LAST[symbol] = d.candles[d.candles.length - 1].time;
 
     if (d.pivots && d.pivots.length >= 2) {
       var zigzag = chart.addLineSeries({
@@ -506,6 +517,66 @@ CHART_SCRIPT = """
 
     chart.timeScale().fitContent();
   });
+})();
+</script>"""
+
+
+LIVE_SCRIPT = """
+<script>
+(function () {
+  if (typeof EHS_LIVE === "undefined") return;
+  function fmt(v) {
+    if (v >= 1000) return v.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    if (v >= 1 || v <= 0) return v.toFixed(2);
+    var d = Math.min(10, -Math.floor(Math.log10(v)) + 3);
+    return v.toFixed(d);
+  }
+  function zoneText(px, zone) {
+    var lo = zone[0], hi = zone[1];
+    if (px >= lo && px <= hi)
+      return '<span class="inzone">✅ El precio está DENTRO de la zona de compra</span>';
+    if (px > hi)
+      return "El precio está un <b>" + ((px / hi - 1) * 100).toFixed(1) +
+        "% por encima</b> de la zona de compra — tocaría esperar a que baje";
+    return "⚠️ El precio está un <b>" + ((1 - px / lo) * 100).toFixed(1) +
+      "% por debajo</b> de la zona — cerca del stop, prudencia";
+  }
+  function refresh() {
+    EHS_LIVE.forEach(function (o) {
+      var pair = o.sym.replace("/", "");
+      fetch("https://data-api.binance.vision/api/v3/klines?symbol=" + pair +
+            "&interval=4h&limit=3")
+        .then(function (r) { return r.json(); })
+        .then(function (rows) {
+          if (!rows || !rows.length) return;
+          var px = parseFloat(rows[rows.length - 1][4]);
+          var el = document.getElementById("now-" + o.base);
+          if (el) el.textContent = fmt(px);
+          var ov = document.getElementById("ov-" + o.base);
+          if (ov) ov.textContent = fmt(px);
+          var zt = document.getElementById("zt-" + o.base);
+          if (zt && o.zone) zt.innerHTML = zoneText(px, o.zone);
+          if (window.EHS_SERIES && window.EHS_SERIES[o.sym]) {
+            rows.forEach(function (k) {
+              var t = Math.floor(k[0] / 1000);
+              if (t >= window.EHS_LAST[o.sym]) {
+                window.EHS_SERIES[o.sym].update(
+                  { time: t, open: +k[1], high: +k[2], low: +k[3], close: +k[4] });
+                window.EHS_LAST[o.sym] = t;
+              }
+            });
+          }
+        })
+        .catch(function () {});
+    });
+    var st = document.getElementById("live-stamp");
+    if (st) st.textContent = "precios actualizados a las " +
+      new Date().toTimeString().slice(0, 5) +
+      " · el análisis completo se rehace solo cada 4 h";
+  }
+  var btn = document.getElementById("btn-live");
+  if (btn) btn.addEventListener("click", refresh);
+  refresh();
 })();
 </script>"""
 
@@ -556,14 +627,34 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
         else ""
     )
 
+    # Lista de símbolos para el refresco en vivo, con su zona si la tienen.
+    zone_by_base: dict[str, list[float]] = {}
+    for e in entries:
+        b = e.result.symbol.split("/")[0]
+        if b not in zone_by_base and e.result.zone:
+            zone_by_base[b] = [round(e.result.zone[0], 10), round(e.result.zone[1], 10)]
+    live_payload = [
+        {"sym": o["symbol"], "base": o["base"], "zone": zone_by_base.get(o["base"])}
+        for o in (overview or [])
+        if o.get("symbol")
+    ]
+    if not live_payload and chart_data:
+        live_payload = [
+            {"sym": sym, "base": sym.split("/")[0], "zone": zone_by_base.get(sym.split("/")[0])}
+            for sym in chart_data
+        ]
+
     scripts = ""
     if chart_data:
         payload = json.dumps(chart_data, separators=(",", ":"))
-        scripts = (
+        scripts += (
             f"<script>var EHS_DATA = {payload};</script>\n"
             f'<script src="{LIGHTWEIGHT_CHARTS_CDN}"></script>\n'
-            f"{CHART_SCRIPT}"
+            f"{CHART_SCRIPT}\n"
         )
+    if live_payload:
+        live_json = json.dumps(live_payload, separators=(",", ":"))
+        scripts += f"<script>var EHS_LIVE = {live_json};</script>\n{LIVE_SCRIPT}"
 
     return f"""<!doctype html>
 <html lang="es">
@@ -583,11 +674,12 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
   contado (spot), sin apalancamiento. Sistema en fase de validación (forward test).</div>
 
   <div class="btnrow">
-    <a class="btn" target="_blank" rel="noopener"
+    <button class="btn" id="btn-live" type="button">🔄 Actualizar precios</button>
+    <a class="btn sec" target="_blank" rel="noopener"
        href="https://github.com/peperonioo/elliott-hybrid-scanner/actions/workflows/daily-scan.yml">
-       🔄 Actualizar ahora</a>
-    <span class="btnhint">se abre GitHub → botón "Run workflow" → espera ~4 min →
-    recarga esta página (necesita tu sesión de GitHub)</span>
+       re-análisis completo ↗</a>
+    <span class="btnhint" id="live-stamp">un toque: precios al instante desde Binance
+    · el análisis completo se rehace solo cada 4 h</span>
   </div>
 
   {"<h2>🧭 El mercado de un vistazo</h2>" + _overview_html(overview) if overview else ""}
