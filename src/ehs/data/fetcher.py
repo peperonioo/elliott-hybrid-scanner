@@ -98,6 +98,7 @@ class OHLCVFetcher:
                 extra_sleep_ms=int(rate_limit.get("extra_sleep_ms", 0)),
                 retry=RetryPolicy.from_config(self.cfg.section("exchanges.retry")),
                 public_api_url=str(self.cfg.get(f"exchanges.{role}.public_api_url", "")) or None,
+                ccxt_options=self.cfg.get(f"exchanges.{role}.ccxt_options", None),
             )
         return self._gateways[role]
 

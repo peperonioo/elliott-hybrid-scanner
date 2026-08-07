@@ -89,6 +89,7 @@ class ExchangeGateway:
         exchange: Any | None = None,
         sleep: Callable[[float], None] = time.sleep,
         public_api_url: str | None = None,
+        ccxt_options: dict[str, Any] | None = None,
     ) -> None:
         self.exchange_id = exchange_id
         self.retry = retry or RetryPolicy()
@@ -96,6 +97,15 @@ class ExchangeGateway:
         self._sleep = sleep
         self._exchange = exchange if exchange is not None else self._build(enable_throttle)
         self._markets_loaded = False
+
+        # Opciones de ccxt inyectadas desde la configuración. El caso que lo
+        # motiva: `load_markets` de Binance consulta por defecto también los
+        # mercados de futuros (fapi/dapi), que están geo-bloqueados en CI y no
+        # pasan por el override de URL. Restringirlo a spot lo evita.
+        if ccxt_options:
+            options = getattr(self._exchange, "options", None)
+            if isinstance(options, dict):
+                options.update(ccxt_options)
 
         # Endpoint alternativo para los datos públicos. El caso que lo motiva:
         # Binance geo-bloquea las IPs de los runners de GitHub (EE.UU.), pero

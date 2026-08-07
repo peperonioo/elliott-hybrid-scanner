@@ -33,8 +33,12 @@ exchanges:
     quote: USDT
     # Binance geo-bloquea las IPs de los runners de GitHub (EE.UU.). Su
     # endpoint oficial solo-datos no tiene esa restricción y sirve exactamente
-    # los mismos datos públicos, así que se usa siempre.
+    # los mismos datos públicos, así que se usa siempre. `fetchMarkets: [spot]`
+    # es imprescindible: sin ello load_markets consulta también futuros
+    # (fapi/dapi), que no pasan por este override y siguen bloqueados.
     public_api_url: https://data-api.binance.vision/api/v3
+    ccxt_options:
+      fetchMarkets: [spot]
   fallback:
     id: kraken
     quote: USD

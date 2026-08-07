@@ -45,7 +45,6 @@ def collect_entries(
 ) -> tuple[list[ReportEntry], list[str]]:
     """Evalúa el universo y devuelve las entradas recientes, más avisos."""
     cache = ParquetCache(cfg.path("paths.cache_dir"))
-    exchange_id = str(cfg.get("exchanges.primary.id"))
     params = PipelineParams.from_config(cfg)
     filters = TradeFilters.from_config(cfg)
 
@@ -53,11 +52,9 @@ def collect_entries(
     warnings: list[str] = []
 
     for base in cfg.bases:
-        symbol = cfg.symbol_for(base, "primary")
-        structure = cache.read(exchange_id, symbol, params.structure_timeframe)
-        context = cache.read(exchange_id, symbol, params.context_timeframe)
+        symbol, structure, context = _read_pair(cfg, cache, base, params)
         if structure.empty or context.empty:
-            warnings.append(f"{symbol}: sin datos en caché")
+            warnings.append(f"{base}: sin datos en caché (ni primario ni fallback)")
             continue
 
         results = generate_signals(
@@ -97,6 +94,25 @@ def collect_entries(
     entries = signals + list(radar.values())
     entries.sort(key=lambda e: (not e.is_signal, -e.result.score))
     return entries, warnings
+
+
+def _read_pair(cfg: Config, cache: ParquetCache, base: str, params: PipelineParams):
+    """Series del par desde la caché, respetando el orden de fallback.
+
+    El fetcher guarda bajo el exchange que realmente sirvió los datos: si el
+    primario estaba caído (o geo-bloqueado, como Binance en los runners de CI)
+    los datos viven bajo el fallback, y el informe tiene que saber mirarlo.
+    """
+    for role in ("primary", "fallback"):
+        exchange_id = cfg.get(f"exchanges.{role}.id", None)
+        if not exchange_id:
+            continue
+        symbol = cfg.symbol_for(base, role)
+        structure = cache.read(str(exchange_id), symbol, params.structure_timeframe)
+        context = cache.read(str(exchange_id), symbol, params.context_timeframe)
+        if not structure.empty and not context.empty:
+            return symbol, structure, context
+    return cfg.symbol_for(base, "primary"), structure, context
 
 
 def _best_current_read(
