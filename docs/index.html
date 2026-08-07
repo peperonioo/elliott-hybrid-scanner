@@ -8,13 +8,13 @@
 :root {
   --bg:#f6f8fa; --fg:#1f2328; --muted:#656d76; --card:#ffffff;
   --border:#d0d7de; --accent:#0969da; --green:#1a7f37; --red:#d1242f;
-  --amber:#9a6700; --zone:rgba(9,105,218,.10);
+  --amber:#9a6700; --zone:rgba(9,105,218,.10); --zonefill:rgba(9,105,218,.16);
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg:#0d1117; --fg:#e6edf3; --muted:#8b949e; --card:#161b22;
     --border:#30363d; --accent:#4493f8; --green:#3fb950; --red:#f85149;
-    --amber:#d29922; --zone:rgba(68,147,248,.12);
+    --amber:#d29922; --zone:rgba(68,147,248,.12); --zonefill:rgba(68,147,248,.20);
   }
 }
 *{box-sizing:border-box}
@@ -22,111 +22,191 @@ body{margin:0;background:var(--bg);color:var(--fg);
   font:15px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:820px;margin:0 auto;padding:24px 16px 56px}
 h1{font-size:1.45rem;margin:0}
-.updated{color:var(--muted);font-size:.9rem;margin:4px 0 18px}
-.disclaimer{border-left:4px solid var(--amber);background:var(--card);
-  padding:10px 14px;border-radius:0 8px 8px 0;color:var(--muted);
-  font-size:.88rem;margin-bottom:26px}
-h2{font-size:1.12rem;margin:34px 0 12px;border-bottom:1px solid var(--border);
+.updated{color:var(--muted);font-size:.9rem;margin:4px 0 14px}
+.disclaimer{color:var(--muted);font-size:.82rem;margin-bottom:22px}
+h2{font-size:1.12rem;margin:30px 0 10px;border-bottom:1px solid var(--border);
   padding-bottom:6px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:16px 18px;margin:14px 0}
-.card h3{margin:0 0 8px;font-size:1rem}
+  padding:14px 16px;margin:14px 0}
+.card.signal{border-color:var(--green);border-width:2px}
+.card h3{margin:0 0 6px;font-size:1rem;display:flex;flex-wrap:wrap;gap:8px;
+  align-items:center}
 .badge{display:inline-block;padding:2px 10px;border-radius:999px;
-  font-size:.78rem;font-weight:700;vertical-align:middle}
+  font-size:.75rem;font-weight:700}
 .badge.long{background:var(--green);color:#fff}
 .badge.score{background:var(--zone);color:var(--accent)}
-.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-  gap:10px;margin:12px 0}
+.card .meta{color:var(--muted);font-size:.82rem;margin:0 0 8px}
+.chart{margin:4px 0}
+.chart svg{width:100%;height:auto;display:block}
+.levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:8px;margin:10px 0 2px}
 .level{background:var(--bg);border:1px solid var(--border);border-radius:8px;
-  padding:8px 12px}
-.level .lab{font-size:.75rem;color:var(--muted);text-transform:uppercase;
+  padding:6px 10px}
+.level .lab{font-size:.7rem;color:var(--muted);text-transform:uppercase;
   letter-spacing:.03em}
-.level .val{font-weight:700;font-size:1.02rem}
+.level .val{font-weight:700;font-size:.95rem}
 .level.buy .val{color:var(--accent)}
 .level.stop .val{color:var(--red)}
-table{border-collapse:collapse;width:100%;font-size:.86rem;margin:8px 0}
-th,td{border:1px solid var(--border);padding:6px 9px;text-align:left}
+.level.target .val{color:var(--green)}
+table{border-collapse:collapse;width:100%;font-size:.84rem;margin:8px 0}
+th,td{border:1px solid var(--border);padding:5px 9px;text-align:left}
 th{background:var(--bg)}
 .ok{color:var(--green);font-weight:700}
 .empty{background:var(--card);border:1px dashed var(--border);border-radius:12px;
-  padding:22px;text-align:center;color:var(--muted)}
+  padding:18px;text-align:center;color:var(--muted)}
 .empty b{color:var(--fg)}
-details{margin-top:8px}
-summary{cursor:pointer;color:var(--accent);font-size:.9rem}
-details ul{margin:8px 0;padding-left:18px;color:var(--muted);font-size:.88rem}
-.scroll{overflow-x:auto}
-.legend{font-size:.92rem}
-.legend dt{font-weight:700;margin-top:12px}
+details{margin-top:6px}
+summary{cursor:pointer;color:var(--accent);font-size:.88rem}
+details ul{margin:8px 0;padding-left:18px;color:var(--muted);font-size:.86rem}
+.legend{font-size:.9rem}
+.legend dt{font-weight:700;margin-top:10px}
 .legend dd{margin:2px 0 0 0;color:var(--muted)}
-footer{margin-top:40px;color:var(--muted);font-size:.85rem;
-  border-top:1px solid var(--border);padding-top:14px}
+footer{margin-top:36px;color:var(--muted);font-size:.82rem;
+  border-top:1px solid var(--border);padding-top:12px}
 footer a{color:var(--accent)}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>📡 Elliott Hybrid Scanner</h1>
-  <div class="updated">Actualizado: 07-08-2026 04:22 UTC · se regenera cada noche ·
-    universo: BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT · timeframe 4h</div>
-
-  <div class="disclaimer">Informe generado automáticamente con datos públicos de Binance.
-  <b>No es asesoramiento financiero y el sistema no ejecuta órdenes</b>: son hipótesis
-  técnicas para validar a mano antes de decidir nada. Backtest: prometedor pero no
-  probado (holdout de solo 20 operaciones); en fase de forward test.</div>
+  <div class="updated">Actualizado: 07-08-2026 06:09 UTC · se regenera cada noche ·
+    BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT · 4h</div>
+  <div class="disclaimer">Herramienta informativa generada automáticamente — no es
+  asesoramiento financiero ni ejecuta órdenes. Sistema en fase de validación
+  (forward test).</div>
 
   <h2>🎯 Señales de compra activas (0)</h2>
   
-<div class="empty">
-  <b>Hoy no hay señal de compra.</b><br>
-  Es lo normal: el sistema solo habla cuando 3 de sus 5 comprobaciones están a favor,
-  unas 4 veces al mes en todo el universo. Un scanner que dispara a diario no filtra nada.
-</div>
+<div class="empty"><b>Hoy no hay señal de compra.</b><br>
+Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara con
+3 de 5 factores a favor.</div>
 
   <h2>👀 En el radar (6)</h2>
   
-<div class="scroll">
-<table>
-  <tr><th>par</th><th>estructura</th><th>score</th><th>factores activos</th>
-    <th>zona de compra</th><th>stop</th></tr>
-  <tr><td>DOT/USDT</td><td><code>corrective_abc</code></td><td>0.48</td><td>rsi_divergence, volume_profile</td><td>0.8038 – 0.8221</td><td>0.7430</td></tr><tr><td>BTC/USDT</td><td><code>corrective_abc</code></td><td>0.44</td><td>rsi_divergence, volume_profile</td><td>64,205.54 – 64,990.03</td><td>62,742.47</td></tr><tr><td>ADA/USDT</td><td><code>corrective_abc</code></td><td>0.43</td><td>market_structure, higher_timeframe_trend</td><td>0.1624 – 0.1714</td><td>0.1578</td></tr><tr><td>BNB/USDT</td><td><code>corrective_abc</code></td><td>0.25</td><td>volume_profile, higher_timeframe_trend</td><td>570.36 – 577.55</td><td>562.03</td></tr><tr><td>SOL/USDT</td><td><code>corrective_abc</code></td><td>0.18</td><td>volume_profile</td><td>74.2300 – 75.4831</td><td>70.5800</td></tr><tr><td>AVAX/USDT</td><td><code>corrective_abc</code></td><td>0.05</td><td>—</td><td>6.4477 – 6.6124</td><td>6.1370</td></tr>
-</table>
+<div class="card">
+  <h3>DOT 
+    <span class="badge score">2 de 5 comprobaciones a favor</span>
+  </h3>
+  <p class="meta">Lectura: <b>corrección terminada → posible subida</b>
+    · a favor: divergencia del RSI, volumen coherente
+    · se necesitan 3 de 5 para señal de compra · la estructura admite otra lectura (ver detalle)</p>
+  <div class="chart"><svg viewBox="0 0 680 240" role="img" xmlns="http://www.w3.org/2000/svg"><rect x="6.0" y="144.1" width="600.0" height="17.2" fill="var(--zonefill)"/><text x="10.0" y="140.1" font-size="11" fill="var(--accent)">compra 0.8038–0.8221</text><line x1="6.0" y1="218.2" x2="606.0" y2="218.2" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="222.2" font-size="11" fill="var(--red)">stop 0.7430</text><line x1="6.0" y1="21.8" x2="606.0" y2="21.8" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="25.8" font-size="11" fill="var(--green)">2R 0.9529</text><polyline points="6.0,127.4 9.4,133.0 12.7,146.1 16.1,140.5 19.4,139.6 22.8,139.6 26.1,132.1 29.5,134.0 32.8,137.7 36.2,140.5 39.5,140.5 42.9,122.7 46.2,119.9 49.6,86.3 52.9,94.7 56.3,95.6 59.6,92.8 63.0,87.2 66.3,94.7 69.7,90.9 73.0,90.0 76.4,90.0 79.7,114.3 83.1,110.6 86.4,120.9 89.8,119.0 93.2,121.8 96.5,122.7 99.9,123.7 103.2,136.8 106.6,129.3 109.9,134.9 113.3,129.3 116.6,127.4 120.0,131.2 123.3,131.2 126.7,123.7 130.0,130.2 133.4,115.3 136.7,118.1 140.1,116.2 143.4,113.4 146.8,115.3 150.1,115.3 153.5,111.5 156.8,126.5 160.2,120.9 163.5,118.1 166.9,131.2 170.2,127.4 173.6,114.3 176.9,111.5 180.3,109.6 183.7,108.7 187.0,118.1 190.4,115.3 193.7,118.1 197.1,115.3 200.4,119.0 203.8,116.2 207.1,123.7 210.5,129.3 213.8,134.9 217.2,131.2 220.5,128.4 223.9,130.2 227.2,130.2 230.6,135.8 233.9,141.5 237.3,148.9 240.6,146.1 244.0,151.7 247.3,158.3 250.7,149.9 254.0,144.3 257.4,142.4 260.7,139.6 264.1,129.3 267.5,112.4 270.8,110.6 274.2,111.5 277.5,112.4 280.9,120.9 284.2,119.9 287.6,127.4 290.9,129.3 294.3,123.7 297.6,125.5 301.0,131.2 304.3,144.3 307.7,146.1 311.0,147.1 314.4,150.8 317.7,149.9 321.1,150.8 324.4,150.8 327.8,153.6 331.1,161.1 334.5,165.8 337.8,158.3 341.2,157.4 344.5,154.6 347.9,154.6 351.3,150.8 354.6,144.3 358.0,148.9 361.3,151.7 364.7,146.1 368.0,140.5 371.4,141.5 374.7,141.5 378.1,147.1 381.4,138.6 384.8,148.0 388.1,150.8 391.5,158.3 394.8,171.4 398.2,171.4 401.5,203.2 404.9,200.4 408.2,203.2 411.6,202.3 414.9,199.5 418.3,199.5 421.6,201.3 425.0,204.1 428.3,197.6 431.7,201.3 435.1,203.2 438.4,203.2 441.8,198.5 445.1,196.7 448.5,196.7 451.8,194.8 455.2,193.9 458.5,186.4 461.9,194.8 465.2,193.9 468.6,191.0 471.9,203.2 475.3,204.1 478.6,200.4 482.0,203.2 485.3,197.6 488.7,201.3 492.0,196.7 495.4,186.4 498.7,192.0 502.1,181.7 505.4,174.2 508.8,169.5 512.1,171.4 515.5,171.4 518.8,166.7 522.2,165.8 525.6,174.2 528.9,170.5 532.3,158.3 535.6,140.5 539.0,141.5 542.3,141.5 545.7,127.4 549.0,130.2 552.4,134.0 555.7,134.0 559.1,126.5 562.4,111.5 565.8,121.8 569.1,113.4 572.5,116.2 575.8,115.3 579.2,119.9 582.5,125.5 585.9,126.5 589.2,134.0 592.6,141.5 595.9,143.3 599.3,144.3 602.6,144.3 606.0,148.0" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><polyline points="12.7,150.8 49.6,76.0 250.7,163.9 270.8,100.3 334.5,177.0 381.4,134.9 475.3,218.2 562.4,99.4" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12.7" cy="150.8" r="3" fill="var(--accent)"/><circle cx="49.6" cy="76.0" r="3" fill="var(--accent)"/><circle cx="250.7" cy="163.9" r="3" fill="var(--accent)"/><circle cx="270.8" cy="100.3" r="3" fill="var(--accent)"/><circle cx="334.5" cy="177.0" r="3" fill="var(--accent)"/><circle cx="381.4" cy="134.9" r="3" fill="var(--accent)"/><circle cx="475.3" cy="218.2" r="3" fill="var(--accent)"/><circle cx="562.4" cy="99.4" r="3" fill="var(--accent)"/><circle cx="606.0" cy="148.0" r="3.5" fill="var(--fg)"/><text x="610.0" y="142.0" font-size="11" font-weight="700" fill="var(--fg)">0.8180</text></svg></div>
+  <div class="levels"><div class="level buy"><div class="lab">Zona de compra</div><div class="val">0.8038 – 0.8221</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.7430</div></div><div class="level target"><div class="lab">Objetivo 2R</div><div class="val">0.9529</div></div></div>
+  <details><summary>ver las 5 comprobaciones</summary>
+    <table><tr><th>comprobación</th><th>puntuación (0–1)</th><th>a favor</th></tr>
+    <tr><td>precio en nivel Fibonacci</td><td>0.45</td><td>—</td></tr><tr><td>divergencia del RSI</td><td>0.92</td><td><span class=ok>✅</span></td></tr><tr><td>ruptura en el gráfico diario</td><td>0.00</td><td>—</td></tr><tr><td>volumen coherente</td><td>1.00</td><td><span class=ok>✅</span></td></tr><tr><td>tendencia diaria a favor</td><td>0.17</td><td>—</td></tr></table>
+    <ul><li><b>precio en nivel Fibonacci</b>: precio 0.8180 sobre retroceso 0.786 en 0.8130</li><li><b>divergencia del RSI</b>: divergencia alcista: precio 0.7870→0.7430, RSI 27.0→36.2</li><li><b>ruptura en el gráfico diario</b>: sin ruptura a favor de bullish: cierre 0.8220 contra referencia 1.0470</li><li><b>volumen coherente</b>: vol B/A = 0.65; en un zigzag la B se seca</li><li><b>tendencia diaria a favor</b>: cierre 0.8220 contra EMA50 0.8694 (fuerza -0.67); señal bullish</li></ul>
+  </details>
 </div>
-<p style="color:var(--muted);font-size:.88rem">La mejor estructura alcista vigente de
-cada par, re-evaluada al precio actual. <b>No son señales</b> (les faltan factores):
-son los niveles a vigilar. Si el precio visita la zona y se encienden 3 de 5
-factores, pasará a señal de compra.</p>
+<div class="card">
+  <h3>BTC 
+    <span class="badge score">2 de 5 comprobaciones a favor</span>
+  </h3>
+  <p class="meta">Lectura: <b>corrección terminada → posible subida</b>
+    · a favor: divergencia del RSI, volumen coherente
+    · se necesitan 3 de 5 para señal de compra · la estructura admite otra lectura (ver detalle)</p>
+  <div class="chart"><svg viewBox="0 0 680 240" role="img" xmlns="http://www.w3.org/2000/svg"><rect x="6.0" y="120.5" width="600.0" height="23.3" fill="var(--zonefill)"/><text x="10.0" y="116.5" font-size="11" fill="var(--accent)">compra 64,206–64,990</text><line x1="6.0" y1="187.3" x2="606.0" y2="187.3" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="191.3" font-size="11" fill="var(--red)">stop 62,742</text><line x1="6.0" y1="21.8" x2="606.0" y2="21.8" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="25.8" font-size="11" fill="var(--green)">2R 68,308</text><polyline points="6.0,183.0 9.4,200.5 12.7,218.2 16.1,201.1 19.4,200.8 22.8,210.1 26.1,179.6 29.5,186.0 32.8,183.6 36.2,172.3 39.5,172.8 42.9,151.5 46.2,151.0 49.6,137.3 52.9,148.7 56.3,152.4 59.6,145.1 63.0,145.4 66.3,145.1 69.7,144.0 73.0,144.7 76.4,141.4 79.7,155.3 83.1,143.3 86.4,153.3 89.8,149.4 93.2,144.7 96.5,143.1 99.9,156.5 103.2,185.4 106.6,180.1 109.9,182.6 113.3,191.0 116.6,200.8 120.0,199.4 123.3,192.3 126.7,192.7 130.0,184.3 133.4,127.8 136.7,133.0 140.1,118.9 143.4,126.4 146.8,133.6 150.1,128.1 153.5,107.5 156.8,120.9 160.2,127.4 163.5,131.5 166.9,142.8 170.2,142.3 173.6,129.0 176.9,141.8 180.3,155.0 183.7,162.7 187.0,184.8 190.4,170.8 193.7,166.2 197.1,145.1 200.4,151.9 203.8,149.4 207.1,149.8 210.5,147.8 213.8,146.3 217.2,133.5 220.5,125.1 223.9,128.9 227.2,128.8 230.6,136.0 233.9,132.5 237.3,136.2 240.6,128.4 244.0,124.1 247.3,141.6 250.7,120.1 254.0,102.4 257.4,116.0 260.7,112.6 264.1,103.3 267.5,84.9 270.8,80.2 274.2,70.3 277.5,77.2 280.9,73.9 284.2,84.2 287.6,95.1 290.9,90.1 294.3,89.0 297.6,92.7 301.0,87.0 304.3,100.5 307.7,107.0 311.0,103.7 314.4,121.4 317.7,124.7 321.1,117.2 324.4,106.6 327.8,105.3 331.1,117.7 334.5,147.1 337.8,143.2 341.2,145.8 344.5,147.4 347.9,149.8 351.3,148.0 354.6,144.5 358.0,138.4 361.3,138.8 364.7,133.4 368.0,138.9 371.4,134.8 374.7,127.1 378.1,129.2 381.4,108.3 384.8,111.7 388.1,113.6 391.5,117.2 394.8,133.4 398.2,120.7 401.5,157.2 404.9,169.4 408.2,164.6 411.6,166.3 414.9,152.0 418.3,152.8 421.6,152.4 425.0,157.3 428.3,133.2 431.7,134.8 435.1,151.0 438.4,162.1 441.8,150.4 445.1,145.1 448.5,149.1 451.8,126.5 455.2,128.2 458.5,126.1 461.9,126.7 465.2,138.9 468.6,151.4 471.9,155.7 475.3,188.1 478.6,180.5 482.0,183.0 485.3,179.5 488.7,178.1 492.0,177.4 495.4,179.4 498.7,193.6 502.1,184.9 505.4,165.9 508.8,164.6 512.1,178.7 515.5,176.4 518.8,166.1 522.2,162.7 525.6,183.5 528.9,190.9 532.3,192.7 535.6,159.0 539.0,153.8 542.3,164.2 545.7,155.9 549.0,159.3 552.4,152.1 555.7,146.2 559.1,143.0 562.4,146.7 565.8,144.5 569.1,145.0 572.5,147.7 575.8,138.4 579.2,124.9 582.5,130.1 585.9,134.1 589.2,125.8 592.6,131.4 595.9,131.1 599.3,136.7 602.6,140.3 606.0,141.3" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><polyline points="12.7,222.9 52.9,129.3 116.6,214.6 153.5,102.3 193.7,193.4 244.0,117.0 250.7,176.7 274.2,62.0 334.5,157.7 388.1,98.0 414.9,187.3 465.2,108.0 498.7,201.2" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12.7" cy="222.9" r="3" fill="var(--accent)"/><circle cx="52.9" cy="129.3" r="3" fill="var(--accent)"/><circle cx="116.6" cy="214.6" r="3" fill="var(--accent)"/><circle cx="153.5" cy="102.3" r="3" fill="var(--accent)"/><circle cx="193.7" cy="193.4" r="3" fill="var(--accent)"/><circle cx="244.0" cy="117.0" r="3" fill="var(--accent)"/><circle cx="250.7" cy="176.7" r="3" fill="var(--accent)"/><circle cx="274.2" cy="62.0" r="3" fill="var(--accent)"/><circle cx="334.5" cy="157.7" r="3" fill="var(--accent)"/><circle cx="388.1" cy="98.0" r="3" fill="var(--accent)"/><circle cx="414.9" cy="187.3" r="3" fill="var(--accent)"/><circle cx="465.2" cy="108.0" r="3" fill="var(--accent)"/><circle cx="498.7" cy="201.2" r="3" fill="var(--accent)"/><circle cx="606.0" cy="141.3" r="3.5" fill="var(--fg)"/><text x="610.0" y="135.3" font-size="11" font-weight="700" fill="var(--fg)">64,290</text></svg></div>
+  <div class="levels"><div class="level buy"><div class="lab">Zona de compra</div><div class="val">64,206 – 64,990</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">62,742</div></div><div class="level target"><div class="lab">Objetivo 2R</div><div class="val">68,308</div></div></div>
+  <details><summary>ver las 5 comprobaciones</summary>
+    <table><tr><th>comprobación</th><th>puntuación (0–1)</th><th>a favor</th></tr>
+    <tr><td>precio en nivel Fibonacci</td><td>0.22</td><td>—</td></tr><tr><td>divergencia del RSI</td><td>0.75</td><td><span class=ok>✅</span></td></tr><tr><td>ruptura en el gráfico diario</td><td>0.00</td><td>—</td></tr><tr><td>volumen coherente</td><td>1.00</td><td><span class=ok>✅</span></td></tr><tr><td>tendencia diaria a favor</td><td>0.45</td><td>—</td></tr></table>
+    <ul><li><b>precio en nivel Fibonacci</b>: precio 64,289.9900 sobre retroceso 0.618 en 64,597.7863</li><li><b>divergencia del RSI</b>: divergencia alcista: precio 63,739.7500→62,742.4700, RSI 35.8→43.3</li><li><b>ruptura en el gráfico diario</b>: sin ruptura a favor de bullish: cierre 64,323.6100 contra referencia 66,956.1500</li><li><b>volumen coherente</b>: vol B/A = 0.63; en un zigzag la B se seca</li><li><b>tendencia diaria a favor</b>: cierre 64,323.6100 contra EMA50 64,650.7131 (fuerza -0.11); señal bullish</li></ul>
+  </details>
+</div>
+<div class="card">
+  <h3>ADA 
+    <span class="badge score">2 de 5 comprobaciones a favor</span>
+  </h3>
+  <p class="meta">Lectura: <b>corrección terminada → posible subida</b>
+    · a favor: ruptura en el gráfico diario, tendencia diaria a favor
+    · se necesitan 3 de 5 para señal de compra · la estructura admite otra lectura (ver detalle)</p>
+  <div class="chart"><svg viewBox="0 0 680 240" role="img" xmlns="http://www.w3.org/2000/svg"><rect x="6.0" y="158.1" width="600.0" height="32.6" fill="var(--zonefill)"/><text x="10.0" y="154.1" font-size="11" fill="var(--accent)">compra 0.1624–0.1714</text><line x1="6.0" y1="207.6" x2="606.0" y2="207.6" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="211.6" font-size="11" fill="var(--red)">stop 0.1578</text><line x1="6.0" y1="108.0" x2="606.0" y2="108.0" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="112.0" font-size="11" fill="var(--green)">2R 0.1852</text><polyline points="6.0,164.6 9.4,173.7 12.7,179.2 16.1,174.8 19.4,173.7 22.8,176.3 26.1,169.4 29.5,164.6 32.8,175.2 36.2,178.5 39.5,175.6 42.9,172.3 46.2,175.9 49.6,170.5 52.9,175.9 56.3,175.2 59.6,175.2 63.0,177.0 66.3,171.2 69.7,170.8 73.0,156.2 76.4,157.0 79.7,178.5 83.1,176.3 86.4,186.1 89.8,183.6 93.2,183.2 96.5,183.6 99.9,192.0 103.2,203.6 106.6,197.8 109.9,201.4 113.3,203.6 116.6,205.8 120.0,208.3 123.3,208.3 126.7,204.0 130.0,202.5 133.4,179.2 136.7,186.9 140.1,179.2 143.4,184.7 146.8,187.9 150.1,182.8 153.5,178.8 156.8,186.1 160.2,181.0 163.5,181.4 166.9,188.7 170.2,189.0 173.6,186.1 176.9,189.0 180.3,196.3 183.7,198.1 187.0,203.2 190.4,196.0 193.7,185.0 197.1,177.7 200.4,175.2 203.8,170.8 207.1,177.0 210.5,178.1 213.8,183.2 217.2,177.7 220.5,175.2 223.9,174.8 227.2,178.8 230.6,181.4 233.9,176.7 237.3,177.4 240.6,176.7 244.0,179.6 247.3,190.5 250.7,179.6 254.0,174.5 257.4,171.2 260.7,163.9 264.1,154.1 267.5,139.9 270.8,146.0 274.2,144.6 277.5,149.3 280.9,149.7 284.2,150.8 287.6,159.2 290.9,152.2 294.3,134.4 297.6,146.4 301.0,146.8 304.3,148.2 307.7,152.2 311.0,147.1 314.4,161.3 317.7,164.3 321.1,168.6 324.4,172.6 327.8,169.4 331.1,176.3 334.5,182.1 337.8,186.1 341.2,185.0 344.5,185.0 347.9,193.8 351.3,189.8 354.6,182.1 358.0,179.2 361.3,182.1 364.7,179.9 368.0,181.0 371.4,181.0 374.7,179.6 378.1,183.2 381.4,177.7 384.8,179.9 388.1,181.4 391.5,182.8 394.8,206.9 398.2,203.2 401.5,215.6 404.9,218.2 408.2,209.8 411.6,210.2 414.9,202.9 418.3,203.2 421.6,192.3 425.0,186.9 428.3,182.8 431.7,185.4 435.1,188.3 438.4,187.9 441.8,192.0 445.1,190.9 448.5,187.6 451.8,183.9 455.2,155.9 458.5,153.0 461.9,164.3 465.2,162.8 468.6,163.5 471.9,163.5 475.3,167.5 478.6,161.3 482.0,169.7 485.3,159.2 488.7,158.8 492.0,151.1 495.4,153.3 498.7,153.7 502.1,147.1 505.4,126.0 508.8,104.5 512.1,94.3 515.5,89.9 518.8,95.4 522.2,92.1 525.6,106.7 528.9,116.9 532.3,103.1 535.6,68.1 539.0,76.8 542.3,76.8 545.7,65.2 549.0,73.2 552.4,73.9 555.7,79.0 559.1,81.6 562.4,79.4 565.8,87.8 569.1,76.1 572.5,71.7 575.8,93.6 579.2,92.1 582.5,86.3 585.9,101.6 589.2,94.7 592.6,81.9 595.9,21.8 599.3,45.1 602.6,49.5 606.0,56.1" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><polyline points="120.0,216.4 153.5,165.4 187.0,207.6 297.6,123.8 404.9,224.0" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="120.0" cy="216.4" r="3" fill="var(--accent)"/><circle cx="153.5" cy="165.4" r="3" fill="var(--accent)"/><circle cx="187.0" cy="207.6" r="3" fill="var(--accent)"/><circle cx="297.6" cy="123.8" r="3" fill="var(--accent)"/><circle cx="404.9" cy="224.0" r="3" fill="var(--accent)"/><circle cx="606.0" cy="56.1" r="3.5" fill="var(--fg)"/><text x="610.0" y="50.1" font-size="11" font-weight="700" fill="var(--fg)">0.1994</text></svg></div>
+  <div class="levels"><div class="level buy"><div class="lab">Zona de compra</div><div class="val">0.1624 – 0.1714</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.1578</div></div><div class="level target"><div class="lab">Objetivo 2R</div><div class="val">0.1852</div></div></div>
+  <details><summary>ver las 5 comprobaciones</summary>
+    <table><tr><th>comprobación</th><th>puntuación (0–1)</th><th>a favor</th></tr>
+    <tr><td>precio en nivel Fibonacci</td><td>0.00</td><td>—</td></tr><tr><td>divergencia del RSI</td><td>0.00</td><td>—</td></tr><tr><td>ruptura en el gráfico diario</td><td>0.80</td><td><span class=ok>✅</span></td></tr><tr><td>volumen coherente</td><td>0.50</td><td>—</td></tr><tr><td>tendencia diaria a favor</td><td>1.00</td><td><span class=ok>✅</span></td></tr></table>
+    <ul><li><b>precio en nivel Fibonacci</b>: precio 0.1994 lejos de todo nivel; el más próximo es retroceso 0.786 en 0.1669 (5.44 ATR)</li><li><b>divergencia del RSI</b>: sin divergencia alcista: precio 0.1554→0.1578, RSI 30.7→38.1</li><li><b>ruptura en el gráfico diario</b>: CHoCH alcista sobre 0.1808, cierre 0.2012, ruptura hace 4 velas</li><li><b>volumen coherente</b>: vol B/A = 0.85; en un zigzag la B se seca</li><li><b>tendencia diaria a favor</b>: cierre 0.2012 contra EMA50 0.1771 (fuerza +1.00); señal bullish</li></ul>
+  </details>
+</div>
+<div class="card">
+  <h3>BNB 
+    <span class="badge score">2 de 5 comprobaciones a favor</span>
+  </h3>
+  <p class="meta">Lectura: <b>corrección terminada → posible subida</b>
+    · a favor: volumen coherente, tendencia diaria a favor
+    · se necesitan 3 de 5 para señal de compra · la estructura admite otra lectura (ver detalle)</p>
+  <div class="chart"><svg viewBox="0 0 680 240" role="img" xmlns="http://www.w3.org/2000/svg"><rect x="6.0" y="136.3" width="600.0" height="36.5" fill="var(--zonefill)"/><text x="10.0" y="132.3" font-size="11" fill="var(--accent)">compra 570–578</text><line x1="6.0" y1="215.0" x2="606.0" y2="215.0" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="219.0" font-size="11" fill="var(--red)">stop 562</text><line x1="6.0" y1="33.5" x2="606.0" y2="33.5" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="37.5" font-size="11" fill="var(--green)">2R 598</text><polyline points="6.0,185.0 9.4,194.2 12.7,213.4 16.1,190.1 19.4,181.4 22.8,183.4 26.1,160.7 29.5,175.8 32.8,169.4 36.2,173.3 39.5,181.1 42.9,146.6 46.2,154.3 49.6,146.2 52.9,155.0 56.3,144.2 59.6,147.0 63.0,149.7 66.3,139.5 69.7,127.0 73.0,124.6 76.4,121.0 79.7,151.0 83.1,147.2 86.4,162.6 89.8,123.0 93.2,118.3 96.5,124.6 99.9,154.8 103.2,179.5 106.6,174.0 109.9,176.3 113.3,181.1 116.6,193.4 120.0,187.3 123.3,174.7 126.7,173.8 130.0,169.7 133.4,109.3 136.7,120.6 140.1,114.4 143.4,120.3 146.8,141.7 150.1,128.9 153.5,115.1 156.8,126.5 160.2,121.1 163.5,116.4 166.9,124.6 170.2,133.5 173.6,126.5 176.9,145.2 180.3,162.2 183.7,162.6 187.0,194.9 190.4,201.1 193.7,210.3 197.1,184.5 200.4,184.3 203.8,182.8 207.1,184.9 210.5,175.8 213.8,170.2 217.2,171.3 220.5,171.3 223.9,178.9 227.2,179.5 230.6,184.7 233.9,173.8 237.3,184.0 240.6,169.2 244.0,173.9 247.3,191.4 250.7,169.5 254.0,154.8 257.4,168.0 260.7,168.2 264.1,148.0 267.5,139.8 270.8,140.8 274.2,148.4 277.5,160.6 280.9,154.6 284.2,169.1 287.6,183.4 290.9,169.7 294.3,161.9 297.6,173.8 301.0,169.1 304.3,172.7 307.7,175.5 311.0,174.6 314.4,186.5 317.7,191.6 321.1,187.7 324.4,178.9 327.8,177.1 331.1,189.9 334.5,218.2 337.8,199.2 341.2,200.5 344.5,198.1 347.9,200.9 351.3,196.2 354.6,187.9 358.0,181.2 361.3,180.0 364.7,172.4 368.0,166.6 371.4,171.3 374.7,155.4 378.1,156.4 381.4,147.6 384.8,156.3 388.1,150.4 391.5,159.9 394.8,181.5 398.2,146.1 401.5,193.5 404.9,192.0 408.2,195.8 411.6,190.5 414.9,157.9 418.3,169.9 421.6,168.1 425.0,187.9 428.3,165.0 431.7,171.1 435.1,181.9 438.4,182.0 441.8,164.5 445.1,157.2 448.5,150.6 451.8,78.2 455.2,68.1 458.5,49.7 461.9,63.0 465.2,75.9 468.6,74.3 471.9,62.9 475.3,96.2 478.6,82.4 482.0,88.3 485.3,76.4 488.7,72.7 492.0,122.2 495.4,141.8 498.7,145.5 502.1,148.6 505.4,112.1 508.8,96.0 512.1,113.2 515.5,92.2 518.8,76.2 522.2,80.9 525.6,108.1 528.9,104.9 532.3,94.6 535.6,60.2 539.0,65.8 542.3,76.4 545.7,68.8 549.0,70.0 552.4,64.1 555.7,56.5 559.1,53.9 562.4,57.0 565.8,28.4 569.1,21.8 572.5,39.5 575.8,23.0 579.2,23.7 582.5,53.6 585.9,50.2 589.2,46.0 592.6,52.3 595.9,60.4 599.3,70.1 602.6,61.0 606.0,58.2" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><polyline points="9.4,223.3 93.2,100.4 116.6,213.3 166.9,94.1 193.7,247.7 270.8,124.9 334.5,245.6 388.1,138.1 404.9,215.0 458.5,42.7 498.7,156.8" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9.4" cy="223.3" r="3" fill="var(--accent)"/><circle cx="93.2" cy="100.4" r="3" fill="var(--accent)"/><circle cx="116.6" cy="213.3" r="3" fill="var(--accent)"/><circle cx="166.9" cy="94.1" r="3" fill="var(--accent)"/><circle cx="193.7" cy="247.7" r="3" fill="var(--accent)"/><circle cx="270.8" cy="124.9" r="3" fill="var(--accent)"/><circle cx="334.5" cy="245.6" r="3" fill="var(--accent)"/><circle cx="388.1" cy="138.1" r="3" fill="var(--accent)"/><circle cx="404.9" cy="215.0" r="3" fill="var(--accent)"/><circle cx="458.5" cy="42.7" r="3" fill="var(--accent)"/><circle cx="498.7" cy="156.8" r="3" fill="var(--accent)"/><circle cx="606.0" cy="58.2" r="3.5" fill="var(--fg)"/><text x="610.0" y="52.2" font-size="11" font-weight="700" fill="var(--fg)">593</text></svg></div>
+  <div class="levels"><div class="level buy"><div class="lab">Zona de compra</div><div class="val">570 – 578</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">562</div></div><div class="level target"><div class="lab">Objetivo 2R</div><div class="val">598</div></div></div>
+  <details><summary>ver las 5 comprobaciones</summary>
+    <table><tr><th>comprobación</th><th>puntuación (0–1)</th><th>a favor</th></tr>
+    <tr><td>precio en nivel Fibonacci</td><td>0.00</td><td>—</td></tr><tr><td>divergencia del RSI</td><td>0.00</td><td>—</td></tr><tr><td>ruptura en el gráfico diario</td><td>0.00</td><td>—</td></tr><tr><td>volumen coherente</td><td>0.76</td><td><span class=ok>✅</span></td></tr><tr><td>tendencia diaria a favor</td><td>0.66</td><td><span class=ok>✅</span></td></tr></table>
+    <ul><li><b>precio en nivel Fibonacci</b>: precio 592.9300 lejos de todo nivel; el más próximo es retroceso 0.786 en 573.9536 (3.96 ATR)</li><li><b>divergencia del RSI</b>: sin divergencia alcista: precio 556.0000→562.0300, RSI 33.3→44.2</li><li><b>ruptura en el gráfico diario</b>: sin ruptura a favor de bullish: cierre 592.3900 contra referencia 632.9000</li><li><b>volumen coherente</b>: vol B/A = 0.77; en un zigzag la B se seca</li><li><b>tendencia diaria a favor</b>: cierre 592.3900 contra EMA50 583.9527 (fuerza +0.32); señal bullish</li></ul>
+  </details>
+</div>
+<div class="card">
+  <h3>SOL 
+    <span class="badge score">1 de 5 comprobaciones a favor</span>
+  </h3>
+  <p class="meta">Lectura: <b>corrección terminada → posible subida</b>
+    · a favor: volumen coherente
+    · se necesitan 3 de 5 para señal de compra · la estructura admite otra lectura (ver detalle)</p>
+  <div class="chart"><svg viewBox="0 0 680 240" role="img" xmlns="http://www.w3.org/2000/svg"><rect x="6.0" y="143.1" width="600.0" height="19.2" fill="var(--zonefill)"/><text x="10.0" y="139.1" font-size="11" fill="var(--accent)">compra 74.2300–75.4831</text><line x1="6.0" y1="218.2" x2="606.0" y2="218.2" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="222.2" font-size="11" fill="var(--red)">stop 70.5800</text><line x1="6.0" y1="21.8" x2="606.0" y2="21.8" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="25.8" font-size="11" fill="var(--green)">2R 83.4097</text><polyline points="6.0,100.3 9.4,111.3 12.7,123.7 16.1,113.5 19.4,107.2 22.8,114.1 26.1,101.4 29.5,110.6 32.8,110.3 36.2,102.3 39.5,104.0 42.9,88.2 46.2,91.3 49.6,83.8 52.9,102.5 56.3,106.3 59.6,102.6 63.0,107.8 66.3,104.6 69.7,102.6 73.0,98.8 76.4,102.3 79.7,123.1 83.1,119.3 86.4,127.4 89.8,120.7 93.2,112.9 96.5,109.5 99.9,121.1 103.2,137.4 106.6,128.5 109.9,130.0 113.3,138.1 116.6,147.5 120.0,150.4 123.3,148.2 126.7,151.0 130.0,144.4 133.4,114.1 136.7,117.3 140.1,106.6 143.4,108.0 146.8,113.5 150.1,112.0 153.5,103.5 156.8,117.2 160.2,115.5 163.5,120.7 166.9,129.0 170.2,130.9 173.6,125.6 176.9,138.1 180.3,145.6 183.7,147.0 187.0,156.5 190.4,152.7 193.7,154.1 197.1,147.5 200.4,149.9 203.8,144.7 207.1,151.0 210.5,151.0 213.8,151.0 217.2,143.8 220.5,142.6 223.9,135.8 227.2,133.1 230.6,134.3 233.9,132.0 237.3,137.1 240.6,129.4 244.0,123.6 247.3,131.9 250.7,117.8 254.0,108.3 257.4,110.3 260.7,106.9 264.1,101.7 267.5,96.0 270.8,99.1 274.2,102.5 277.5,106.6 280.9,102.8 284.2,106.6 287.6,118.4 290.9,111.3 294.3,97.4 297.6,109.8 301.0,105.1 304.3,110.7 307.7,117.5 311.0,109.7 314.4,129.3 317.7,139.1 321.1,137.1 324.4,137.8 327.8,134.2 331.1,147.5 334.5,165.2 337.8,166.3 341.2,166.4 344.5,163.7 347.9,169.1 351.3,167.1 354.6,163.1 358.0,157.1 361.3,157.9 364.7,150.1 368.0,152.5 371.4,151.3 374.7,143.0 378.1,145.3 381.4,123.6 384.8,129.1 388.1,128.0 391.5,127.6 394.8,146.2 398.2,135.5 401.5,162.8 404.9,176.9 408.2,176.6 411.6,178.1 414.9,160.5 418.3,160.8 421.6,168.4 425.0,179.8 428.3,161.9 431.7,166.4 435.1,179.3 438.4,184.8 441.8,170.7 445.1,170.3 448.5,174.9 451.8,162.3 455.2,155.9 458.5,153.9 461.9,158.0 465.2,163.7 468.6,170.7 471.9,172.4 475.3,179.6 478.6,179.9 482.0,183.1 485.3,180.7 488.7,181.4 492.0,182.8 495.4,184.2 498.7,207.6 502.1,197.2 505.4,178.1 508.8,174.1 512.1,181.3 515.5,180.7 518.8,170.1 522.2,171.5 525.6,182.7 528.9,188.5 532.3,189.6 535.6,171.7 539.0,165.5 542.3,172.6 545.7,170.4 549.0,170.7 552.4,166.6 555.7,166.0 559.1,162.9 562.4,169.7 565.8,169.2 569.1,166.1 572.5,169.4 575.8,166.4 579.2,158.8 582.5,165.2 585.9,173.5 589.2,167.8 592.6,174.1 595.9,176.6 599.3,184.2 602.6,185.7 606.0,187.0" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><polyline points="120.0,164.3 153.5,88.7 193.7,175.2 267.5,91.1 341.2,174.4 394.8,112.3 498.7,218.2" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="120.0" cy="164.3" r="3" fill="var(--accent)"/><circle cx="153.5" cy="88.7" r="3" fill="var(--accent)"/><circle cx="193.7" cy="175.2" r="3" fill="var(--accent)"/><circle cx="267.5" cy="91.1" r="3" fill="var(--accent)"/><circle cx="341.2" cy="174.4" r="3" fill="var(--accent)"/><circle cx="394.8" cy="112.3" r="3" fill="var(--accent)"/><circle cx="498.7" cy="218.2" r="3" fill="var(--accent)"/><circle cx="606.0" cy="187.0" r="3.5" fill="var(--fg)"/><text x="610.0" y="181.0" font-size="11" font-weight="700" fill="var(--fg)">72.6200</text></svg></div>
+  <div class="levels"><div class="level buy"><div class="lab">Zona de compra</div><div class="val">74.2300 – 75.4831</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">70.5800</div></div><div class="level target"><div class="lab">Objetivo 2R</div><div class="val">83.4097</div></div></div>
+  <details><summary>ver las 5 comprobaciones</summary>
+    <table><tr><th>comprobación</th><th>puntuación (0–1)</th><th>a favor</th></tr>
+    <tr><td>precio en nivel Fibonacci</td><td>0.00</td><td>—</td></tr><tr><td>divergencia del RSI</td><td>0.00</td><td>—</td></tr><tr><td>ruptura en el gráfico diario</td><td>0.00</td><td>—</td></tr><tr><td>volumen coherente</td><td>0.88</td><td><span class=ok>✅</span></td></tr><tr><td>tendencia diaria a favor</td><td>0.22</td><td>—</td></tr></table>
+    <ul><li><b>precio en nivel Fibonacci</b>: precio 72.6200 lejos de todo nivel; el más próximo es retroceso 0.618 en 74.8566 (2.68 ATR)</li><li><b>divergencia del RSI</b>: sin divergencia alcista: precio 73.4400→70.5800, RSI 30.3→28.9</li><li><b>ruptura en el gráfico diario</b>: sin ruptura a favor de bullish: cierre 72.7000 contra referencia 83.9800</li><li><b>volumen coherente</b>: vol B/A = 0.73; en un zigzag la B se seca</li><li><b>tendencia diaria a favor</b>: cierre 72.7000 contra EMA50 75.4575 (fuerza -0.56); señal bullish</li></ul>
+  </details>
+</div>
+<div class="card">
+  <h3>AVAX 
+    <span class="badge score">0 de 5 comprobaciones a favor</span>
+  </h3>
+  <p class="meta">Lectura: <b>corrección terminada → posible subida</b>
+    · a favor: ninguna
+    · se necesitan 3 de 5 para señal de compra · la estructura admite otra lectura (ver detalle)</p>
+  <div class="chart"><svg viewBox="0 0 680 240" role="img" xmlns="http://www.w3.org/2000/svg"><rect x="6.0" y="138.5" width="600.0" height="27.3" fill="var(--zonefill)"/><text x="10.0" y="134.5" font-size="11" fill="var(--accent)">compra 6.4477–6.6124</text><line x1="6.0" y1="217.4" x2="606.0" y2="217.4" stroke="var(--red)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="221.4" font-size="11" fill="var(--red)">stop 6.1370</text><line x1="6.0" y1="21.8" x2="606.0" y2="21.8" stroke="var(--green)" stroke-width="1.3" stroke-dasharray="6 4"/><text x="610.0" y="25.8" font-size="11" fill="var(--green)">2R 7.3161</text><polyline points="6.0,165.8 9.4,166.9 12.7,176.7 16.1,164.5 19.4,161.3 22.8,163.0 26.1,116.4 29.5,122.5 32.8,115.2 36.2,119.8 39.5,127.5 42.9,110.9 46.2,115.4 49.6,115.4 52.9,116.9 56.3,117.0 59.6,117.5 63.0,119.8 66.3,122.3 69.7,120.7 73.0,115.4 76.4,115.4 79.7,148.5 83.1,152.7 86.4,177.2 89.8,168.3 93.2,166.9 96.5,161.8 99.9,172.6 103.2,158.8 106.6,155.7 109.9,132.9 113.3,146.7 116.6,161.1 120.0,165.1 123.3,166.6 126.7,160.3 130.0,167.1 133.4,131.3 136.7,128.3 140.1,122.0 143.4,131.0 146.8,137.1 150.1,129.1 153.5,119.3 156.8,124.7 160.2,123.7 163.5,122.0 166.9,135.9 170.2,144.2 173.6,135.9 176.9,140.9 180.3,154.8 183.7,152.5 187.0,160.6 190.4,159.1 193.7,160.1 197.1,144.9 200.4,142.1 203.8,133.3 207.1,139.1 210.5,149.5 213.8,150.0 217.2,144.9 220.5,144.9 223.9,143.1 227.2,147.7 230.6,159.6 233.9,164.6 237.3,167.6 240.6,163.0 244.0,140.7 247.3,149.4 250.7,135.6 254.0,138.6 257.4,146.0 260.7,144.1 264.1,133.6 267.5,127.8 270.8,134.3 274.2,137.3 277.5,138.3 280.9,145.4 284.2,149.0 287.6,156.8 290.9,154.5 294.3,134.4 297.6,140.6 301.0,136.3 304.3,152.0 307.7,147.0 311.0,143.1 314.4,165.3 317.7,192.8 321.1,195.6 324.4,195.3 327.8,193.3 331.1,197.1 334.5,206.6 337.8,201.3 341.2,189.7 344.5,199.1 347.9,199.4 351.3,192.1 354.6,143.9 358.0,121.8 361.3,111.2 364.7,113.4 368.0,110.1 371.4,124.0 374.7,124.8 378.1,129.1 381.4,116.4 384.8,125.7 388.1,127.0 391.5,129.1 394.8,149.9 398.2,138.3 401.5,172.4 404.9,168.1 408.2,165.9 411.6,163.6 414.9,145.1 418.3,141.4 421.6,144.4 425.0,171.8 428.3,169.3 431.7,171.3 435.1,176.4 438.4,179.7 441.8,168.4 445.1,159.3 448.5,169.8 451.8,158.0 455.2,164.6 458.5,161.6 461.9,168.1 465.2,164.6 468.6,164.5 471.9,163.5 475.3,173.2 478.6,169.8 482.0,176.1 485.3,172.2 488.7,177.2 492.0,184.7 495.4,177.9 498.7,218.2 502.1,208.4 505.4,186.8 508.8,138.8 512.1,141.2 515.5,141.2 518.8,140.2 522.2,148.4 525.6,169.3 528.9,173.4 532.3,166.6 535.6,155.0 539.0,144.4 542.3,144.7 545.7,96.6 549.0,101.9 552.4,104.3 555.7,114.5 559.1,118.7 562.4,126.0 565.8,136.3 569.1,126.6 572.5,130.5 575.8,132.8 579.2,129.8 582.5,130.5 585.9,129.0 589.2,126.1 592.6,166.8 595.9,162.1 599.3,165.6 602.6,166.9 606.0,172.4" fill="none" stroke="var(--muted)" stroke-width="1.4" stroke-linejoin="round"/><polyline points="9.4,187.5 46.2,101.8 86.4,193.3 153.5,111.9 334.5,217.4 361.3,99.9 498.7,233.4 545.7,76.4" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linejoin="round"/><circle cx="9.4" cy="187.5" r="3" fill="var(--accent)"/><circle cx="46.2" cy="101.8" r="3" fill="var(--accent)"/><circle cx="86.4" cy="193.3" r="3" fill="var(--accent)"/><circle cx="153.5" cy="111.9" r="3" fill="var(--accent)"/><circle cx="334.5" cy="217.4" r="3" fill="var(--accent)"/><circle cx="361.3" cy="99.9" r="3" fill="var(--accent)"/><circle cx="498.7" cy="233.4" r="3" fill="var(--accent)"/><circle cx="545.7" cy="76.4" r="3" fill="var(--accent)"/><circle cx="606.0" cy="172.4" r="3.5" fill="var(--fg)"/><text x="610.0" y="166.4" font-size="11" font-weight="700" fill="var(--fg)">6.4080</text></svg></div>
+  <div class="levels"><div class="level buy"><div class="lab">Zona de compra</div><div class="val">6.4477 – 6.6124</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">6.1370</div></div><div class="level target"><div class="lab">Objetivo 2R</div><div class="val">7.3161</div></div></div>
+  <details><summary>ver las 5 comprobaciones</summary>
+    <table><tr><th>comprobación</th><th>puntuación (0–1)</th><th>a favor</th></tr>
+    <tr><td>precio en nivel Fibonacci</td><td>0.00</td><td>—</td></tr><tr><td>divergencia del RSI</td><td>0.00</td><td>—</td></tr><tr><td>ruptura en el gráfico diario</td><td>0.00</td><td>—</td></tr><tr><td>volumen coherente</td><td>0.00</td><td>—</td></tr><tr><td>tendencia diaria a favor</td><td>0.24</td><td>—</td></tr></table>
+    <ul><li><b>precio en nivel Fibonacci</b>: precio 6.4080 lejos de todo nivel; el más próximo es retroceso 0.618 en 6.5300 (1.11 ATR)</li><li><b>divergencia del RSI</b>: sin divergencia alcista: precio 6.2820→6.1370, RSI 29.5→29.1</li><li><b>ruptura en el gráfico diario</b>: sin ruptura a favor de bullish: cierre 6.4410 contra referencia 6.9870</li><li><b>volumen coherente</b>: vol B/A = 1.40; en un zigzag la B se seca</li><li><b>tendencia diaria a favor</b>: cierre 6.4410 contra EMA50 6.7603 (fuerza -0.52); señal bullish</li></ul>
+  </details>
+</div>
 
   
 
-  <h2>📖 Cómo leer esta página</h2>
   
+<details><summary>📖 Cómo leer esta página</summary>
 <dl class="legend">
-  <dt>COMPRA sobre corrective_abc / impulse / impulse_1_2_3</dt>
-  <dd><b>corrective_abc</b>: una corrección en 3 tramos parece terminada; la tesis es que
-  la subida anterior se reanuda. <b>impulse</b>: cinco ondas completas.
-  <b>impulse_1_2_3</b>: impulso a medias, se espera el retroceso (onda 4) y luego la
-  onda 5 al alza. El sistema solo emite compras: las ventas en corto se eliminaron
-  porque perdían dinero en el backtest.</dd>
-  <dt>Zona de compra</dt>
-  <dd>Banda alrededor del nivel de Fibonacci relevante. Si el precio vuelve ahí, es la
-  entrada teóricamente favorable. Si ya se ha ido muy por encima, la señal ha escapado:
-  se deja pasar.</dd>
-  <dt>Invalidación (stop)</dt>
-  <dd>Si el precio cae a este nivel, la tesis está rota. Si se operara, ahí iría el
-  stop-loss. El objetivo de referencia del sistema es 2R: entrada + 2 × (entrada −
-  invalidación).</dd>
-  <dt>Factores (mínimo 3 de 5)</dt>
-  <dd>fibonacci (precio en nivel clave), rsi_divergence (el RSI contradice al precio),
-  market_structure (ruptura reciente en el gráfico diario), volume_profile (el volumen
-  acompaña a la estructura), higher_timeframe_trend (la tendencia diaria va a favor).</dd>
+  <dt>Los precios están en dólares</dt>
+  <dd>Cotizaciones de Binance contra USDT, un "dólar digital" que vale lo mismo que
+  un dólar estadounidense. Cuando pone BTC 64.665, son ~64.665 $.</dd>
+  <dt>El gráfico</dt>
+  <dd>Línea gris: el precio (velas de 4 horas, último mes). Línea azul: la estructura
+  de ondas de Elliott que el sistema ha detectado. Banda azul: la zona donde comprar
+  sería técnicamente favorable. Línea roja: el stop (si el precio cae ahí, la idea ha
+  fallado y se sale). Línea verde: el objetivo, que gana el doble de lo que arriesga
+  el stop ("2R").</dd>
+  <dt>Señal de compra vs radar</dt>
+  <dd>El sistema hace 5 comprobaciones sobre cada moneda (precio en nivel Fibonacci,
+  divergencia del RSI, ruptura en el gráfico diario, volumen coherente y tendencia
+  diaria a favor). Con <b>3 o más a favor</b> se convierte en <b>señal de compra</b>
+  (tarjeta de borde verde) — es la regla que se validó en el backtest. Con menos, la
+  moneda queda <b>en el radar</b>: se ven sus niveles pero aún no es momento. Solo
+  hay compras: las apuestas a la baja perdían dinero en las pruebas.</dd>
+  <dt>Las lecturas</dt>
+  <dd><b>corrección terminada</b>: el precio bajó en 3 tramos y parece haber acabado;
+  lo esperable sería que la subida se reanude. <b>ciclo de 5 ondas completo</b>: un
+  movimiento entero según Elliott, se espera giro. <b>impulso en construcción</b>: una
+  subida a medio hacer.</dd>
 </dl>
+</details>
 
   <footer>
     <a href="https://github.com/peperonioo/elliott-hybrid-scanner">Código y metodología</a> ·
     <a href="https://github.com/peperonioo/elliott-hybrid-scanner/tree/main/reports">
-    Historial de informes</a>
-    (el registro del forward test: cada informe queda commiteado con fecha, imposible de
-    reescribir).
+    Historial de informes</a> (registro del forward test)
   </footer>
 </div>
 </body>
