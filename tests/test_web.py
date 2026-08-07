@@ -128,6 +128,12 @@ def test_la_leyenda_explica_operativa_y_objetivo():
     assert "100 + 2×5" in page  # el ejemplo numérico del 2R
 
 
+def test_hay_boton_de_actualizacion_manual():
+    page = render_html([], [], cfg=make_config(), now=NOW)
+    assert "Actualizar ahora" in page
+    assert "actions/workflows/daily-scan.yml" in page
+
+
 def test_explica_que_los_precios_son_dolares():
     page = render_html([], [], cfg=make_config(), now=NOW)
     assert "USDT" in page and "dólar" in page

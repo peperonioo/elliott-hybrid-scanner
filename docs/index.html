@@ -82,6 +82,12 @@ footer a{color:var(--accent)}
 .st.non{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
 .meta2{font-size:.86rem;margin:0 0 6px}
 .inzone{color:var(--green);font-weight:700}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);
+  color:#fff;font-weight:700;font-size:.85rem;padding:7px 14px;border-radius:8px;
+  text-decoration:none}
+.btn.sec{background:var(--card);color:var(--accent);border:1px solid var(--border)}
+.btnhint{color:var(--muted);font-size:.75rem;align-self:center}
 .card{transition:box-shadow .15s ease}
 .card:hover{box-shadow:0 3px 14px rgba(0,0,0,.10)}
 </style>
@@ -89,11 +95,19 @@ footer a{color:var(--accent)}
 <body>
 <div class="wrap">
   <h1>📡 Elliott Hybrid Scanner</h1>
-  <div class="updated">Actualizado: 07-08-2026 06:33 UTC · se regenera cada noche ·
+  <div class="updated">Actualizado: 07-08-2026 11:11 UTC · se regenera cada noche ·
     BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX · 4h</div>
   <div class="disclaimer">Herramienta informativa generada automáticamente — no es
   asesoramiento financiero ni ejecuta órdenes. Operativa de referencia: compra al
   contado (spot), sin apalancamiento. Sistema en fase de validación (forward test).</div>
+
+  <div class="btnrow">
+    <a class="btn" target="_blank" rel="noopener"
+       href="https://github.com/peperonioo/elliott-hybrid-scanner/actions/workflows/daily-scan.yml">
+       🔄 Actualizar ahora</a>
+    <span class="btnhint">se abre GitHub → botón "Run workflow" → espera ~4 min →
+    recarga esta página (necesita tu sesión de GitHub)</span>
+  </div>
 
   <h2>🧭 El mercado de un vistazo</h2><div class="ovgrid"><a class="chip" href="#card-BTC"><span class="mono" style="background:hsl(119,62%,45%)">B</span><span><span class="nm">BTC</span><br><span class="pr">64,290</span></span><span class="st rad">radar</span></a><div class="chip"><span class="mono" style="background:hsl(135,62%,45%)">E</span><span><span class="nm">ETH</span><br><span class="pr">1,897</span></span><span class="st non">sin estructura</span></div><a class="chip" href="#card-SOL"><span class="mono" style="background:hsl(26,62%,45%)">S</span><span><span class="nm">SOL</span><br><span class="pr">72.62</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-BNB"><span class="mono" style="background:hsl(150,62%,45%)">B</span><span><span class="nm">BNB</span><br><span class="pr">592.93</span></span><span class="st rad">radar</span></a><div class="chip"><span class="mono" style="background:hsl(230,62%,45%)">X</span><span><span class="nm">XRP</span><br><span class="pr">1.02</span></span><span class="st non">sin estructura</span></div><a class="chip" href="#card-ADA"><span class="mono" style="background:hsl(306,62%,45%)">A</span><span><span class="nm">ADA</span><br><span class="pr">0.1994</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-AVAX"><span class="mono" style="background:hsl(248,62%,45%)">A</span><span><span class="nm">AVAX</span><br><span class="pr">6.41</span></span><span class="st rad">radar</span></a><div class="chip"><span class="mono" style="background:hsl(154,62%,45%)">L</span><span><span class="nm">LINK</span><br><span class="pr">8.14</span></span><span class="st non">sin estructura</span></div><a class="chip" href="#card-DOT"><span class="mono" style="background:hsl(57,62%,45%)">D</span><span><span class="nm">DOT</span><br><span class="pr">0.8180</span></span><span class="st rad">radar</span></a><div class="chip"><span class="mono" style="background:hsl(326,62%,45%)">P</span><span><span class="nm">PEPE</span><br><span class="pr">0.000002800</span></span><span class="st non">sin estructura</span></div><a class="chip" href="#card-DOGE"><span class="mono" style="background:hsl(169,62%,45%)">D</span><span><span class="nm">DOGE</span><br><span class="pr">0.06905</span></span><span class="st rad">radar</span></a><div class="chip"><span class="mono" style="background:hsl(167,62%,45%)">S</span><span><span class="nm">SUI</span><br><span class="pr">0.6741</span></span><span class="st non">sin estructura</span></div><a class="chip" href="#card-TRX"><span class="mono" style="background:hsl(58,62%,45%)">T</span><span><span class="nm">TRX</span><br><span class="pr">0.3278</span></span><span class="st rad">radar</span></a></div>
 

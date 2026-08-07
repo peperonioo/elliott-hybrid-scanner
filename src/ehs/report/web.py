@@ -140,6 +140,12 @@ footer a{color:var(--accent)}
 .st.non{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
 .meta2{font-size:.86rem;margin:0 0 6px}
 .inzone{color:var(--green);font-weight:700}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);
+  color:#fff;font-weight:700;font-size:.85rem;padding:7px 14px;border-radius:8px;
+  text-decoration:none}
+.btn.sec{background:var(--card);color:var(--accent);border:1px solid var(--border)}
+.btnhint{color:var(--muted);font-size:.75rem;align-self:center}
 .card{transition:box-shadow .15s ease}
 .card:hover{box-shadow:0 3px 14px rgba(0,0,0,.10)}
 """
@@ -575,6 +581,14 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
   <div class="disclaimer">Herramienta informativa generada automáticamente — no es
   asesoramiento financiero ni ejecuta órdenes. Operativa de referencia: compra al
   contado (spot), sin apalancamiento. Sistema en fase de validación (forward test).</div>
+
+  <div class="btnrow">
+    <a class="btn" target="_blank" rel="noopener"
+       href="https://github.com/peperonioo/elliott-hybrid-scanner/actions/workflows/daily-scan.yml">
+       🔄 Actualizar ahora</a>
+    <span class="btnhint">se abre GitHub → botón "Run workflow" → espera ~4 min →
+    recarga esta página (necesita tu sesión de GitHub)</span>
+  </div>
 
   {"<h2>🧭 El mercado de un vistazo</h2>" + _overview_html(overview) if overview else ""}
 
