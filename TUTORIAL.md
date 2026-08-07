@@ -29,9 +29,16 @@ llevar ese registro.
 Cada día, poco después de la medianoche UTC (~01:20–02:20 hora española), el
 workflow de GitHub descarga las velas nuevas, escanea y commitea el informe.
 
-**Para verlo**: entra en el repo en GitHub → carpeta `reports/` → abre
-`latest.md`. Desde el móvil funciona perfectamente. Cada día queda además
-archivado como `scan_<fecha>.md`, así que el historial completo se conserva.
+**Para verlo**, la forma cómoda es la web (guárdala en favoritos del móvil):
+
+> **https://peperonioo.github.io/elliott-hybrid-scanner/**
+
+Muestra las señales de compra activas, el radar con los niveles de cada par
+(zona de compra y stop) y la guía de lectura, y se regenera cada noche.
+
+La versión en texto vive en el repo: carpeta `reports/` → `latest.md`. Cada
+día queda además archivado como `scan_<fecha>.md`, así que el historial
+completo se conserva — ese historial es el registro del forward test.
 
 También puedes generarlo a mano en tu Mac en cualquier momento:
 
