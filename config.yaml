@@ -84,6 +84,13 @@ universe:
     - AVAX
     - LINK
     - DOT
+    # Añadidos a petición para el escaneo diario (2026-08). El backtest y el
+    # holdout se validaron con los 9 anteriores; estos participan del scanner
+    # con las mismas reglas pero sin validación retrospectiva propia.
+    - PEPE
+    - DOGE
+    - SUI
+    - TRX
 
 # ---------------------------------------------------------------------------
 # Timeframes

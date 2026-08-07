@@ -16,6 +16,7 @@ from __future__ import annotations
 import html
 import json
 import logging
+import math
 from pathlib import Path
 from typing import Any
 
@@ -122,11 +123,56 @@ details ul{margin:8px 0;padding-left:18px;color:var(--muted);font-size:.86rem}
 footer{margin-top:36px;color:var(--muted);font-size:.82rem;
   border-top:1px solid var(--border);padding-top:12px}
 footer a{color:var(--accent)}
+.ovgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:8px;margin:8px 0 4px}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:8px 10px;display:flex;gap:8px;align-items:center;text-decoration:none;
+  color:var(--fg)}
+.chip:hover{border-color:var(--accent)}
+.mono{width:30px;height:30px;border-radius:50%;color:#fff;font-weight:800;
+  font-size:.78rem;display:flex;align-items:center;justify-content:center;flex:none}
+.chip .nm{font-weight:700;font-size:.85rem;line-height:1.2}
+.chip .pr{font-size:.78rem;color:var(--muted)}
+.st{font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 7px;
+  margin-left:auto;white-space:nowrap}
+.st.sig{background:var(--green);color:#fff}
+.st.rad{background:var(--zone);color:var(--accent)}
+.st.non{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.meta2{font-size:.86rem;margin:0 0 6px}
+.inzone{color:var(--green);font-weight:700}
+.card{transition:box-shadow .15s ease}
+.card:hover{box-shadow:0 3px 14px rgba(0,0,0,.10)}
 """
 
 
+def _mono_style(base: str) -> str:
+    hue = sum(ord(c) * 47 for c in base) % 360
+    return f"background:hsl({hue},62%,45%)"
+
+
 def _fmt(value: float) -> str:
-    return f"{value:,.4f}" if value < 100 else f"{value:,.0f}"
+    """Formato con dígitos significativos: sirve igual para BTC que para PEPE."""
+    v = float(value)
+    if v >= 1000:
+        return f"{v:,.0f}"
+    if v >= 1:
+        return f"{v:.2f}"
+    if v <= 0:
+        return f"{v:.2f}"
+    decimals = min(10, -math.floor(math.log10(v)) + 3)
+    return f"{v:.{decimals}f}"
+
+
+def _price_precision(value: float) -> int:
+    """Decimales que necesita el eje del gráfico para este precio."""
+    v = float(value)
+    if v >= 1000:
+        return 2
+    if v >= 1:
+        return 3
+    if v <= 0:
+        return 2
+    return min(10, -math.floor(math.log10(v)) + 3)
 
 
 def _esc(text: str) -> str:
@@ -190,7 +236,10 @@ def build_chart_data(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[
             if int(p.timestamp.timestamp()) >= first_ts
         ]
 
+        precision = _price_precision(candles[-1]["close"]) if candles else 2
         data[r.symbol] = {
+            "precision": precision,
+            "minMove": round(10**-precision, 12),
             "candles": candles,
             "pivots": pivots,
             "zone": [round(r.zone[0], 6), round(r.zone[1], 6)] if r.zone else None,
@@ -198,6 +247,57 @@ def build_chart_data(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[
             "target": (round(_target_for(entry), 6) if _target_for(entry) is not None else None),
         }
     return data
+
+
+def build_overview(cfg: Config, entries: list[ReportEntry]) -> list[dict[str, Any]]:
+    """Estado de TODAS las monedas del universo, tengan o no estructura.
+
+    Es lo que responde de un vistazo "¿y ETH?": aunque una moneda no tenga
+    tarjeta, aquí aparece con su precio y su estado.
+    """
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    by_symbol: dict[str, ReportEntry] = {}
+    for e in entries:
+        by_symbol.setdefault(e.result.symbol, e)
+
+    out: list[dict[str, Any]] = []
+    for base in cfg.bases:
+        symbol, structure, _ = _read_pair(cfg, cache, base, params)
+        if structure.empty:
+            out.append(
+                {"base": base, "price": None, "state": "sin datos", "cls": "non", "link": False}
+            )
+            continue
+        price = float(structure["close"].iloc[-1])
+        entry = by_symbol.get(symbol)
+        if entry and entry.is_signal:
+            state, cls = "SEÑAL", "sig"
+        elif entry:
+            state, cls = "radar", "rad"
+        else:
+            state, cls = "sin estructura", "non"
+        out.append(
+            {"base": base, "price": price, "state": state, "cls": cls, "link": entry is not None}
+        )
+    return out
+
+
+def _overview_html(overview: list[dict[str, Any]]) -> str:
+    chips = []
+    for o in overview:
+        precio = _fmt(o["price"]) if o["price"] is not None else "—"
+        inner = (
+            f'<span class="mono" style="{_mono_style(o["base"])}">{_esc(o["base"][:1])}</span>'
+            f'<span><span class="nm">{_esc(o["base"])}</span><br>'
+            f'<span class="pr">{precio}</span></span>'
+            f'<span class="st {o["cls"]}">{_esc(o["state"])}</span>'
+        )
+        if o["link"]:
+            chips.append(f'<a class="chip" href="#card-{_esc(o["base"])}">{inner}</a>')
+        else:
+            chips.append(f'<div class="chip">{inner}</div>')
+    return '<div class="ovgrid">' + "".join(chips) + "</div>"
 
 
 # ---------------------------------------------------------------------------
@@ -214,6 +314,25 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
         f'<div class="level"><div class="lab">Precio ahora</div>'
         f'<div class="val">{_fmt(price_now)}</div></div>'
     ]
+
+    # Distancia del precio a la zona de compra, en cristiano.
+    zona_txt = ""
+    if r.zone:
+        lo, hi = r.zone
+        if lo <= price_now <= hi:
+            zona_txt = '<span class="inzone">✅ El precio está DENTRO de la zona de compra</span>'
+        elif price_now > hi:
+            pct = (price_now / hi - 1) * 100
+            zona_txt = (
+                f"El precio está un <b>{pct:.1f}% por encima</b> de la zona de compra "
+                "— tocaría esperar a que baje"
+            )
+        else:
+            pct = (1 - price_now / lo) * 100
+            zona_txt = (
+                f"⚠️ El precio está un <b>{pct:.1f}% por debajo</b> de la zona "
+                "— cerca del stop, prudencia"
+            )
     if r.zone:
         levels.append(
             f'<div class="level buy"><div class="lab">Zona de compra</div>'
@@ -225,7 +344,7 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
     )
     if target is not None:
         levels.append(
-            f'<div class="level target"><div class="lab">Objetivo 2R</div>'
+            f'<div class="level target"><div class="lab">Objetivo (2× riesgo)</div>'
             f'<div class="val">{_fmt(target)}</div></div>'
         )
 
@@ -258,14 +377,17 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
         else ""
     )
 
+    zona_html = f'<p class="meta2">{zona_txt}</p>' if zona_txt else ""
+
     return f"""
-<div class="{card_class}">
-  <h3>{_esc(base)} {badge}
+<div class="{card_class}" id="card-{_esc(base)}">
+  <h3><span class="mono" style="{_mono_style(base)}">{_esc(base[:1])}</span> {_esc(base)} {badge}
     <span class="badge score">{n_activos} de 5 comprobaciones a favor</span>
   </h3>
   <p class="meta">Lectura: <b>{_esc(_hypothesis_label(r.count.hypothesis))}</b>
     · a favor: {_esc(activos)}
     · se necesitan 3 de 5 para señal de compra{confirmada}{ambiguo}</p>
+  {zona_html}
   {chart_html}
   <div class="levels">{"".join(levels)}</div>
   <details><summary>ver las 5 comprobaciones</summary>
@@ -289,6 +411,19 @@ LEGEND = """
   el <b>stop</b> (rojo: si el precio cae ahí, la idea ha fallado) y el
   <b>objetivo</b> (verde: gana el doble de lo que arriesga el stop, "2R"). El enlace
   de debajo abre la misma moneda en TradingView.</dd>
+  <dt>¿Qué tipo de operativa es?</dt>
+  <dd><b>Compra al contado (spot)</b>: comprar la moneda y ya está. Sin apalancamiento,
+  sin margin y sin futuros. Cuando aparece una señal, las dos formas razonables de
+  ejecutarla a mano son: comprar a mercado en ese momento (así se validó el sistema
+  en el backtest) o dejar una orden límite dentro de la zona de compra por si el
+  precio la visita. El stop se coloca como orden stop-loss de venta. El sistema
+  nunca toca tu exchange: todas las órdenes las pones tú.</dd>
+  <dt>¿Qué es el objetivo "2× riesgo" (2R)?</dt>
+  <dd>R = lo que arriesgas, la distancia entre tu entrada y el stop. Ejemplo: compras
+  a 100 con stop en 95 → arriesgas 5 por unidad (eso es 1R). El objetivo está al
+  doble: 100 + 2×5 = <b>110</b>. Si sale mal pierdes 5; si sale bien ganas 10. Con
+  esa relación basta acertar algo más de 1 de cada 3 veces para no perder dinero —
+  es la regla de salida con la que se validó el sistema.</dd>
   <dt>Señal de compra vs radar</dt>
   <dd>El sistema hace 5 comprobaciones sobre cada moneda (precio en nivel Fibonacci,
   divergencia del RSI, ruptura en el gráfico diario, volumen coherente y tendencia
@@ -333,6 +468,8 @@ CHART_SCRIPT = """
       upColor: v("--green"), downColor: v("--red"),
       wickUpColor: v("--green"), wickDownColor: v("--red"),
       borderVisible: false,
+      priceFormat: { type: "price", precision: d.precision || 2,
+                     minMove: d.minMove || 0.01 },
     });
     candles.setData(d.candles);
 
@@ -379,6 +516,7 @@ def render_html(
     cfg: Config,
     now: pd.Timestamp,
     chart_data: dict[str, dict[str, Any]] | None = None,
+    overview: list[dict[str, Any]] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -435,8 +573,10 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
   <div class="updated">Actualizado: {now:%d-%m-%Y %H:%M} UTC · se regenera cada noche ·
     {_esc(", ".join(cfg.bases))} · 4h</div>
   <div class="disclaimer">Herramienta informativa generada automáticamente — no es
-  asesoramiento financiero ni ejecuta órdenes. Sistema en fase de validación
-  (forward test).</div>
+  asesoramiento financiero ni ejecuta órdenes. Operativa de referencia: compra al
+  contado (spot), sin apalancamiento. Sistema en fase de validación (forward test).</div>
+
+  {"<h2>🧭 El mercado de un vistazo</h2>" + _overview_html(overview) if overview else ""}
 
   <h2>🎯 Señales de compra activas ({len(signals)})</h2>
   {cuerpo_senales}
@@ -465,7 +605,10 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     now = now if now is not None else pd.Timestamp.now(tz="UTC")
     entries, warnings = collect_entries(cfg)
     chart_data = build_chart_data(cfg, entries)
-    content = render_html(entries, warnings, cfg=cfg, now=now, chart_data=chart_data)
+    overview = build_overview(cfg, entries)
+    content = render_html(
+        entries, warnings, cfg=cfg, now=now, chart_data=chart_data, overview=overview
+    )
 
     web_dir = cfg.path("paths.web_dir")
     web_dir.mkdir(parents=True, exist_ok=True)

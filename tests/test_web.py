@@ -30,7 +30,7 @@ def test_una_senal_se_renderiza_con_niveles_y_lenguaje_llano():
     assert "Precio ahora" in page
     assert "Zona de compra" in page and "60,000" in page
     assert "Stop" in page and "58,000" in page
-    assert "Objetivo 2R" in page
+    assert "Objetivo (2× riesgo)" in page
     assert "ni ejecuta órdenes" in page
     assert "Cómo leer esta página" in page
     assert "precio en nivel Fibonacci" in page
@@ -94,6 +94,38 @@ def test_el_html_escapa_el_contenido():
 def test_los_avisos_aparecen():
     page = render_html([], ["ETH: sin datos"], cfg=make_config(), now=NOW)
     assert "Avisos" in page and "ETH: sin datos" in page
+
+
+def test_formato_para_precios_diminutos():
+    """PEPE cotiza a 0.00001: el formato debe enseñar dígitos significativos."""
+    from ehs.report.web import _fmt
+
+    assert _fmt(0.00001053) == "0.00001053"
+    assert _fmt(0.8330) == "0.8330"
+    assert _fmt(64810.0) == "64,810"
+    assert _fmt(1.05) == "1.05"
+
+
+def test_el_resumen_del_mercado_muestra_todas_las_monedas():
+    overview = [
+        {"base": "BTC", "price": 64810.0, "state": "radar", "cls": "rad", "link": True},
+        {"base": "ETH", "price": 1909.0, "state": "sin estructura", "cls": "non", "link": False},
+        {"base": "PEPE", "price": 0.00001053, "state": "SEÑAL", "cls": "sig", "link": True},
+    ]
+    page = render_html([], [], cfg=make_config(), now=NOW, overview=overview)
+
+    assert "El mercado de un vistazo" in page
+    assert "ETH" in page and "sin estructura" in page
+    assert "0.00001053" in page
+    assert 'href="#card-BTC"' in page
+
+
+def test_la_leyenda_explica_operativa_y_objetivo():
+    page = render_html([], [], cfg=make_config(), now=NOW)
+    assert "spot" in page
+    assert "sin apalancamiento" in page
+    assert "margin" in page
+    assert "100 + 2×5" in page  # el ejemplo numérico del 2R
 
 
 def test_explica_que_los_precios_son_dolares():
