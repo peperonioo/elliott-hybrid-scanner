@@ -26,6 +26,7 @@ from ehs.config import Config
 from ehs.data.cache import ParquetCache
 from ehs.pipeline import PipelineParams
 from ehs.report.daily import ReportEntry, _read_pair, collect_entries
+from ehs.report.signals_log import LoggedSignal, summary_stats, update_log
 from ehs.structure.swings import detect_swings
 
 LOGGER = logging.getLogger(__name__)
@@ -146,6 +147,14 @@ footer a{color:var(--accent)}
   text-decoration:none}
 .btn.sec{background:var(--card);color:var(--accent);border:1px solid var(--border)}
 .btnhint{color:var(--muted);font-size:.75rem;align-self:center}
+.res{font-weight:700;border-radius:6px;padding:1px 8px;font-size:.78rem}
+.res.win{background:var(--green);color:#fff}
+.res.loss{background:var(--red);color:#fff}
+.res.open{background:var(--zone);color:var(--accent)}
+.res.flat{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.ftstats{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);
+  font-size:.88rem;margin:6px 0 10px}
+.ftstats b{color:var(--fg)}
 .card{transition:box-shadow .15s ease}
 .card:hover{box-shadow:0 3px 14px rgba(0,0,0,.10)}
 """
@@ -236,6 +245,16 @@ def build_chart_data(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[
         ]
 
         first_ts = int(window.index[0].timestamp())
+        # Etiquetas de las ondas del conteo (1-5 o A-B-C) sobre sus pivotes.
+        labels = [
+            {
+                "time": int(wave.end.timestamp.timestamp()),
+                "pos": "aboveBar" if wave.end.kind == "H" else "belowBar",
+                "text": wave.label,
+            }
+            for wave in r.count.waves
+            if int(wave.end.timestamp.timestamp()) >= first_ts
+        ]
         pivots = [
             {"time": int(p.timestamp.timestamp()), "value": round(p.price, 6)}
             for p in detect_swings(structure, **params.swing)
@@ -248,6 +267,7 @@ def build_chart_data(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[
             "minMove": round(10**-precision, 12),
             "candles": candles,
             "pivots": pivots,
+            "labels": labels,
             "zone": [round(r.zone[0], 6), round(r.zone[1], 6)] if r.zone else None,
             "stop": round(r.signal_invalidation, 6),
             "target": (round(_target_for(entry), 6) if _target_for(entry) is not None else None),
@@ -490,6 +510,15 @@ CHART_SCRIPT = """
     window.EHS_LAST = window.EHS_LAST || {};
     window.EHS_LAST[symbol] = d.candles[d.candles.length - 1].time;
 
+    if (d.labels && d.labels.length) {
+      candles.setMarkers(d.labels.slice().sort(function (a, b) {
+        return a.time - b.time;
+      }).map(function (m) {
+        return { time: m.time, position: m.pos, color: v("--accent"),
+                 shape: "circle", size: 0.1, text: m.text };
+      }));
+    }
+
     if (d.pivots && d.pivots.length >= 2) {
       var zigzag = chart.addLineSeries({
         color: v("--accent"), lineWidth: 2,
@@ -581,6 +610,62 @@ LIVE_SCRIPT = """
 </script>"""
 
 
+def _forward_test_html(log: list[LoggedSignal]) -> str:
+    """El registro del forward test: la libreta que ya no hay que llevar a mano."""
+    if not log:
+        return (
+            '<p style="color:var(--muted)">Aún no se ha emitido ninguna señal desde que '
+            "el registro está activo. Cada señal futura quedará apuntada aquí "
+            "automáticamente, con su desenlace calculado con las reglas del backtest "
+            "(entrada en la vela siguiente, stop, objetivo 2R, 30 velas máximo).</p>"
+        )
+
+    stats = summary_stats(log)
+    cerr = stats["closed"]
+    resumen = (
+        f'<div class="ftstats">'
+        f'<span>señales: <b>{stats["total"]}</b></span>'
+        f"<span>cerradas: <b>{cerr}</b></span>"
+        f'<span>ganadas: <b>{stats["wins"]}</b> · perdidas: <b>{stats["losses"]}</b></span>'
+        f'<span>resultado acumulado: <b>{stats["total_r"]:+.1f}R</b></span>'
+        f"</div>"
+    )
+
+    filas = []
+    for sig in log[:40]:
+        fecha = pd.Timestamp(sig.timestamp).strftime("%d-%m-%Y %H:%M")
+        base = sig.symbol.split("/")[0]
+        if sig.outcome == "objetivo":
+            res = '<span class="res win">✅ objetivo +2R</span>'
+        elif sig.outcome == "stop":
+            res = '<span class="res loss">✖ stop −1R</span>'
+        elif sig.outcome == "tiempo":
+            pct = f"{(sig.result_pct or 0) * 100:+.1f}%"
+            res = f'<span class="res flat">tiempo {pct}</span>'
+        else:
+            pct = f"{(sig.result_pct or 0) * 100:+.1f}%"
+            res = f'<span class="res open">en curso {pct}</span>'
+        filas.append(
+            f"<tr><td>{fecha}</td><td><b>{_esc(base)}</b></td>"
+            f"<td>{_fmt(sig.entry) if sig.entry else _fmt(sig.price)}</td>"
+            f"<td>{_fmt(sig.stop)}</td>"
+            f"<td>{_fmt(sig.target) if sig.target else '—'}</td>"
+            f"<td>{res}</td></tr>"
+        )
+
+    return f"""{resumen}
+<div class="scroll" style="overflow-x:auto">
+<table>
+  <tr><th>señal</th><th>moneda</th><th>entrada</th><th>stop</th>
+    <th>objetivo</th><th>resultado</th></tr>
+  {"".join(filas)}
+</table>
+</div>
+<p style="color:var(--muted);font-size:.82rem">Desenlaces calculados con las mismas
+reglas que el backtest. El fichero de registro se guarda en el historial de git con
+fecha: no se puede reescribir a posteriori.</p>"""
+
+
 # ---------------------------------------------------------------------------
 # Página
 # ---------------------------------------------------------------------------
@@ -594,6 +679,7 @@ def render_html(
     now: pd.Timestamp,
     chart_data: dict[str, dict[str, Any]] | None = None,
     overview: list[dict[str, Any]] | None = None,
+    signals_log: list[LoggedSignal] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -692,6 +778,9 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
 
   {avisos}
 
+  <h2>📒 Forward test — registro de señales</h2>
+  {_forward_test_html(signals_log or [])}
+
   {LEGEND}
 
   <footer>
@@ -712,8 +801,26 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     entries, warnings = collect_entries(cfg)
     chart_data = build_chart_data(cfg, entries)
     overview = build_overview(cfg, entries)
+
+    # Forward test: registrar señales nuevas y re-evaluar desenlaces.
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    frames: dict[str, pd.DataFrame] = {}
+    for o in overview:
+        sym = o.get("symbol")
+        if sym:
+            _, structure, _ = _read_pair(cfg, cache, o["base"], params)
+            frames[sym] = structure
+    log = update_log(cfg, entries, frames, now=now)
+
     content = render_html(
-        entries, warnings, cfg=cfg, now=now, chart_data=chart_data, overview=overview
+        entries,
+        warnings,
+        cfg=cfg,
+        now=now,
+        chart_data=chart_data,
+        overview=overview,
+        signals_log=log,
     )
 
     web_dir = cfg.path("paths.web_dir")

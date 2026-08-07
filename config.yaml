@@ -256,6 +256,13 @@ confluence:
   fibonacci:
     retracements: [0.618, 0.786]
     extensions: [1.618]
+    # Clusters: niveles entre ondas (igualdad C=A, retrocesos del impulso
+    # completo) con bonus por confluencia. PROBADO Y NO ADOPTADO (2026-08-08):
+    # en el periodo de desarrollo dio esperanza +1.83% vs +1.90% y PF 1.62 vs
+    # 1.65 — ligeramente peor. Se conserva tras este flag por si se quiere
+    # re-evaluar con más datos; el holdout no se tocó.
+    clusters: false
+    cluster_bonus: 0.15
     # Distancia al nivel, medida en ATR, a la que el score cae a 0. En ATR y no
     # en porcentaje para que signifique lo mismo en cualquier par.
     tolerance_atr: 0.75

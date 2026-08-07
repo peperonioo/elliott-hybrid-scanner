@@ -102,6 +102,8 @@ class ConfluenceParams:
     fib_retracements: tuple[float, ...] = (0.618, 0.786)
     fib_extensions: tuple[float, ...] = (1.618,)
     fib_tolerance_atr: float = 0.75
+    fib_clusters: bool = False
+    fib_cluster_bonus: float = 0.15
 
     divergence_full_scale: float = 10.0
 
@@ -136,6 +138,8 @@ class ConfluenceParams:
             fib_retracements=tuple(float(r) for r in fib.get("retracements", [0.618, 0.786])),
             fib_extensions=tuple(float(e) for e in fib.get("extensions", [1.618])),
             fib_tolerance_atr=float(fib.get("tolerance_atr", 0.75)),
+            fib_clusters=bool(fib.get("clusters", False)),
+            fib_cluster_bonus=float(fib.get("cluster_bonus", 0.15)),
             divergence_full_scale=float(div.get("full_scale_points", 10.0)),
             structure_lookback_bars=int(struct.get("lookback_bars", 20)),
             context_swing_atr_period=int(struct.get("swing_atr_period", 14)),
@@ -286,27 +290,71 @@ def _mean_volume(frame: pd.DataFrame, wave: Wave) -> float:
 # ---------------------------------------------------------------------------
 
 
-def factor_fibonacci(
-    count: WaveCount, price: float, atr: float, params: ConfluenceParams
-) -> FactorScore:
-    """Proximidad del precio a los retrocesos y extensiones de la última onda."""
+def fibonacci_levels(count: WaveCount, params: ConfluenceParams) -> list[tuple[str, float]]:
+    """Niveles de Fibonacci relevantes para el conteo.
+
+    Además de los retrocesos y extensiones de la última onda, se añaden las
+    relaciones **entre ondas** que la teoría considera significativas: la
+    igualdad C=A en correcciones (el zigzag tiende a C≈A medido desde el final
+    de B) y los retrocesos de la estructura completa cuando las cinco ondas han
+    terminado. Cuando varios de estos niveles caen juntos forman un *cluster*,
+    y esa confluencia es más significativa que cualquier nivel aislado.
+    """
     last = count.waves[-1]
     levels: list[tuple[str, float]] = []
 
-    # Retrocesos medidos desde el final de la onda hacia su origen.
     span = last.end.price - last.start.price
     for ratio in params.fib_retracements:
         levels.append((f"retroceso {ratio}", last.end.price - span * ratio))
-    # Extensiones proyectadas más allá del final.
     for ratio in params.fib_extensions:
         levels.append((f"extensión {ratio}", last.start.price + span * ratio))
 
+    if not params.fib_clusters:
+        return levels
+
+    if count.hypothesis == CORRECTIVE_ABC:
+        # Proyección de igualdad: C = A medida desde el final de B.
+        wave_a, wave_b = count.waves[0], count.waves[1]
+        direction = 1.0 if wave_a.end.price > wave_a.start.price else -1.0
+        levels.append(("igualdad C=A", wave_b.end.price + direction * wave_a.length))
+        levels.append(("C=1.618·A", wave_b.end.price + direction * wave_a.length * 1.618))
+    elif count.hypothesis in COMPLETED_FIVE:
+        # Retrocesos de la estructura completa: los imanes clásicos tras un
+        # impulso terminado (la zona de la onda 4 previa suele coincidir).
+        origin, end = count.pivots[0].price, count.pivots[-1].price
+        total = end - origin
+        for ratio in (0.382, 0.5, 0.618):
+            levels.append((f"retroceso {ratio} del impulso", end - total * ratio))
+
+    return levels
+
+
+def factor_fibonacci(
+    count: WaveCount, price: float, atr: float, params: ConfluenceParams
+) -> FactorScore:
+    """Proximidad del precio a los niveles de Fibonacci del conteo.
+
+    Con `fib_clusters` activo, la coincidencia de dos o más niveles distintos
+    dentro de la tolerancia suma una bonificación: la confluencia de niveles
+    independientes es la lectura fuerte, no un ratio suelto.
+    """
+    levels = fibonacci_levels(count, params)
     tolerance = params.fib_tolerance_atr * atr
+
     best_name, best_level, best_score = "", float("nan"), 0.0
+    in_reach = 0
     for name, level in levels:
         score = _distance_score(abs(price - level), tolerance)
+        if score > 0:
+            in_reach += 1
         if score > best_score:
             best_name, best_level, best_score = name, level, score
+
+    cluster_note = ""
+    if params.fib_clusters and best_score > 0 and in_reach >= 2:
+        bonus = params.fib_cluster_bonus * (in_reach - 1)
+        best_score = min(1.0, best_score + bonus)
+        cluster_note = f" — cluster de {in_reach} niveles (+{bonus:.2f})"
 
     if best_score == 0.0:
         cercano = min(levels, key=lambda item: abs(price - item[1]))
@@ -316,7 +364,7 @@ def factor_fibonacci(
             f"({abs(price - cercano[1]) / atr:.2f} ATR)"
         )
     else:
-        detalle = f"precio {price:,.4f} sobre {best_name} en {best_level:,.4f}"
+        detalle = f"precio {price:,.4f} sobre {best_name} en {best_level:,.4f}{cluster_note}"
 
     return FactorScore(
         name=FIBONACCI,
