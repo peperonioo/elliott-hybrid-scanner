@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-07 04:15 UTC
+# Elliott Hybrid Scanner — 2026-08-07 04:21 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -12,17 +12,18 @@ Hoy no hay ninguna señal que supere el umbral de confluencia. Es el
 comportamiento esperado la mayoría de los días: el sistema emite unas
 cuatro señales al mes en todo el universo.
 
-## Avisos
+## Cerca del umbral (6)
 
-- BTC/USDT: sin datos en caché
-- ETH/USDT: sin datos en caché
-- SOL/USDT: sin datos en caché
-- BNB/USDT: sin datos en caché
-- XRP/USDT: sin datos en caché
-- ADA/USDT: sin datos en caché
-- AVAX/USDT: sin datos en caché
-- LINK/USDT: sin datos en caché
-- DOT/USDT: sin datos en caché
+La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. NO son señales (les faltan factores): son los niveles a vigilar.
+
+| par | hipótesis | score | factores activos | zona de compra | stop |
+|---|---|---|---|---|---|
+| DOT/USDT | `corrective_abc` | 0.479 | rsi_divergence, volume_profile | 0.8038–0.8221 | 0.7430 |
+| BTC/USDT | `corrective_abc` | 0.444 | rsi_divergence, volume_profile | 64,205.54–64,990.03 | 62,742.47 |
+| ADA/USDT | `corrective_abc` | 0.435 | market_structure, higher_timeframe_trend | 0.1624–0.1714 | 0.1578 |
+| BNB/USDT | `corrective_abc` | 0.246 | volume_profile, higher_timeframe_trend | 570.36–577.55 | 562.03 |
+| SOL/USDT | `corrective_abc` | 0.176 | volume_profile | 74.2300–75.4831 | 70.5800 |
+| AVAX/USDT | `corrective_abc` | 0.048 | — | 6.4477–6.6124 | 6.1370 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
