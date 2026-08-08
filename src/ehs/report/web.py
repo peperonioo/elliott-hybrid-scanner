@@ -139,7 +139,6 @@ footer a{color:var(--accent)}
   margin-left:auto;white-space:nowrap;flex-shrink:0}
 @media (max-width: 560px){
   .chip{flex-wrap:wrap;row-gap:4px}
-  .st{flex-basis:100%;margin-left:38px;width:max-content}
 }
 .st.sig{background:var(--green);color:#fff}
 .st.rad{background:var(--zone);color:var(--accent)}
