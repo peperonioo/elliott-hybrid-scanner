@@ -51,7 +51,7 @@ def test_con_grafico_el_precio_actual_es_el_ultimo_cierre():
 
 def test_sin_senales_muestra_el_estado_vacio():
     page = render_html([], [], cfg=make_config(), now=NOW)
-    assert "Hoy no hay señal de compra" in page
+    assert "no hay señal de compra activa" in page
     assert "Señales de compra activas (0)" in page
 
 

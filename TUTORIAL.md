@@ -7,8 +7,8 @@ del backtest, ver el [README](README.md).
 
 ## 1. Qué es (y qué no es)
 
-**Es** un scanner que cada día revisa 9 criptomonedas (BTC, ETH, SOL, BNB,
-XRP, ADA, AVAX, LINK, DOT) buscando estructuras de ondas de Elliott apoyadas
+**Es** un scanner que revisa cada 4 horas 13 criptomonedas (BTC, ETH, SOL,
+BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX) buscando estructuras de ondas de Elliott apoyadas
 por confluencia técnica, y publica un informe con lo que encuentra.
 
 **No es** un bot de trading. No ejecuta órdenes, no se conecta a tu cuenta de
@@ -26,8 +26,12 @@ llevar ese registro.
 
 ## 2. El informe diario: dónde y cuándo
 
-Cada día, poco después de la medianoche UTC (~01:20–02:20 hora española), el
-workflow de GitHub descarga las velas nuevas, escanea y commitea el informe.
+Cada 4 horas (en cada cierre de vela), el workflow de GitHub descarga las
+velas nuevas, escanea y actualiza la web. Además la propia página refresca los
+precios en vivo al abrirla, y el botón «Actualizar precios» los pide al
+momento. Si aparece una señal nueva, **se abre un issue en GitHub
+automáticamente** — activa Watch → Custom → Issues en el repo para recibir
+email/notificación en el móvil.
 
 **Para verlo**, la forma cómoda es la web (guárdala en favoritos del móvil):
 
@@ -103,19 +107,13 @@ de disparar. No son señales; son lo que conviene vigilar.
 
 ## 5. El registro del forward test (lo más importante)
 
-Durante los próximos 3–6 meses, **no operes con dinero: anota**. Una hoja de
-cálculo con una fila por señal:
-
-| fecha | par | precio señal | invalidación | objetivo (2R) | resultado | notas |
-|---|---|---|---|---|---|---|
-| 2026-08-10 | BTC | 61.240 | 58.100 | 67.520 | ? | conteo dudoso, B muy profunda |
-
-- **Objetivo (2R)**: entrada + 2 × (entrada − invalidación). Es la regla que
-  usó el backtest, así el registro es comparable.
-- **Resultado**: qué tocó primero — objetivo (+2R), invalidación (−1R), o
-  dónde estaba a las 30 velas (5 días) si no tocó ninguno.
-- El historial de `reports/` en GitHub es tu comprobante: las señales quedan
-  commiteadas con fecha, imposibles de reescribir a posteriori.
+Durante los próximos meses, **no operes con dinero: observa**. El registro
+ya es automático: cada señal queda apuntada en `reports/signals.json`
+(commiteado con fecha, imposible de reescribir) y la sección **«📒 Forward
+test»** de la web calcula sola el desenlace de cada una (objetivo +2R, stop
+−1R o cierre por tiempo) y el resultado acumulado en R. Tu único trabajo:
+mirar esa sección de vez en cuando, y si quieres, anotar tu opinión sobre
+cada conteo al validarlo en TradingView.
 
 **Cuándo sacar conclusiones**: con ~30–40 señales (unos 8–10 meses). Si la
 esperanza sigue positiva, tienes un sistema validado en datos que nadie pudo

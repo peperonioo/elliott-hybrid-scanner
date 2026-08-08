@@ -18,7 +18,8 @@ on:
   workflow_dispatch: {} # permite lanzarlo a mano desde la pestaña Actions
 
 permissions:
-  contents: write # necesario solo para commitear el informe
+  contents: write # commitear el informe
+  issues: write # abrir un issue de aviso cuando aparece una señal nueva
 
 concurrency:
   group: daily-scan
@@ -55,8 +56,37 @@ jobs:
       - name: Tests (barrera de seguridad)
         run: python -m pytest -q
 
+      - name: Guardar registro previo de señales
+        run: cp reports/signals.json /tmp/signals_prev.json 2>/dev/null || echo "[]" > /tmp/signals_prev.json
+
       - name: Descargar velas nuevas y generar informe
         run: python scripts/daily_report.py
+
+      - name: Avisar de señales nuevas (issue de GitHub)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PYEOF'
+          import json, pathlib, subprocess
+
+          prev = {(s["symbol"], s["timestamp"]) for s in json.loads(pathlib.Path("/tmp/signals_prev.json").read_text())}
+          ahora = json.loads(pathlib.Path("reports/signals.json").read_text()) if pathlib.Path("reports/signals.json").exists() else []
+          nuevas = [s for s in ahora if (s["symbol"], s["timestamp"]) not in prev]
+          for s in nuevas:
+              base = s["symbol"].split("/")[0]
+              titulo = f"🎯 Señal de compra: {base}"
+              zona = f"{s['zone_low']:g}–{s['zone_high']:g}" if s.get("zone_low") else "—"
+              cuerpo = (
+                  f"**{s['symbol']}** · confirmada {s['timestamp']}\n\n"
+                  f"- Zona de compra: {zona}\n- Stop: {s['stop']:g}\n"
+                  f"- Comprobaciones: {', '.join(s['factors'])}\n\n"
+                  f"[Ver en la web](https://peperonioo.github.io/elliott-hybrid-scanner/)\n\n"
+                  f"_Informativo, no es asesoramiento financiero._"
+              )
+              subprocess.run(["gh", "issue", "create", "--title", titulo, "--body", cuerpo,
+                              "--label", "señal"], check=False)
+          print(f"señales nuevas: {len(nuevas)}")
+          PYEOF
 
       - name: Commitear el informe
         run: |

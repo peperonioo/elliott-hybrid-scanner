@@ -94,6 +94,7 @@ h2{font-size:1.12rem;margin:30px 0 10px;border-bottom:1px solid var(--border);
   font-size:.75rem;font-weight:700}
 .badge.long{background:var(--green);color:#fff}
 .badge.score{background:var(--zone);color:var(--accent)}
+.badge.hot{background:var(--amber);color:#fff}
 .card .meta{color:var(--muted);font-size:.82rem;margin:0 0 8px}
 .tvchart{height:300px;margin:6px 0 2px}
 .tvlink{font-size:.8rem;margin:2px 0 6px}
@@ -135,7 +136,8 @@ footer a{color:var(--accent)}
 .chip .nm{font-weight:700;font-size:.85rem;line-height:1.2}
 .chip .pr{font-size:.78rem;color:var(--muted)}
 .st{font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 7px;
-  margin-left:auto;white-space:nowrap}
+  margin-left:auto;white-space:nowrap;flex-shrink:0}
+.chip > span:nth-child(2){min-width:0;overflow:hidden;text-overflow:ellipsis}
 .st.sig{background:var(--green);color:#fff}
 .st.rad{background:var(--zone);color:var(--accent)}
 .st.non{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
@@ -182,7 +184,7 @@ def _price_precision(value: float) -> int:
     """Decimales que necesita el eje del gráfico para este precio."""
     v = float(value)
     if v >= 1000:
-        return 2
+        return 0
     if v >= 1:
         return 3
     if v <= 0:
@@ -385,6 +387,11 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
     if entry.is_signal:
         badge = '<span class="badge long">COMPRA</span>'
         card_class = "card signal"
+    elif len(r.active_factors) >= r.min_active_factors:
+        # Cumple el mínimo AHORA (re-evaluado al precio actual), pero la señal
+        # validada solo se emite cuando una estructura se CONFIRMA cumpliéndolo.
+        badge = '<span class="badge hot">⚡ cumple 3/5 ahora</span>'
+        card_class = "card"
     else:
         badge = ""
         card_class = "card"
@@ -528,23 +535,29 @@ CHART_SCRIPT = """
       zigzag.setData(d.pivots);
     }
 
-    var line = function (price, color, title, style) {
+    var line = function (price, color, title, style, axisLabel) {
       if (price === null || price === undefined) return;
       candles.createPriceLine({
         price: price, color: color, lineWidth: 1,
-        lineStyle: style, axisLabelVisible: true, title: title,
+        lineStyle: style, axisLabelVisible: axisLabel !== false, title: title,
       });
     };
     var dashed = LightweightCharts.LineStyle.Dashed;
     var solid = LightweightCharts.LineStyle.Solid;
     if (d.zone) {
       line(d.zone[0], v("--accent"), "zona compra", solid);
-      line(d.zone[1], v("--accent"), "", solid);
+      line(d.zone[1], v("--accent"), "", solid, false);
     }
     line(d.stop, v("--red"), "stop", dashed);
     line(d.target, v("--green"), "objetivo 2R", dashed);
 
-    chart.timeScale().fitContent();
+    // Vista inicial: las últimas ~90 velas (15 días); el resto, con scroll.
+    var n = d.candles.length;
+    if (n > 95) {
+      chart.timeScale().setVisibleLogicalRange({ from: n - 90, to: n + 3 });
+    } else {
+      chart.timeScale().fitContent();
+    }
   });
 })();
 </script>"""
@@ -603,6 +616,16 @@ LIVE_SCRIPT = """
       new Date().toTimeString().slice(0, 5) +
       " · el análisis completo se rehace solo cada 4 h";
   }
+  var age = document.getElementById("an-age");
+  if (age && typeof EHS_GEN !== "undefined") {
+    var horas = (Date.now() / 1000 - EHS_GEN) / 3600;
+    if (horas >= 1) age.textContent = " (hace " + horas.toFixed(0) + " h)";
+    if (horas > 6) {
+      age.innerHTML = ' <b style="color:var(--red)">⚠ el análisis lleva ' +
+        horas.toFixed(0) + ' h sin renovarse</b>';
+    }
+  }
+
   var btn = document.getElementById("btn-live");
   if (btn) btn.addEventListener("click", refresh);
   refresh();
@@ -683,7 +706,19 @@ def render_html(
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
-    near = [e for e in entries if not e.is_signal]
+
+    def _near_rank(e: ReportEntry) -> tuple:
+        """Primero lo más cercano a disparar; luego, lo más cercano a su zona."""
+        r = e.result
+        if r.zone:
+            mid = (r.zone[0] + r.zone[1]) / 2
+            distance = abs(r.price - mid) / mid if mid else 9.9
+        else:
+            distance = 9.9
+        return (-len(r.active_factors), distance)
+
+    near = sorted((e for e in entries if not e.is_signal), key=_near_rank)
+    title = ("🎯 " + str(len(signals)) + " señal · " if signals else "") + "Elliott Hybrid Scanner"
 
     def last_close(symbol: str) -> float | None:
         candles = chart_data.get(symbol, {}).get("candles")
@@ -696,9 +731,9 @@ def render_html(
         cuerpo_senales = "".join(card(e) for e in signals)
     else:
         cuerpo_senales = """
-<div class="empty"><b>Hoy no hay señal de compra.</b><br>
-Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara con
-3 de 5 comprobaciones a favor.</div>"""
+<div class="empty"><b>Ahora mismo no hay señal de compra activa.</b><br>
+El sistema solo dispara cuando una estructura se <b>confirma</b> con 3 de 5
+comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.</div>"""
 
     cuerpo_radar = (
         "".join(card(e) for e in near)
@@ -740,21 +775,28 @@ Es lo normal (~4 señales al mes en todo el universo): el sistema solo dispara c
         )
     if live_payload:
         live_json = json.dumps(live_payload, separators=(",", ":"))
-        scripts += f"<script>var EHS_LIVE = {live_json};</script>\n{LIVE_SCRIPT}"
+        scripts += (
+            f"<script>var EHS_LIVE = {live_json};"
+            f"var EHS_GEN = {int(now.timestamp())};</script>\n{LIVE_SCRIPT}"
+        )
 
     return f"""<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Elliott Hybrid Scanner</title>
+<title>{title}</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0969da">
 <style>{CSS}</style>
 </head>
 <body>
 <div class="wrap">
   <h1>📡 Elliott Hybrid Scanner</h1>
-  <div class="updated">Actualizado: {now:%d-%m-%Y %H:%M} UTC · se regenera cada noche ·
-    {_esc(", ".join(cfg.bases))} · 4h</div>
+  <div class="updated">Análisis: {now:%d-%m-%Y %H:%M} UTC
+    <span id="an-age"></span> · se rehace solo cada 4 h ·
+    {_esc(", ".join(cfg.bases))} · velas de 4h</div>
   <div class="disclaimer">Herramienta informativa generada automáticamente — no es
   asesoramiento financiero ni ejecuta órdenes. Operativa de referencia: compra al
   contado (spot), sin apalancamiento. Sistema en fase de validación (forward test).</div>
