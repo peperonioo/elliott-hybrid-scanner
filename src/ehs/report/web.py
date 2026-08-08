@@ -137,7 +137,10 @@ footer a{color:var(--accent)}
 .chip .pr{font-size:.78rem;color:var(--muted)}
 .st{font-size:.66rem;font-weight:700;border-radius:999px;padding:2px 7px;
   margin-left:auto;white-space:nowrap;flex-shrink:0}
-.chip > span:nth-child(2){min-width:0;overflow:hidden;text-overflow:ellipsis}
+@media (max-width: 560px){
+  .chip{flex-wrap:wrap;row-gap:4px}
+  .st{flex-basis:100%;margin-left:38px;width:max-content}
+}
 .st.sig{background:var(--green);color:#fff}
 .st.rad{background:var(--zone);color:var(--accent)}
 .st.non{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
