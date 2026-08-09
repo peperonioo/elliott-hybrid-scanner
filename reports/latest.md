@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-09 16:59 UTC
+# Elliott Hybrid Scanner — 2026-08-09 20:56 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -18,15 +18,15 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| DOT/USDT | `corrective_abc` | 0.576 | fibonacci, rsi_divergence, volume_profile | 0.8058–0.8201 | 0.7430 |
-| BTC/USDT | `corrective_abc` | 0.543 | rsi_divergence, volume_profile | 64,833.82–65,370.47 | 62,742.47 |
-| ADA/USDT | `corrective_abc` | 0.413 | market_structure, higher_timeframe_trend | 0.1639–0.1699 | 0.1578 |
-| SOL/USDT | `corrective_abc` | 0.363 | volume_profile | 77.1089–78.3228 | 73.4400 |
-| DOGE/USDT | `corrective_abc` | 0.325 | fibonacci, volume_profile | 0.0703–0.0713 | 0.0682 |
-| BNB/USDT | `impulse_1_2_3` | 0.295 | volume_profile, higher_timeframe_trend | 613.21–620.78 | 577.20 |
-| AVAX/USDT | `corrective_abc` | 0.228 | fibonacci | 6.4664–6.5937 | 6.1370 |
-| TRX/USDT | `corrective_abc` | 0.182 | — | 0.3280–0.3295 | 0.3254 |
-| SUI/USDT | `corrective_abc` | 0.162 | volume_profile | 0.6860–0.6992 | 0.6643 |
+| BTC/USDT | `corrective_abc` | 0.583 | fibonacci, rsi_divergence, volume_profile | 64,848.36–65,355.93 | 62,742.47 |
+| DOT/USDT | `corrective_abc` | 0.469 | rsi_divergence, volume_profile | 0.8059–0.8200 | 0.7430 |
+| ADA/USDT | `corrective_abc` | 0.413 | market_structure, higher_timeframe_trend | 0.1641–0.1698 | 0.1578 |
+| SOL/USDT | `corrective_abc` | 0.299 | volume_profile | 76.2115–77.3923 | 73.4400 |
+| BNB/USDT | `impulse_1_2_3` | 0.295 | volume_profile, higher_timeframe_trend | 613.37–620.62 | 577.20 |
+| DOGE/USDT | `corrective_abc` | 0.228 | volume_profile | 0.0697–0.0707 | 0.0682 |
+| SUI/USDT | `corrective_abc` | 0.217 | volume_profile | 0.6861–0.6991 | 0.6643 |
+| TRX/USDT | `corrective_abc` | 0.182 | — | 0.3281–0.3295 | 0.3254 |
+| AVAX/USDT | `corrective_abc` | 0.167 | — | 6.4674–6.5927 | 6.1370 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
