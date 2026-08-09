@@ -23,7 +23,9 @@ from typing import Any
 import pandas as pd
 
 from ehs.config import Config
+from ehs.confluence.scorer import score_confluence
 from ehs.data.cache import ParquetCache
+from ehs.elliott.validator import scan_recent
 from ehs.pipeline import PipelineParams
 from ehs.report.daily import ReportEntry, _read_pair, collect_entries
 from ehs.report.signals_log import LoggedSignal, summary_stats, update_log
@@ -143,6 +145,7 @@ footer a{color:var(--accent)}
 .st.sig{background:var(--green);color:#fff}
 .st.rad{background:var(--zone);color:var(--accent)}
 .st.non{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.st.bear{background:rgba(209,36,47,.12);color:var(--red)}
 .meta2{font-size:.86rem;margin:0 0 6px}
 .inzone{color:var(--green);font-weight:700}
 .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px}
@@ -221,7 +224,11 @@ def _tradingview_url(symbol: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def build_chart_data(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[str, Any]]:
+def build_chart_data(
+    cfg: Config,
+    entries: list[ReportEntry],
+    watch: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, dict[str, Any]]:
     """Velas, pivotes y niveles de cada par, listos para embeber como JSON."""
     cache = ParquetCache(cfg.path("paths.cache_dir"))
     params = PipelineParams.from_config(cfg)
@@ -276,10 +283,60 @@ def build_chart_data(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[
             "stop": round(r.signal_invalidation, 6),
             "target": (round(_target_for(entry), 6) if _target_for(entry) is not None else None),
         }
+
+    # Monedas en observación: velas + ondas + soporte/resistencia/anulación.
+    for info in (watch or {}).values():
+        symbol = info["symbol"]
+        if symbol in data:
+            continue
+        base = info["base"]
+        _, structure, _ = _read_pair(cfg, cache, base, params)
+        if structure.empty:
+            continue
+        window = structure.iloc[-CHART_BARS:]
+        candles = [
+            {
+                "time": int(ts.timestamp()),
+                "open": round(float(row["open"]), 6),
+                "high": round(float(row["high"]), 6),
+                "low": round(float(row["low"]), 6),
+                "close": round(float(row["close"]), 6),
+            }
+            for ts, row in window.iterrows()
+        ]
+        first_ts = int(window.index[0].timestamp())
+        pivots = [
+            {"time": int(p.timestamp.timestamp()), "value": round(p.price, 6)}
+            for p in detect_swings(structure, **params.swing)
+            if int(p.timestamp.timestamp()) >= first_ts
+        ]
+        hlines = []
+        if info.get("sup") is not None:
+            hlines.append({"p": round(info["sup"], 6), "label": "soporte", "c": "--green"})
+        if info.get("res") is not None:
+            hlines.append({"p": round(info["res"], 6), "label": "resistencia", "c": "--red"})
+        if info.get("anula") is not None and info.get("anula") != info.get("res"):
+            hlines.append({"p": round(info["anula"], 6), "label": "anula bajista", "c": "--amber"})
+        precision = _price_precision(candles[-1]["close"]) if candles else 2
+        data[symbol] = {
+            "precision": precision,
+            "minMove": round(10**-precision, 12),
+            "candles": candles,
+            "pivots": pivots,
+            "labels": [],
+            "zone": None,
+            "stop": None,
+            "target": None,
+            "hlines": hlines,
+        }
     return data
 
 
-def build_overview(cfg: Config, entries: list[ReportEntry]) -> list[dict[str, Any]]:
+def build_overview(
+    cfg: Config,
+    entries: list[ReportEntry],
+    watch: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     """Estado de TODAS las monedas del universo, tengan o no estructura.
 
     Es lo que responde de un vistazo "¿y ETH?": aunque una moneda no tenga
@@ -301,12 +358,15 @@ def build_overview(cfg: Config, entries: list[ReportEntry]) -> list[dict[str, An
             continue
         price = float(structure["close"].iloc[-1])
         entry = by_symbol.get(symbol)
+        info = (watch or {}).get(base)
         if entry and entry.is_signal:
             state, cls = "SEÑAL", "sig"
         elif entry:
             state, cls = "radar", "rad"
+        elif info:
+            state, cls = info["label"], info["cls"]
         else:
-            state, cls = "sin estructura", "non"
+            state, cls = "sin datos", "non"
         out.append(
             {
                 "base": base,
@@ -314,7 +374,7 @@ def build_overview(cfg: Config, entries: list[ReportEntry]) -> list[dict[str, An
                 "price": price,
                 "state": state,
                 "cls": cls,
-                "link": entry is not None,
+                "link": entry is not None or info is not None,
             }
         )
     return out
@@ -335,6 +395,103 @@ def _overview_html(overview: list[dict[str, Any]]) -> str:
         else:
             chips.append(f'<div class="chip">{inner}</div>')
     return '<div class="ovgrid">' + "".join(chips) + "</div>"
+
+
+def build_watch(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[str, Any]]:
+    """Diagnóstico de las monedas SIN jugada alcista operable.
+
+    "Sin estructura" era un callejón sin salida informativo. El sistema sabe
+    más: si la mejor lectura es bajista (y dónde se anularía), si la lectura
+    alcista existe pero su geometría no es operable, o si simplemente es un
+    lateral. Y los pivotes del ZigZag dan siempre soporte y resistencia
+    objetivos. Nada de esto toca la lógica de señales: es solo diagnóstico.
+    """
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    have = {e.result.symbol.split("/")[0] for e in entries}
+
+    out: dict[str, dict[str, Any]] = {}
+    for base in cfg.bases:
+        if base in have:
+            continue
+        symbol, structure, context = _read_pair(cfg, cache, base, params)
+        if structure.empty:
+            continue
+
+        pivots = detect_swings(structure, **params.swing)
+        highs = [p for p in pivots if p.kind == "H"]
+        lows = [p for p in pivots if p.kind == "L"]
+        res = highs[-1].price if highs else None
+        sup = lows[-1].price if lows else None
+
+        best_bear = None
+        bull_incoherente = False
+        for count in scan_recent(pivots, params.elliott):
+            try:
+                r = score_confluence(
+                    count,
+                    structure=structure,
+                    context=context,
+                    symbol=symbol,
+                    structure_timeframe=params.structure_timeframe,
+                    context_timeframe=params.context_timeframe,
+                    params=params.confluence,
+                )
+            except ValueError:
+                continue
+            if r.signal_direction == "bearish":
+                if best_bear is None or r.score > best_bear.score:
+                    best_bear = r
+            elif r.zone and r.signal_invalidation >= r.zone[0]:
+                bull_incoherente = True
+
+        if best_bear is not None:
+            anula = best_bear.signal_invalidation
+            info = {
+                "label": "lectura bajista",
+                "cls": "bear",
+                "text": (
+                    f"La mejor lectura de Elliott ahora es <b>bajista</b> "
+                    f"({_esc(_hypothesis_label(best_bear.count.hypothesis))} al alza que "
+                    f"parece agotada) — y este sistema solo compra, así que toca esperar. "
+                    f"La lectura bajista <b>se anula si el precio supera "
+                    f"{_fmt(anula)}</b>: ahí el mapa se redibujaría al alza."
+                ),
+                "anula": anula,
+            }
+        elif bull_incoherente:
+            info = {
+                "label": "no operable",
+                "cls": "non",
+                "text": (
+                    "Hay una lectura alcista, pero su zona de compra queda por encima de "
+                    "su propio stop: <b>geometría no operable</b> (comprar ahí ya "
+                    "invalidaría el conteo). Se espera a que se forme una estructura "
+                    "nueva."
+                ),
+                "anula": None,
+            }
+        else:
+            info = {
+                "label": "lateral",
+                "cls": "non",
+                "text": (
+                    "Sin patrón de Elliott válido ahora mismo: movimiento lateral o "
+                    "ruido. Los niveles del último swing marcan el rango a vigilar."
+                ),
+                "anula": None,
+            }
+
+        price = float(structure["close"].iloc[-1])
+        out[base] = {
+            "base": base,
+            "symbol": symbol,
+            "price": price,
+            "res": res,
+            "sup": sup,
+            **info,
+        }
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -440,6 +597,45 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
 </div>"""
 
 
+def _watch_card(info: dict[str, Any], has_chart: bool) -> str:
+    base = info["base"]
+    chart_html = (
+        f'<div class="tvchart" id="{_chart_id(info["symbol"])}"></div>'
+        f'<p class="tvlink"><a href="{_tradingview_url(info["symbol"])}" target="_blank" '
+        f'rel="noopener">ver {_esc(base)} en TradingView ↗</a></p>'
+        if has_chart
+        else ""
+    )
+    levels = [
+        f'<div class="level"><div class="lab">Precio ahora</div>'
+        f'<div class="val" id="now-{_esc(base)}">{_fmt(info["price"])}</div></div>'
+    ]
+    if info.get("sup") is not None:
+        levels.append(
+            f'<div class="level target"><div class="lab">Soporte clave</div>'
+            f'<div class="val">{_fmt(info["sup"])}</div></div>'
+        )
+    if info.get("res") is not None:
+        levels.append(
+            f'<div class="level stop"><div class="lab">Resistencia clave</div>'
+            f'<div class="val">{_fmt(info["res"])}</div></div>'
+        )
+    if info.get("anula") is not None:
+        levels.append(
+            f'<div class="level buy"><div class="lab">Se anula lo bajista ↑</div>'
+            f'<div class="val">{_fmt(info["anula"])}</div></div>'
+        )
+    return f"""
+<div class="card" id="card-{_esc(base)}">
+  <h3><span class="mono" style="{_mono_style(base)}">{_esc(base[:1])}</span> {_esc(base)}
+    <span class="badge {"hot" if info["cls"] == "bear" else "score"}">{_esc(info["label"])}</span>
+  </h3>
+  <p class="meta2">{info["text"]}</p>
+  {chart_html}
+  <div class="levels">{"".join(levels)}</div>
+</div>"""
+
+
 LEGEND = """
 <details><summary>📖 Cómo leer esta página</summary>
 <dl class="legend">
@@ -466,6 +662,12 @@ LEGEND = """
   doble: 100 + 2×5 = <b>110</b>. Si sale mal pierdes 5; si sale bien ganas 10. Con
   esa relación basta acertar algo más de 1 de cada 3 veces para no perder dinero —
   es la regla de salida con la que se validó el sistema.</dd>
+  <dt>Los estados de cada moneda</dt>
+  <dd><b>SEÑAL</b>: compra activa validada. <b>radar</b>: estructura alcista con sus
+  niveles, pero faltan comprobaciones. <b>lectura bajista</b>: la mejor lectura de
+  Elliott apunta abajo — su tarjeta dice en qué nivel se anularía. <b>no operable</b>:
+  hay lectura alcista pero su geometría no permite un trade sano. <b>lateral</b>: sin
+  patrón claro; se muestran soporte y resistencia del último swing.</dd>
   <dt>Señal de compra vs radar</dt>
   <dd>El sistema hace 5 comprobaciones sobre cada moneda (precio en nivel Fibonacci,
   divergencia del RSI, ruptura en el gráfico diario, volumen coherente y tendencia
@@ -552,6 +754,9 @@ CHART_SCRIPT = """
     }
     line(d.stop, v("--red"), "stop", dashed);
     line(d.target, v("--green"), "objetivo 2R", dashed);
+    if (d.hlines) {
+      d.hlines.forEach(function (h) { line(h.p, v(h.c), h.label, dashed); });
+    }
 
     // Vista inicial: las últimas ~90 velas (15 días); el resto, con scroll.
     var n = d.candles.length;
@@ -705,6 +910,7 @@ def render_html(
     chart_data: dict[str, dict[str, Any]] | None = None,
     overview: list[dict[str, Any]] | None = None,
     signals_log: list[LoggedSignal] | None = None,
+    watch: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -749,6 +955,18 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
         if warnings
         else ""
     )
+
+    watch = watch or {}
+    if watch:
+        tarjetas_watch = "".join(
+            _watch_card(info, info["symbol"] in chart_data) for info in watch.values()
+        )
+        cuerpo_watch = (
+            f"<h2>🔎 En observación ({len(watch)}) — sin jugada alcista ahora</h2>"
+            f"{tarjetas_watch}"
+        )
+    else:
+        cuerpo_watch = ""
 
     # Lista de símbolos para el refresco en vivo, con su zona si la tienen.
     zone_by_base: dict[str, list[float]] = {}
@@ -820,6 +1038,8 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
   <h2>👀 En el radar ({len(near)})</h2>
   {cuerpo_radar}
 
+  {cuerpo_watch}
+
   {avisos}
 
   <h2>📒 Forward test — registro de señales</h2>
@@ -843,8 +1063,9 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     """Genera `docs/index.html` para GitHub Pages."""
     now = now if now is not None else pd.Timestamp.now(tz="UTC")
     entries, warnings = collect_entries(cfg)
-    chart_data = build_chart_data(cfg, entries)
-    overview = build_overview(cfg, entries)
+    watch = build_watch(cfg, entries)
+    chart_data = build_chart_data(cfg, entries, watch)
+    overview = build_overview(cfg, entries, watch)
 
     # Forward test: registrar señales nuevas y re-evaluar desenlaces.
     cache = ParquetCache(cfg.path("paths.cache_dir"))
@@ -865,6 +1086,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
         chart_data=chart_data,
         overview=overview,
         signals_log=log,
+        watch=watch,
     )
 
     web_dir = cfg.path("paths.web_dir")

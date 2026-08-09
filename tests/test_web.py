@@ -156,3 +156,32 @@ def test_con_overview_se_embebe_el_refresco_en_vivo():
 def test_explica_que_los_precios_son_dolares():
     page = render_html([], [], cfg=make_config(), now=NOW)
     assert "USDT" in page and "dólar" in page
+
+
+def test_las_monedas_en_observacion_tienen_tarjeta_con_diagnostico():
+    watch = {
+        "ETH": {
+            "base": "ETH",
+            "symbol": "ETH/USDT",
+            "price": 1915.0,
+            "res": 1981.0,
+            "sup": 1822.0,
+            "label": "lectura bajista",
+            "cls": "bear",
+            "text": "La mejor lectura de Elliott ahora es <b>bajista</b>. "
+            "Se anula si supera <b>1,981</b>.",
+            "anula": 1981.0,
+        }
+    }
+    page = render_html([], [], cfg=make_config(), now=NOW, watch=watch)
+
+    assert "En observación (1)" in page
+    assert "lectura bajista" in page
+    assert "Soporte clave" in page and "1,822" in page
+    assert "Resistencia clave" in page and "1,981" in page
+    assert "Se anula lo bajista" in page
+
+
+def test_sin_watch_no_hay_seccion_de_observacion():
+    page = render_html([], [], cfg=make_config(), now=NOW)
+    assert "En observación" not in page
