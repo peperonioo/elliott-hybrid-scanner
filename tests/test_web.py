@@ -30,7 +30,7 @@ def test_una_senal_se_renderiza_con_niveles_y_lenguaje_llano():
     assert "Precio ahora" in page
     assert "Zona de compra" in page and "60,000" in page
     assert "Stop" in page and "58,000" in page
-    assert "Objetivo (2× riesgo)" in page
+    assert "Venta objetivo (2R)" in page
     assert "ni ejecuta órdenes" in page
     assert "Cómo leer esta página" in page
     assert "precio en nivel Fibonacci" in page
@@ -185,3 +185,22 @@ def test_las_monedas_en_observacion_tienen_tarjeta_con_diagnostico():
 def test_sin_watch_no_hay_seccion_de_observacion():
     page = render_html([], [], cfg=make_config(), now=NOW)
     assert "En observación" not in page
+
+
+def test_la_zona_dca_se_muestra_como_estrategia_separada():
+    dca = [
+        {
+            "base": "BTC",
+            "lower": 39081.0,
+            "upper": 57373.0,
+            "price": 64900.0,
+            "estado": "13% por encima — esperar",
+            "cls": "flat",
+        }
+    ]
+    page = render_html([], [], cfg=make_config(), now=NOW, dca=dca)
+
+    assert "Zona DCA" in page
+    assert "39,081" in page and "57,373" in page
+    assert "por encima — esperar" in page
+    assert "No está validada por el backtest" in page

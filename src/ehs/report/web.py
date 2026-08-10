@@ -494,6 +494,80 @@ def build_watch(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[str, 
     return out
 
 
+DCA_RETR = (0.618, 0.786)  # retroceso profundo del ciclo completo
+
+
+def build_dca(cfg: Config) -> list[dict[str, Any]]:
+    """Zona DCA por moneda: banda 0.618-0.786 de retroceso del ciclo completo.
+
+    Marco técnico clásico de acumulación a LARGO plazo (meses/años), calculado
+    sobre el gráfico diario entre el mínimo y el máximo de todo el histórico
+    disponible. NO está validado por el backtest — es contexto para la
+    estrategia de acumulación, deliberadamente separada del swing.
+    """
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    rows: list[dict[str, Any]] = []
+
+    for base in cfg.bases:
+        _, structure, context = _read_pair(cfg, cache, base, params)
+        if context.empty or structure.empty:
+            continue
+        high = float(context["high"].max())
+        low = float(context["low"].min())
+        span = high - low
+        if span <= 0:
+            continue
+        upper = high - span * DCA_RETR[0]
+        lower = high - span * DCA_RETR[1]
+        price = float(structure["close"].iloc[-1])
+
+        if price > upper:
+            estado, cls = f"{(price / upper - 1) * 100:.0f}% por encima — esperar", "flat"
+        elif price >= lower:
+            estado, cls = "DENTRO de la zona", "win"
+        else:
+            estado, cls = f"{(1 - price / lower) * 100:.0f}% por debajo", "open"
+
+        rows.append(
+            {
+                "base": base,
+                "lower": lower,
+                "upper": upper,
+                "price": price,
+                "estado": estado,
+                "cls": cls,
+            }
+        )
+    return rows
+
+
+def _dca_html(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return ""
+    filas = "".join(
+        f"<tr><td><b>{_esc(r['base'])}</b></td>"
+        f"<td>{_fmt(r['lower'])} – {_fmt(r['upper'])}</td>"
+        f"<td>{_fmt(r['price'])}</td>"
+        f'<td><span class="res {r["cls"]}">{_esc(r["estado"])}</span></td></tr>'
+        for r in rows
+    )
+    return f"""
+<h2>🐢 Zona DCA — acumulación a largo plazo (meses/años)</h2>
+<p style="color:var(--muted);font-size:.88rem">Estrategia <b>separada</b> del swing de
+arriba: banda de retroceso profundo (0.618–0.786) de todo el ciclo, donde
+históricamente se acumula <b>por tramos</b> pensando en años, sin stop y solo si se
+cree en el activo a largo. <b>No está validada por el backtest</b> — es un marco
+técnico clásico, no una señal. Regla de higiene: dinero y decisiones aparte del
+swing; nunca convertir un swing fallido en "DCA".</p>
+<div class="scroll" style="overflow-x:auto">
+<table>
+  <tr><th>moneda</th><th>zona DCA</th><th>precio ahora</th><th>estado</th></tr>
+  {filas}
+</table>
+</div>"""
+
+
 # ---------------------------------------------------------------------------
 # Tarjetas
 # ---------------------------------------------------------------------------
@@ -530,7 +604,7 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
             )
     if r.zone:
         levels.append(
-            f'<div class="level buy"><div class="lab">Zona de compra</div>'
+            f'<div class="level buy"><div class="lab">Zona de compra · swing</div>'
             f'<div class="val">{_fmt(r.zone[0])} – {_fmt(r.zone[1])}</div></div>'
         )
     levels.append(
@@ -539,7 +613,7 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
     )
     if target is not None:
         levels.append(
-            f'<div class="level target"><div class="lab">Objetivo (2× riesgo)</div>'
+            f'<div class="level target"><div class="lab">Venta objetivo (2R)</div>'
             f'<div class="val">{_fmt(target)}</div></div>'
         )
 
@@ -662,6 +736,12 @@ LEGEND = """
   doble: 100 + 2×5 = <b>110</b>. Si sale mal pierdes 5; si sale bien ganas 10. Con
   esa relación basta acertar algo más de 1 de cada 3 veces para no perder dinero —
   es la regla de salida con la que se validó el sistema.</dd>
+  <dt>¿Y la zona DCA?</dt>
+  <dd>Es la <b>otra</b> estrategia: acumulación a meses/años. La banda es el retroceso
+  profundo (0.618–0.786) de todo el ciclo en el gráfico diario — donde históricamente
+  se compra por tramos, sin stop, solo si crees en el activo a años vista. No está
+  validada por el backtest: es un marco técnico clásico, no una señal. Nunca mezclar
+  con el swing: dinero y decisiones separados.</dd>
   <dt>¿A qué plazo son las señales?</dt>
   <dd><b>Corto plazo: swing de 2 a 5 días.</b> Así se validó el sistema: la operación
   se cierra al tocar el objetivo (2R), el stop, o como máximo a los 5 días (30 velas
@@ -924,6 +1004,7 @@ def render_html(
     overview: list[dict[str, Any]] | None = None,
     signals_log: list[LoggedSignal] | None = None,
     watch: dict[str, dict[str, Any]] | None = None,
+    dca: list[dict[str, Any]] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -1053,6 +1134,8 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
 
   {cuerpo_watch}
 
+  {_dca_html(dca or [])}
+
   {avisos}
 
   <h2>📒 Forward test — registro de señales</h2>
@@ -1077,6 +1160,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     now = now if now is not None else pd.Timestamp.now(tz="UTC")
     entries, warnings = collect_entries(cfg)
     watch = build_watch(cfg, entries)
+    dca = build_dca(cfg)
     chart_data = build_chart_data(cfg, entries, watch)
     overview = build_overview(cfg, entries, watch)
 
@@ -1100,6 +1184,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
         overview=overview,
         signals_log=log,
         watch=watch,
+        dca=dca,
     )
 
     web_dir = cfg.path("paths.web_dir")
