@@ -662,6 +662,19 @@ LEGEND = """
   doble: 100 + 2×5 = <b>110</b>. Si sale mal pierdes 5; si sale bien ganas 10. Con
   esa relación basta acertar algo más de 1 de cada 3 veces para no perder dinero —
   es la regla de salida con la que se validó el sistema.</dd>
+  <dt>¿A qué plazo son las señales?</dt>
+  <dd><b>Corto plazo: swing de 2 a 5 días.</b> Así se validó el sistema: la operación
+  se cierra al tocar el objetivo (2R), el stop, o como máximo a los 5 días (30 velas
+  de 4h); la duración media del backtest fue ~3 días. Las zonas de compra caducan:
+  se recalculan en cada análisis. Esto NO es inversión a largo plazo — acumular
+  pensando en meses o años es otra estrategia, con otros niveles y otro dinero, y
+  conviene no mezclarlas (convertir una señal que tocó su stop en "inversión a
+  largo" es la forma clásica de arruinar ambas).</dd>
+  <dt>¿Qué hago con una moneda en "lectura bajista"?</dt>
+  <dd><b>Esperar.</b> Ni comprar (sería contra la lectura) ni vender en corto (los
+  cortos perdían en las pruebas). Solo vigilar el nivel "se anula lo bajista": si el
+  precio lo supera, el mapa se redibuja y con el tiempo puede aparecer una jugada
+  alcista. Esa vigilancia la hace la web sola cada 4 horas.</dd>
   <dt>Los estados de cada moneda</dt>
   <dd><b>SEÑAL</b>: compra activa validada. <b>radar</b>: estructura alcista con sus
   niveles, pero faltan comprobaciones. <b>lectura bajista</b>: la mejor lectura de
