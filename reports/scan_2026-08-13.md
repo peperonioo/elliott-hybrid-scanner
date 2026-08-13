@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-13 03:03 UTC
+# Elliott Hybrid Scanner — 2026-08-13 05:52 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -19,15 +19,15 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
 | TRX/USDT | `impulse_1_2_3` | 0.397 | market_structure, higher_timeframe_trend | 0.3292–0.3313 | 0.3312 |
+| SOL/USDT | `corrective_abc` | 0.392 | fibonacci, volume_profile | 75.3753–76.6630 | 70.5800 |
 | ETH/USDT | `corrective_abc` | 0.363 | volume_profile | 1,895.62–1,922.12 | 1,853.62 |
-| BTC/USDT | `corrective_abc` | 0.361 | rsi_divergence, volume_profile | 64,260.23–64,935.34 | 62,742.47 |
-| SOL/USDT | `corrective_abc` | 0.334 | volume_profile | 75.3748–76.6634 | 70.5800 |
-| DOT/USDT | `corrective_abc` | 0.334 | rsi_divergence, volume_profile | 0.7897–0.8063 | 0.7430 |
-| BNB/USDT | `impulse_1_2_3` | 0.320 | volume_profile, higher_timeframe_trend | 613.14–620.84 | 577.20 |
+| BTC/USDT | `corrective_abc` | 0.361 | rsi_divergence, volume_profile | 64,266.27–64,929.30 | 62,742.47 |
+| DOGE/USDT | `corrective_abc` | 0.344 | fibonacci, volume_profile | 0.0695–0.0709 | 0.0682 |
+| DOT/USDT | `corrective_abc` | 0.334 | rsi_divergence, volume_profile | 0.7900–0.8060 | 0.7430 |
+| BNB/USDT | `impulse_1_2_3` | 0.320 | volume_profile, higher_timeframe_trend | 613.27–620.71 | 577.20 |
 | LINK/USDT | `corrective_abc` | 0.314 | fibonacci | 8.2937–8.4506 | 8.0680 |
-| SUI/USDT | `corrective_abc` | 0.227 | volume_profile | 0.6791–0.6940 | 0.6643 |
-| ADA/USDT | `corrective_abc` | 0.186 | — | 0.1644–0.1695 | 0.1578 |
-| DOGE/USDT | `corrective_abc` | 0.175 | volume_profile | 0.0695–0.0709 | 0.0682 |
+| SUI/USDT | `corrective_abc` | 0.306 | fibonacci, volume_profile | 0.6791–0.6940 | 0.6643 |
+| ADA/USDT | `corrective_abc` | 0.186 | — | 0.1644–0.1694 | 0.1578 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
