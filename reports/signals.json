@@ -1,1 +1,24 @@
-[]
+[
+ {
+  "symbol": "TRX/USDT",
+  "timestamp": "2026-08-13T16:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 0.3341,
+  "zone_low": 0.33339275456327094,
+  "zone_high": 0.3357472454367291,
+  "stop": 0.3376,
+  "score": 0.6697132070472235,
+  "factors": [
+   "fibonacci",
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-13T21:08:31.510619+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ }
+]
