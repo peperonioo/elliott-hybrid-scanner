@@ -270,3 +270,22 @@ def test_la_zona_dca_se_muestra_como_estrategia_separada():
     assert "39,081" in page and "57,373" in page
     assert "por encima — esperar" in page
     assert "No está validada por el backtest" in page
+
+
+def test_una_senal_con_el_stop_tocado_se_declara_anulada():
+    """Si el precio actual ya está bajo el stop, la tarjeta no puede sugerir comprar."""
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    chart = {
+        "BTC/USDT": {
+            "candles": [
+                {"time": 1, "open": 60000.0, "high": 60500.0, "low": 57000.0, "close": 57500.0}
+            ],
+            "pivots": [],
+            "zone": [60000.0, 61000.0],
+            "stop": 58000.0,
+            "target": 66500.0,
+        }
+    }
+    page = render_html([entry], [], cfg=make_config(), now=NOW, chart_data=chart)
+    assert "anulada" in page
+    assert "el plan ha muerto" in page

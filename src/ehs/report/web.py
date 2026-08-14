@@ -670,6 +670,13 @@ def _action_html(entry: ReportEntry, price_now: float, target: float | None) -> 
     if r.zone is None:
         return ""
     lo, hi = r.zone
+    if price_now <= r.signal_invalidation:
+        return (
+            '<p class="action warn"><b>Qué hacer ahora:</b> nada — esta señal ya está '
+            f"<b>anulada</b>: el precio ha caído hasta su stop ({_fmt(r.signal_invalidation)}) "
+            "y el plan ha muerto. No comprar «porque está más barato»: el forward test la "
+            "apuntará como perdida y el siguiente análisis dirá si nace un plan nuevo.</p>"
+        )
     if lo <= price_now <= hi:
         objetivo = f" y la venta objetivo en <b>{_fmt(target)}</b>" if target else ""
         return (
