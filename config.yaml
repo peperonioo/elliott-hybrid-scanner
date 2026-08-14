@@ -374,6 +374,19 @@ report:
   format: markdown
   top_n: 10
   include_alternate_counts: true
+  # Frecuencias históricas de desenlace, mostradas en la web como "posible
+  # siguiente movimiento". Fuente: backtest del periodo de DESARROLLO (2022 →
+  # holdout_start), 195 operaciones solo-largos, universo actual, medido el
+  # 2026-08-15 con `scripts/backtest.py --trades` contando exit_reason.
+  # Son descriptivas (no tocan la lógica de señales) y NO se editan a mano:
+  # solo se actualizan re-ejecutando ese comando.
+  projection:
+    n_trades: 195
+    target_pct: 21.5 # llegó al objetivo +2R
+    stop_pct: 34.9 # tocó el stop −1R
+    timeout_pct: 43.6 # cerró por tiempo (30 velas)
+    timeout_avg_pct: 1.4 # resultado medio de los cierres por tiempo
+    expectancy_pct: 1.9 # esperanza neta por operación
 
 # ---------------------------------------------------------------------------
 # Logging

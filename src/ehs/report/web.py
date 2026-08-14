@@ -162,8 +162,40 @@ footer a{color:var(--accent)}
 .ftstats{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);
   font-size:.88rem;margin:6px 0 10px}
 .ftstats b{color:var(--fg)}
-.card{transition:box-shadow .15s ease}
-.card:hover{box-shadow:0 3px 14px rgba(0,0,0,.10)}
+.card{transition:box-shadow .15s ease,transform .15s ease}
+.card:hover{box-shadow:0 4px 18px rgba(0,0,0,.10);transform:translateY(-1px)}
+.nav{position:sticky;top:0;z-index:20;display:flex;gap:6px;overflow-x:auto;
+  padding:8px 0;margin:0 -16px 6px;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);scrollbar-width:none;
+  padding-left:16px;padding-right:16px}
+.nav::-webkit-scrollbar{display:none}
+.nav a{flex:none;font-size:.8rem;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:5px 11px;border-radius:999px;
+  border:1px solid var(--border);background:var(--card)}
+.nav a:hover{color:var(--accent);border-color:var(--accent)}
+h2{scroll-margin-top:52px}
+.card{scroll-margin-top:52px}
+.action{background:var(--zone);border-left:3px solid var(--accent);
+  border-radius:0 8px 8px 0;padding:8px 12px;font-size:.88rem;margin:8px 0}
+.action.go{background:rgba(26,127,55,.10);border-left-color:var(--green)}
+.action.warn{background:rgba(209,36,47,.08);border-left-color:var(--red)}
+.proj{background:var(--bg);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;margin:10px 0 2px}
+.proj-t{font-size:.82rem;font-weight:700;margin-bottom:7px}
+.probbar{display:flex;height:10px;border-radius:999px;overflow:hidden;
+  border:1px solid var(--border)}
+.pb{display:block;height:100%}
+.pb.win{background:var(--green)}
+.pb.flat{background:var(--muted);opacity:.45}
+.pb.loss{background:var(--red)}
+.proj-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;
+  color:var(--muted);margin:7px 0 4px}
+.c-green{color:var(--green)}.c-red{color:var(--red)}.c-mut{color:var(--muted)}
+.proj-note{font-size:.76rem;color:var(--muted)}
+.chg{font-size:.72rem;font-weight:700;margin-left:5px}
+.chg.up{color:var(--green)}
+.chg.dn{color:var(--red)}
 """
 
 
@@ -195,6 +227,16 @@ def _price_precision(value: float) -> int:
     if v <= 0:
         return 2
     return min(10, -math.floor(math.log10(v)) + 3)
+
+
+def _round_price(value: float, precision: int) -> float:
+    """Redondeo que respeta la escala de la moneda.
+
+    Un redondeo fijo a 6 decimales aplasta monedas como PEPE (2e-6): todas las
+    velas colapsan al mismo valor y el gráfico sale plano. Se redondea con
+    margen sobre la precisión del eje.
+    """
+    return round(float(value), max(6, precision + 2))
 
 
 def _esc(text: str) -> str:
@@ -244,13 +286,14 @@ def build_chart_data(
             continue
 
         window = structure.iloc[-CHART_BARS:]
+        precision = _price_precision(float(window["close"].iloc[-1]))
         candles = [
             {
                 "time": int(ts.timestamp()),
-                "open": round(float(row["open"]), 6),
-                "high": round(float(row["high"]), 6),
-                "low": round(float(row["low"]), 6),
-                "close": round(float(row["close"]), 6),
+                "open": _round_price(row["open"], precision),
+                "high": _round_price(row["high"], precision),
+                "low": _round_price(row["low"], precision),
+                "close": _round_price(row["close"], precision),
             }
             for ts, row in window.iterrows()
         ]
@@ -267,21 +310,25 @@ def build_chart_data(
             if int(wave.end.timestamp.timestamp()) >= first_ts
         ]
         pivots = [
-            {"time": int(p.timestamp.timestamp()), "value": round(p.price, 6)}
+            {"time": int(p.timestamp.timestamp()), "value": _round_price(p.price, precision)}
             for p in detect_swings(structure, **params.swing)
             if int(p.timestamp.timestamp()) >= first_ts
         ]
 
-        precision = _price_precision(candles[-1]["close"]) if candles else 2
+        target = _target_for(entry)
         data[r.symbol] = {
             "precision": precision,
             "minMove": round(10**-precision, 12),
             "candles": candles,
             "pivots": pivots,
             "labels": labels,
-            "zone": [round(r.zone[0], 6), round(r.zone[1], 6)] if r.zone else None,
-            "stop": round(r.signal_invalidation, 6),
-            "target": (round(_target_for(entry), 6) if _target_for(entry) is not None else None),
+            "zone": (
+                [_round_price(r.zone[0], precision), _round_price(r.zone[1], precision)]
+                if r.zone
+                else None
+            ),
+            "stop": _round_price(r.signal_invalidation, precision),
+            "target": _round_price(target, precision) if target is not None else None,
         }
 
     # Monedas en observación: velas + ondas + soporte/resistencia/anulación.
@@ -294,30 +341,40 @@ def build_chart_data(
         if structure.empty:
             continue
         window = structure.iloc[-CHART_BARS:]
+        precision = _price_precision(float(window["close"].iloc[-1]))
         candles = [
             {
                 "time": int(ts.timestamp()),
-                "open": round(float(row["open"]), 6),
-                "high": round(float(row["high"]), 6),
-                "low": round(float(row["low"]), 6),
-                "close": round(float(row["close"]), 6),
+                "open": _round_price(row["open"], precision),
+                "high": _round_price(row["high"], precision),
+                "low": _round_price(row["low"], precision),
+                "close": _round_price(row["close"], precision),
             }
             for ts, row in window.iterrows()
         ]
         first_ts = int(window.index[0].timestamp())
         pivots = [
-            {"time": int(p.timestamp.timestamp()), "value": round(p.price, 6)}
+            {"time": int(p.timestamp.timestamp()), "value": _round_price(p.price, precision)}
             for p in detect_swings(structure, **params.swing)
             if int(p.timestamp.timestamp()) >= first_ts
         ]
         hlines = []
         if info.get("sup") is not None:
-            hlines.append({"p": round(info["sup"], 6), "label": "soporte", "c": "--green"})
+            hlines.append(
+                {"p": _round_price(info["sup"], precision), "label": "soporte", "c": "--green"}
+            )
         if info.get("res") is not None:
-            hlines.append({"p": round(info["res"], 6), "label": "resistencia", "c": "--red"})
+            hlines.append(
+                {"p": _round_price(info["res"], precision), "label": "resistencia", "c": "--red"}
+            )
         if info.get("anula") is not None and info.get("anula") != info.get("res"):
-            hlines.append({"p": round(info["anula"], 6), "label": "anula bajista", "c": "--amber"})
-        precision = _price_precision(candles[-1]["close"]) if candles else 2
+            hlines.append(
+                {
+                    "p": _round_price(info["anula"], precision),
+                    "label": "anula bajista",
+                    "c": "--amber",
+                }
+            )
         data[symbol] = {
             "precision": precision,
             "minMove": round(10**-precision, 12),
@@ -386,7 +443,8 @@ def _overview_html(overview: list[dict[str, Any]]) -> str:
         precio = _fmt(o["price"]) if o["price"] is not None else "—"
         inner = (
             f'<span class="mono" style="{_mono_style(o["base"])}">{_esc(o["base"][:1])}</span>'
-            f'<span><span class="nm">{_esc(o["base"])}</span><br>'
+            f'<span><span class="nm">{_esc(o["base"])}'
+            f'<span class="chg" id="chg-{_esc(o["base"])}"></span></span><br>'
             f'<span class="pr" id="ov-{_esc(o["base"])}">{precio}</span></span>'
             f'<span class="st {o["cls"]}">{_esc(o["state"])}</span>'
         )
@@ -553,7 +611,7 @@ def _dca_html(rows: list[dict[str, Any]]) -> str:
         for r in rows
     )
     return f"""
-<h2>🐢 Zona DCA — acumulación a largo plazo (meses/años)</h2>
+<h2 id="sec-dca">🐢 Zona DCA — acumulación a largo plazo (meses/años)</h2>
 <p style="color:var(--muted);font-size:.88rem">Estrategia <b>separada</b> del swing de
 arriba: banda de retroceso profundo (0.618–0.786) de todo el ciclo, donde
 históricamente se acumula <b>por tramos</b> pensando en años, sin stop y solo si se
@@ -573,7 +631,72 @@ swing; nunca convertir un swing fallido en "DCA".</p>
 # ---------------------------------------------------------------------------
 
 
-def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = None) -> str:
+def _projection_html(proj: dict[str, Any] | None) -> str:
+    """Escenarios históricos del plan: frecuencias del backtest, no predicción."""
+    if not proj:
+        return ""
+    t, s, o = float(proj["target_pct"]), float(proj["stop_pct"]), float(proj["timeout_pct"])
+    n = int(proj["n_trades"])
+    media_tiempo = f"{float(proj['timeout_avg_pct']):+.1f}"
+    return f"""
+<div class="proj">
+  <div class="proj-t">🔮 Posible siguiente movimiento (histórico de {n} operaciones)</div>
+  <div class="probbar">
+    <span class="pb win" style="width:{t:.1f}%"></span>
+    <span class="pb flat" style="width:{o:.1f}%"></span>
+    <span class="pb loss" style="width:{s:.1f}%"></span>
+  </div>
+  <div class="proj-leg">
+    <span><b class="c-green">▲ {t:.0f}%</b> llegó a la venta objetivo (+2R)</span>
+    <span><b class="c-mut">◼ {o:.0f}%</b> cerró por tiempo (media {media_tiempo}%)</span>
+    <span><b class="c-red">▼ {s:.0f}%</b> tocó el stop (−1R)</span>
+  </div>
+  <div class="proj-note">Ese reparto ganó de media {float(proj["expectancy_pct"]):+.1f}% por
+  operación. No es una predicción del precio: es lo que hizo el mercado tras señales
+  como esta en 2022–2025. El gráfico dibuja los dos caminos en línea discontinua.</div>
+</div>"""
+
+
+def _action_html(entry: ReportEntry, price_now: float, target: float | None) -> str:
+    """La pregunta que responde la tarjeta: ¿y yo qué hago AHORA MISMO?"""
+    r = entry.result
+    n = len(r.active_factors)
+    if not entry.is_signal:
+        return (
+            '<p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal '
+            f"({n} de 5 comprobaciones). Si la estructura se confirma con 3 de 5, "
+            "pasará a «Señales activas» y se abrirá el aviso automático.</p>"
+        )
+    if r.zone is None:
+        return ""
+    lo, hi = r.zone
+    if lo <= price_now <= hi:
+        objetivo = f" y la venta objetivo en <b>{_fmt(target)}</b>" if target else ""
+        return (
+            '<p class="action go"><b>Qué hacer ahora:</b> el plan está activo — se puede '
+            f"comprar dentro de la zona, con el stop en <b>{_fmt(r.signal_invalidation)}</b>"
+            f"{objetivo}. Nunca sin stop.</p>"
+        )
+    if price_now > hi:
+        return (
+            '<p class="action"><b>Qué hacer ahora:</b> no comprar persiguiendo el precio. '
+            f"Dos opciones sanas: dejar una <b>orden límite</b> dentro de la zona "
+            f"({_fmt(lo)} – {_fmt(hi)}) por si el precio la visita, o dejarla pasar — "
+            "cada 4 h se recalculan planes nuevos.</p>"
+        )
+    return (
+        '<p class="action warn"><b>Qué hacer ahora:</b> nada — el precio está entre la zona '
+        f"y el stop. Si pierde <b>{_fmt(r.signal_invalidation)}</b> la señal queda anulada; "
+        "comprar aquí es arriesgar sin plan.</p>"
+    )
+
+
+def _card(
+    entry: ReportEntry,
+    has_chart: bool,
+    current_price: float | None = None,
+    proj: dict[str, Any] | None = None,
+) -> str:
     r = entry.result
     base = r.symbol.split("/")[0]
     target = _target_for(entry)
@@ -651,6 +774,8 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
     )
 
     zona_html = f'<p class="meta2" id="zt-{_esc(base)}">{zona_txt}</p>' if zona_txt else ""
+    accion_html = _action_html(entry, price_now, target)
+    proj_html = _projection_html(proj) if target is not None else ""
 
     return f"""
 <div class="{card_class}" id="card-{_esc(base)}">
@@ -661,8 +786,10 @@ def _card(entry: ReportEntry, has_chart: bool, current_price: float | None = Non
     · a favor: {_esc(activos)}
     · se necesitan 3 de 5 para señal de compra{confirmada}{ambiguo}</p>
   {zona_html}
+  {accion_html}
   {chart_html}
   <div class="levels">{"".join(levels)}</div>
+  {proj_html}
   <details><summary>ver las 5 comprobaciones</summary>
     <table><tr><th>comprobación</th><th>puntuación (0–1)</th><th>a favor</th></tr>
     {factores_tabla}</table>
@@ -699,12 +826,25 @@ def _watch_card(info: dict[str, Any], has_chart: bool) -> str:
             f'<div class="level buy"><div class="lab">Se anula lo bajista ↑</div>'
             f'<div class="val">{_fmt(info["anula"])}</div></div>'
         )
+    if info["cls"] == "bear":
+        accion = (
+            '<p class="action warn"><b>Qué hacer ahora:</b> esperar fuera del mercado — '
+            "ni comprar (sería contra la lectura) ni ponerse corto (perdía en las "
+            f"pruebas). Solo vigilar <b>{_fmt(info['anula'])}</b>: si lo supera, el mapa "
+            "se redibuja al alza.</p>"
+        )
+    else:
+        accion = (
+            '<p class="action"><b>Qué hacer ahora:</b> nada — no hay estructura operable. '
+            "El escáner revisa cada 4 h y esta tarjeta cambiará sola cuando la haya.</p>"
+        )
     return f"""
 <div class="card" id="card-{_esc(base)}">
   <h3><span class="mono" style="{_mono_style(base)}">{_esc(base[:1])}</span> {_esc(base)}
     <span class="badge {"hot" if info["cls"] == "bear" else "score"}">{_esc(info["label"])}</span>
   </h3>
   <p class="meta2">{info["text"]}</p>
+  {accion}
   {chart_html}
   <div class="levels">{"".join(levels)}</div>
 </div>"""
@@ -750,6 +890,20 @@ LEGEND = """
   pensando en meses o años es otra estrategia, con otros niveles y otro dinero, y
   conviene no mezclarlas (convertir una señal que tocó su stop en "inversión a
   largo" es la forma clásica de arruinar ambas).</dd>
+  <dt>¿Qué hago si el precio NO está en la zona de compra?</dt>
+  <dd>Cada tarjeta lo dice en su caja "Qué hacer ahora", pero la regla general es:
+  <b>si está por encima de la zona, no perseguir</b> — o dejas una orden límite dentro
+  de la zona por si el precio la visita, o la dejas pasar (cada 4 h salen planes
+  nuevos). <b>Si está entre la zona y el stop, nada</b>: demasiado tarde para el plan.
+  Comprar fuera de la zona rompe la relación riesgo/beneficio con la que se validó
+  el sistema.</dd>
+  <dt>¿Qué es "posible siguiente movimiento"?</dt>
+  <dd>No es una predicción — nadie sabe el siguiente movimiento. Es la <b>frecuencia
+  histórica</b>: de las operaciones del backtest (2022–2025), qué porcentaje llegó al
+  objetivo, cuál tocó el stop y cuál cerró por tiempo. El gráfico dibuja los dos
+  caminos (a objetivo y a stop) en línea discontinua con esos porcentajes. Sirve
+  para calibrar expectativas: incluso haciéndolo todo bien, el stop salta 1 de cada
+  3 veces — por eso el objetivo gana el doble de lo que arriesga el stop.</dd>
   <dt>¿Qué hago con una moneda en "lectura bajista"?</dt>
   <dd><b>Esperar.</b> Ni comprar (sería contra la lectura) ni vender en corto (los
   cortos perdían en las pruebas). Solo vigilar el nivel "se anula lo bajista": si el
@@ -841,20 +995,42 @@ CHART_SCRIPT = """
     };
     var dashed = LightweightCharts.LineStyle.Dashed;
     var solid = LightweightCharts.LineStyle.Solid;
+    var proj = (typeof EHS_PROJ !== "undefined") ? EHS_PROJ : null;
+    var pct = function (x) { return " · " + Math.round(x) + "% histórico"; };
     if (d.zone) {
       line(d.zone[0], v("--accent"), "zona compra", solid);
       line(d.zone[1], v("--accent"), "", solid, false);
     }
-    line(d.stop, v("--red"), "stop", dashed);
-    line(d.target, v("--green"), "objetivo 2R", dashed);
+    line(d.stop, v("--red"),
+         proj && d.target ? "stop" + pct(proj.stop_pct) : "stop", dashed);
+    line(d.target, v("--green"),
+         proj ? "objetivo 2R" + pct(proj.target_pct) : "objetivo 2R", dashed);
     if (d.hlines) {
       d.hlines.forEach(function (h) { line(h.p, v(h.c), h.label, dashed); });
+    }
+
+    // Proyección: los dos caminos posibles del plan, dibujados hacia delante
+    // desde la última vela (duración típica del backtest, ~15 velas de 4h).
+    var hasProj = proj && d.target !== null && d.stop !== null && d.candles.length;
+    if (hasProj) {
+      var lastC = d.candles[d.candles.length - 1];
+      var horizon = lastC.time + 15 * 14400;
+      [[d.target, "--green"], [d.stop, "--red"]].forEach(function (p) {
+        var s = chart.addLineSeries({
+          color: v(p[1]), lineWidth: 1,
+          lineStyle: LightweightCharts.LineStyle.Dashed,
+          priceLineVisible: false, lastValueVisible: false,
+          crosshairMarkerVisible: false,
+        });
+        s.setData([{ time: lastC.time, value: lastC.close },
+                   { time: horizon, value: p[0] }]);
+      });
     }
 
     // Vista inicial: las últimas ~90 velas (15 días); el resto, con scroll.
     var n = d.candles.length;
     if (n > 95) {
-      chart.timeScale().setVisibleLogicalRange({ from: n - 90, to: n + 3 });
+      chart.timeScale().setVisibleLogicalRange({ from: n - 90, to: n + (hasProj ? 17 : 3) });
     } else {
       chart.timeScale().fitContent();
     }
@@ -887,7 +1063,7 @@ LIVE_SCRIPT = """
     EHS_LIVE.forEach(function (o) {
       var pair = o.sym.replace("/", "");
       fetch("https://data-api.binance.vision/api/v3/klines?symbol=" + pair +
-            "&interval=4h&limit=3")
+            "&interval=4h&limit=7")
         .then(function (r) { return r.json(); })
         .then(function (rows) {
           if (!rows || !rows.length) return;
@@ -896,6 +1072,16 @@ LIVE_SCRIPT = """
           if (el) el.textContent = fmt(px);
           var ov = document.getElementById("ov-" + o.base);
           if (ov) ov.textContent = fmt(px);
+          if (rows.length >= 7) {
+            var prev = parseFloat(rows[rows.length - 7][4]);
+            var chg = document.getElementById("chg-" + o.base);
+            if (chg && prev > 0) {
+              var p = (px / prev - 1) * 100;
+              chg.textContent = (p >= 0 ? "▲" : "▼") + Math.abs(p).toFixed(1) + "%";
+              chg.className = "chg " + (p >= 0 ? "up" : "dn");
+              chg.title = "variación en 24 h";
+            }
+          }
           var zt = document.getElementById("zt-" + o.base);
           if (zt && o.zone) zt.innerHTML = zoneText(px, o.zone);
           if (window.EHS_SERIES && window.EHS_SERIES[o.sym]) {
@@ -1008,6 +1194,7 @@ def render_html(
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
+    proj = cfg.get("report.projection") if cfg.has("report.projection") else None
 
     def _near_rank(e: ReportEntry) -> tuple:
         """Primero lo más cercano a disparar; luego, lo más cercano a su zona."""
@@ -1020,6 +1207,11 @@ def render_html(
         return (-len(r.active_factors), distance)
 
     near = sorted((e for e in entries if not e.is_signal), key=_near_rank)
+    vistazo = (
+        '<h2 id="sec-vistazo">🧭 El mercado de un vistazo</h2>' + _overview_html(overview)
+        if overview
+        else ""
+    )
     title = ("🎯 " + str(len(signals)) + " señal · " if signals else "") + "Elliott Hybrid Scanner"
 
     def last_close(symbol: str) -> float | None:
@@ -1027,7 +1219,7 @@ def render_html(
         return float(candles[-1]["close"]) if candles else None
 
     def card(e: ReportEntry) -> str:
-        return _card(e, e.result.symbol in chart_data, last_close(e.result.symbol))
+        return _card(e, e.result.symbol in chart_data, last_close(e.result.symbol), proj)
 
     if signals:
         cuerpo_senales = "".join(card(e) for e in signals)
@@ -1056,7 +1248,7 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
             _watch_card(info, info["symbol"] in chart_data) for info in watch.values()
         )
         cuerpo_watch = (
-            f"<h2>🔎 En observación ({len(watch)}) — sin jugada alcista ahora</h2>"
+            f'<h2 id="sec-watch">🔎 En observación ({len(watch)}) — sin jugada alcista ahora</h2>'
             f"{tarjetas_watch}"
         )
     else:
@@ -1082,8 +1274,9 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
     scripts = ""
     if chart_data:
         payload = json.dumps(chart_data, separators=(",", ":"))
+        proj_js = f"var EHS_PROJ = {json.dumps(proj, separators=(',', ':'))};" if proj else ""
         scripts += (
-            f"<script>var EHS_DATA = {payload};</script>\n"
+            f"<script>var EHS_DATA = {payload};{proj_js}</script>\n"
             f'<script src="{LIGHTWEIGHT_CHARTS_CDN}"></script>\n'
             f"{CHART_SCRIPT}\n"
         )
@@ -1124,12 +1317,22 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
     · el análisis completo se rehace solo cada 4 h</span>
   </div>
 
-  {"<h2>🧭 El mercado de un vistazo</h2>" + _overview_html(overview) if overview else ""}
+  <nav class="nav">
+    <a href="#sec-vistazo">🧭 Vistazo</a>
+    <a href="#sec-senales">🎯 Señales</a>
+    <a href="#sec-radar">👀 Radar</a>
+    {'<a href="#sec-watch">🔎 Observación</a>' if watch else ""}
+    <a href="#sec-dca">🐢 DCA</a>
+    <a href="#sec-forward">📒 Forward test</a>
+    <a href="#sec-guia">📖 Guía</a>
+  </nav>
 
-  <h2>🎯 Señales de compra activas ({len(signals)})</h2>
+  {vistazo}
+
+  <h2 id="sec-senales">🎯 Señales de compra activas ({len(signals)})</h2>
   {cuerpo_senales}
 
-  <h2>👀 En el radar ({len(near)})</h2>
+  <h2 id="sec-radar">👀 En el radar ({len(near)})</h2>
   {cuerpo_radar}
 
   {cuerpo_watch}
@@ -1138,10 +1341,10 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
 
   {avisos}
 
-  <h2>📒 Forward test — registro de señales</h2>
+  <h2 id="sec-forward">📒 Forward test — registro de señales</h2>
   {_forward_test_html(signals_log or [])}
 
-  {LEGEND}
+  <div id="sec-guia">{LEGEND}</div>
 
   <footer>
     <a href="https://github.com/peperonioo/elliott-hybrid-scanner">Código y metodología</a> ·

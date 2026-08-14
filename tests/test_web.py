@@ -187,6 +187,72 @@ def test_sin_watch_no_hay_seccion_de_observacion():
     assert "En observación" not in page
 
 
+def test_redondeo_respeta_monedas_diminutas():
+    """El bug de PEPE: redondear a 6 decimales fijos aplana el gráfico entero."""
+    from ehs.report.web import _round_price
+
+    assert _round_price(0.0000020534267, 9) == 0.00000205343
+    assert _round_price(0.0000021198, 9) != _round_price(0.0000020534, 9)
+    assert _round_price(64810.1234, 0) == 64810.1234  # las grandes no pierden nada
+
+
+def test_la_tarjeta_dice_que_hacer_ahora():
+    # Señal con el precio (63,000) por encima de la zona (60,000–61,000).
+    señal = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([señal], [], cfg=make_config(), now=NOW)
+    assert "Qué hacer ahora" in page
+    assert "no comprar persiguiendo el precio" in page
+    assert "orden límite" in page
+
+    # Radar: aún no es señal.
+    radar = make_entry([0.9, 0.8, 0.1, 0.1, 0.1], is_signal=False)
+    page = render_html([radar], [], cfg=make_config(), now=NOW)
+    assert "todavía no es señal (2 de 5" in page
+
+
+def test_la_proyeccion_muestra_frecuencias_historicas():
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([entry], [], cfg=make_config(), now=NOW)
+
+    assert "Posible siguiente movimiento" in page
+    assert "195 operaciones" in page
+    assert "llegó a la venta objetivo (+2R)" in page
+    assert "tocó el stop" in page
+    assert "No es una predicción" in page
+
+
+def test_la_proyeccion_se_embebe_para_los_graficos():
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([entry], [], cfg=make_config(), now=NOW, chart_data=CHART)
+    assert "EHS_PROJ" in page
+    assert '"target_pct":21.5' in page
+
+
+def test_la_navegacion_por_secciones_existe():
+    page = render_html([], [], cfg=make_config(), now=NOW)
+    assert 'href="#sec-senales"' in page
+    assert 'id="sec-forward"' in page
+    assert 'id="sec-guia"' in page
+
+
+def test_watch_bajista_tambien_dice_que_hacer():
+    watch = {
+        "ETH": {
+            "base": "ETH",
+            "symbol": "ETH/USDT",
+            "price": 1915.0,
+            "res": 1981.0,
+            "sup": 1822.0,
+            "label": "lectura bajista",
+            "cls": "bear",
+            "text": "texto",
+            "anula": 1981.0,
+        }
+    }
+    page = render_html([], [], cfg=make_config(), now=NOW, watch=watch)
+    assert "esperar fuera del mercado" in page
+
+
 def test_la_zona_dca_se_muestra_como_estrategia_separada():
     dca = [
         {

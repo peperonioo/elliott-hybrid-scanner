@@ -70,5 +70,15 @@ def make_config() -> Config:
             "timeframes": {"context": "1d", "structure": "4h", "timing": "1h"},
             "history": {"start_date": "2022-01-01", "page_limit": 1000},
             "confluence": {"min_active_factors": 3},
+            "report": {
+                "projection": {
+                    "n_trades": 195,
+                    "target_pct": 21.5,
+                    "stop_pct": 34.9,
+                    "timeout_pct": 43.6,
+                    "timeout_avg_pct": 1.4,
+                    "expectancy_pct": 1.9,
+                }
+            },
         }
     )
