@@ -15,10 +15,10 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-13T21:08:31.510619+00:00",
-  "entry": null,
+  "entry": 0.334,
   "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "outcome": "stop",
+  "result_r": -1.0,
+  "result_pct": 0.010778443113772518
  }
 ]
