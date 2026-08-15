@@ -289,3 +289,21 @@ def test_una_senal_con_el_stop_tocado_se_declara_anulada():
     page = render_html([entry], [], cfg=make_config(), now=NOW, chart_data=chart)
     assert "anulada" in page
     assert "el plan ha muerto" in page
+
+
+def test_el_boton_de_actualizar_tiene_estado_de_carga():
+    overview = [
+        {
+            "base": "BTC",
+            "symbol": "BTC/USDT",
+            "price": 64810.0,
+            "state": "radar",
+            "cls": "rad",
+            "link": True,
+        }
+    ]
+    page = render_html([], [], cfg=make_config(), now=NOW, overview=overview)
+    assert "spinner" in page  # animación mientras actualiza
+    assert "Actualizando…" in page
+    assert "monedas actualizadas a las" in page  # confirmación al terminar
+    assert "sin conexión con Binance" in page  # y aviso si todo falla

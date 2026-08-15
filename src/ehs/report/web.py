@@ -196,6 +196,13 @@ h2{scroll-margin-top:52px}
 .chg{font-size:.72rem;font-weight:700;margin-left:5px}
 .chg.up{color:var(--green)}
 .chg.dn{color:var(--red)}
+.btn:disabled,.btn[disabled]{opacity:.75;cursor:default}
+.spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff;border-radius:50%;display:inline-block;flex:none;
+  animation:ehsspin .7s linear infinite}
+@keyframes ehsspin{to{transform:rotate(360deg)}}
+.flash{animation:ehsflash 1s ease}
+@keyframes ehsflash{0%{background:var(--zone);border-radius:4px}100%{background:transparent}}
 """
 
 
@@ -1066,19 +1073,27 @@ LIVE_SCRIPT = """
     return "⚠️ El precio está un <b>" + ((1 - px / lo) * 100).toFixed(1) +
       "% por debajo</b> de la zona — cerca del stop, prudencia";
   }
+  function setText(el, text) {
+    // Devuelve true si el valor cambió, y lo resalta un instante.
+    if (!el) return false;
+    if (el.textContent === text) return false;
+    el.textContent = text;
+    el.classList.remove("flash");
+    void el.offsetWidth;
+    el.classList.add("flash");
+    return true;
+  }
   function refresh() {
-    EHS_LIVE.forEach(function (o) {
+    var jobs = EHS_LIVE.map(function (o) {
       var pair = o.sym.replace("/", "");
-      fetch("https://data-api.binance.vision/api/v3/klines?symbol=" + pair +
+      return fetch("https://data-api.binance.vision/api/v3/klines?symbol=" + pair +
             "&interval=4h&limit=7")
         .then(function (r) { return r.json(); })
         .then(function (rows) {
-          if (!rows || !rows.length) return;
+          if (!rows || !rows.length) return false;
           var px = parseFloat(rows[rows.length - 1][4]);
-          var el = document.getElementById("now-" + o.base);
-          if (el) el.textContent = fmt(px);
-          var ov = document.getElementById("ov-" + o.base);
-          if (ov) ov.textContent = fmt(px);
+          setText(document.getElementById("now-" + o.base), fmt(px));
+          setText(document.getElementById("ov-" + o.base), fmt(px));
           if (rows.length >= 7) {
             var prev = parseFloat(rows[rows.length - 7][4]);
             var chg = document.getElementById("chg-" + o.base);
@@ -1101,13 +1116,38 @@ LIVE_SCRIPT = """
               }
             });
           }
+          return true;
         })
-        .catch(function () {});
+        .catch(function () { return false; });
     });
-    var st = document.getElementById("live-stamp");
-    if (st) st.textContent = "precios actualizados a las " +
-      new Date().toTimeString().slice(0, 5) +
-      " · el análisis completo se rehace solo cada 4 h";
+    return Promise.all(jobs);
+  }
+  var btn = document.getElementById("btn-live");
+  function setLoading(on) {
+    if (!btn) return;
+    btn.disabled = on;
+    btn.innerHTML = on
+      ? '<span class="spinner"></span> Actualizando…'
+      : "🔄 Actualizar precios";
+  }
+  function run() {
+    if (btn && btn.disabled) return;
+    setLoading(true);
+    // Mínimo ~0.6 s de spinner: si no, con buena conexión ni se ve.
+    var minimo = new Promise(function (r) { setTimeout(r, 600); });
+    Promise.all([refresh(), minimo]).then(function (res) {
+      setLoading(false);
+      var ok = res[0].filter(Boolean).length;
+      var st = document.getElementById("live-stamp");
+      if (!st) return;
+      if (ok === 0) {
+        st.textContent = "⚠ sin conexión con Binance — precios no actualizados";
+      } else {
+        st.textContent = "✓ " + ok + " monedas actualizadas a las " +
+          new Date().toTimeString().slice(0, 5) +
+          " · el análisis completo se rehace solo cada 4 h";
+      }
+    });
   }
   var age = document.getElementById("an-age");
   if (age && typeof EHS_GEN !== "undefined") {
@@ -1119,9 +1159,8 @@ LIVE_SCRIPT = """
     }
   }
 
-  var btn = document.getElementById("btn-live");
-  if (btn) btn.addEventListener("click", refresh);
-  refresh();
+  if (btn) btn.addEventListener("click", run);
+  run();
 })();
 </script>"""
 
