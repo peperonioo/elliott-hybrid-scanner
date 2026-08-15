@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-15 01:53 UTC
+# Elliott Hybrid Scanner — 2026-08-15 04:51 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -10,7 +10,7 @@ Universo: BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX | 
 
 ### TRX/USDT — largo sobre `impulse_1_2_3` (score 0.670, 4/5 factores)
 
-- **Timeframe**: 4h, señal confirmada el 2026-08-13 16:00 UTC (7 velas atrás)
+- **Timeframe**: 4h, señal confirmada el 2026-08-13 16:00 UTC (8 velas atrás)
 - **Precio en la señal**: 0.3341
 - **Zona de interés**: 0.3334 – 0.3357
 - **Invalidación de la señal**: 0.3376
@@ -43,15 +43,15 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| LINK/USDT | `corrective_abc` | 0.416 | market_structure, higher_timeframe_trend | 8.2788–8.4656 | 8.0680 |
-| BTC/USDT | `corrective_abc` | 0.348 | rsi_divergence, volume_profile | 64,266.87–64,928.71 | 62,742.47 |
-| DOT/USDT | `corrective_abc` | 0.334 | rsi_divergence, volume_profile | 0.7904–0.8056 | 0.7430 |
-| DOGE/USDT | `corrective_abc` | 0.304 | fibonacci, volume_profile | 0.0697–0.0708 | 0.0682 |
-| SUI/USDT | `corrective_abc` | 0.262 | volume_profile | 0.6802–0.6929 | 0.6643 |
-| SOL/USDT | `corrective_abc` | 0.244 | volume_profile | 74.2808–75.4323 | 70.5800 |
-| ETH/USDT | `corrective_abc` | 0.238 | volume_profile | 1,896.45–1,921.29 | 1,853.62 |
+| LINK/USDT | `corrective_abc` | 0.416 | market_structure, higher_timeframe_trend | 8.2438–8.5006 | 8.0680 |
+| SUI/USDT | `corrective_abc` | 0.369 | fibonacci, volume_profile | 0.6803–0.6928 | 0.6643 |
+| BTC/USDT | `corrective_abc` | 0.348 | rsi_divergence, volume_profile | 64,280.05–64,915.52 | 62,742.47 |
+| DOT/USDT | `corrective_abc` | 0.334 | rsi_divergence, volume_profile | 0.7902–0.8058 | 0.7430 |
+| DOGE/USDT | `corrective_abc` | 0.333 | fibonacci, volume_profile | 0.0697–0.0708 | 0.0682 |
+| ETH/USDT | `corrective_abc` | 0.238 | volume_profile | 1,897.04–1,920.70 | 1,853.62 |
 | BNB/USDT | `impulse_1_2_3` | 0.237 | higher_timeframe_trend | 595.16–602.37 | 605.50 |
-| ADA/USDT | `corrective_abc` | 0.174 | — | 0.1647–0.1691 | 0.1578 |
+| SOL/USDT | `corrective_abc` | 0.230 | volume_profile | 74.2994–75.4137 | 70.5800 |
+| ADA/USDT | `corrective_abc` | 0.174 | — | 0.1648–0.1691 | 0.1578 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
