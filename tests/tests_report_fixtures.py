@@ -78,6 +78,12 @@ def make_config() -> Config:
                     "timeout_pct": 43.6,
                     "timeout_avg_pct": 1.4,
                     "expectancy_pct": 1.9,
+                    "out_of_sample": {
+                        "window": "feb 2025 - ago 2026",
+                        "n_trades": 128,
+                        "expectancy_pct": -0.18,
+                        "p_value": 0.064,
+                    },
                 }
             },
         }

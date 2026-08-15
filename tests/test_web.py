@@ -307,3 +307,12 @@ def test_el_boton_de_actualizar_tiene_estado_de_carga():
     assert "Actualizando…" in page
     assert "monedas actualizadas a las" in page  # confirmación al terminar
     assert "sin conexión con Binance" in page  # y aviso si todo falla
+
+
+def test_la_proyeccion_incluye_el_aviso_fuera_de_muestra():
+    """La regla de la casa: si fuera de muestra no batió costes, se dice."""
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([entry], [], cfg=make_config(), now=NOW)
+    assert "Aviso honesto" in page
+    assert "no cubrió" in page
+    assert "-0.18%" in page or "−0.18%" in page or "-0.18" in page

@@ -442,3 +442,42 @@ def test_los_parametros_se_leen_del_yaml():
     assert params.allow_diagonals is True
     assert params.allow_expanding_diagonals is False
     assert params.weight_wave3_extension > 0
+
+
+def test_un_123_cuya_onda3_no_supera_la_onda1_no_es_impulso_parcial():
+    """F&P: la onda 3 siempre supera el final de la 1 — y en un 1-2-3 la onda 3
+    ya está terminada, así que la regla es plenamente aplicable."""
+    pivots = sequence([100.0, 200.0, 150.0, 180.0])
+    validos = {c.hypothesis for c in validate_sequence(pivots, PARAMS)}
+    assert IMPULSE_PARTIAL not in validos
+
+    parcial = next(c for c in explain_sequence(pivots, PARAMS) if c.hypothesis == IMPULSE_PARTIAL)
+    regla = next(r for r in parcial.rules if r.name == "onda3_supera_el_final_de_la_onda1")
+    assert not regla.passed
+
+    # Y la lectura correctiva sobrevive SIN quedar marcada como ambigua con
+    # una hipotesis imposible.
+    abc = next(c for c in validate_sequence(pivots, PARAMS) if c.hypothesis == CORRECTIVE_ABC)
+    assert abc.valid
+    assert IMPULSE_PARTIAL not in abc.ambiguous_with
+
+
+def test_un_123_valido_sigue_siendo_valido():
+    counts = validate_sequence(sequence([100.0, 200.0, 150.0, 301.8]), PARAMS)
+    parcial = next(c for c in counts if c.hypothesis == IMPULSE_PARTIAL)
+    assert parcial.valid
+
+
+def test_la_diagonal_expansiva_exige_que_la_onda4_no_supere_la_onda2():
+    """La onda 4 puede solapar la 1, pero no ir mas alla del final de la 2."""
+    permisivo = ElliottParams(allow_expanding_diagonals=True)
+    # Cunna expansiva con la onda 4 (110) por debajo del final de la onda 2 (120).
+    pivots = sequence([100.0, 150.0, 120.0, 220.0, 110.0, 300.0])
+    validos = {c.hypothesis for c in validate_sequence(pivots, permisivo)}
+    assert DIAGONAL_EXPANDING not in validos
+
+    expansiva = next(
+        c for c in explain_sequence(pivots, permisivo) if c.hypothesis == DIAGONAL_EXPANDING
+    )
+    regla = next(r for r in expansiva.rules if r.name == "onda4_no_supera_el_final_de_la_onda2")
+    assert not regla.passed

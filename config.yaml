@@ -356,7 +356,7 @@ backtest:
   # Kraken taker del tier base; ajustar si el volumen mensual cambia de tier.
   costs:
     taker_fee_pct: 0.26
-    maker_fee_pct: 0.16 # no se usa: se asume ejecución agresiva siempre
+    maker_fee_pct: 0.16 # se cobra en las salidas pasivas (objetivo por limitada)
     slippage_pct: 0.05
     spread_pct: 0.03
 
@@ -376,17 +376,28 @@ report:
   include_alternate_counts: true
   # Frecuencias históricas de desenlace, mostradas en la web como "posible
   # siguiente movimiento". Fuente: backtest del periodo de DESARROLLO (2022 →
-  # holdout_start), 195 operaciones solo-largos, universo actual, medido el
-  # 2026-08-15 con `scripts/backtest.py --trades` contando exit_reason.
+  # holdout_start), 166 operaciones solo-largos, universo actual, medido el
+  # 2026-08-15 tras la auditoría matemática (validador 1-2-3, niveles fib
+  # coherentes, operaciones truncadas excluidas, embargo del walk-forward).
   # Son descriptivas (no tocan la lógica de señales) y NO se editan a mano:
-  # solo se actualizan re-ejecutando ese comando.
+  # solo se actualizan re-ejecutando `scripts/backtest.py --trades`.
+  #
+  # HONESTIDAD OBLIGADA: en el tramo fuera de muestra (2025-02 → 2026-08,
+  # 128 ops, contraste corregido a misma-ventana) la esperanza fue −0.18%/op
+  # (PF 0.93, p=0.064 contra azar): el sistema NO cubrió sus costes ahí.
+  # `out_of_sample` alimenta la advertencia de la web; el forward test manda.
   projection:
-    n_trades: 195
-    target_pct: 21.5 # llegó al objetivo +2R
-    stop_pct: 34.9 # tocó el stop −1R
-    timeout_pct: 43.6 # cerró por tiempo (30 velas)
-    timeout_avg_pct: 1.4 # resultado medio de los cierres por tiempo
-    expectancy_pct: 1.9 # esperanza neta por operación
+    n_trades: 166
+    target_pct: 19.9 # llegó al objetivo +2R
+    stop_pct: 33.1 # tocó el stop −1R
+    timeout_pct: 47.0 # cerró por tiempo (30 velas)
+    timeout_avg_pct: 1.3 # resultado medio de los cierres por tiempo
+    expectancy_pct: 2.1 # esperanza neta por operación (solo desarrollo)
+    out_of_sample:
+      window: "feb 2025 – ago 2026"
+      n_trades: 128
+      expectancy_pct: -0.18
+      p_value: 0.064
 
 # ---------------------------------------------------------------------------
 # Logging

@@ -100,21 +100,29 @@ en la zona de Fibonacci se descartó por selección adversa (cuando el precio no
 vuelve a la zona es porque el movimiento es fuerte: la limitada se pierde los
 mejores y se queda los flojos).
 
-| | desarrollo (2022→2025-01) | **holdout (2025-02→2026-08)** |
-|---|---|---|
-| operaciones | 143 | **20** |
-| esperanza neta/op. | +0,58% | **+0,66%** |
-| profit factor | 1,23 | **1,30** |
-| acierto | 43,4% | **55,0%** |
-| retorno total | +52,6% | **+9,9%** |
-| buy & hold del periodo | +32,7% | **−40,9%** |
-| p contra azar | **0,035** | 0,183 |
+Cifras tras la **auditoría matemática del 2026-08-15** (correcciones: regla de
+la onda 3 en el 1-2-3, niveles de Fibonacci coherentes con la invalidación,
+drawdown desde el capital inicial, operaciones truncadas excluidas, embargo en
+el walk-forward y — la más importante — **contraste de baselines sobre la misma
+ventana** que las operaciones, cosa que la versión anterior no hacía y que
+sesgaba el p-valor del holdout a favor del sistema):
 
-Lectura honesta: la esperanza es positiva y consistente entre desarrollo y
-holdout, y en desarrollo bate al azar de forma significativa. En el holdout la
-dirección se mantiene pero **20 operaciones no dan potencia estadística**
-(p=0,183): el resultado es prometedor, no probado. El sistema ganó un +9,9% en
-un periodo en el que el mercado cayó un 40,9% de media.
+| | desarrollo (2023→2025-01) | **fuera de muestra (2025-02→2026-08)** |
+|---|---|---|
+| operaciones | 166 | **128** |
+| esperanza neta/op. | +2,08% | **−0,18%** |
+| profit factor | 1,74 | **0,93** |
+| acierto | 46,4% | **44,5%** |
+| p contra azar (misma ventana) | **0,001** | 0,064 |
+
+Lectura honesta, sin maquillaje: en desarrollo el sistema bate al azar de forma
+contundente, pero **fuera de muestra no cubrió sus costes** en un tramo de 18
+meses mayormente bajista (siendo un sistema que solo compra). Batió al azar
+largo del mismo periodo (que perdió −1,02%/op) pero no con significancia
+(p=0,064). Conclusión operativa: la selección de señales aporta información,
+la ventaja neta tras costes **no está demostrada** — el forward test público
+de la web es el juez, y hasta que no acumule ~30-40 señales con esperanza
+positiva, esto se opera sobre el papel, no con dinero.
 
 Los costes se modelan por tipo de orden: taker+slippage+spread (0,34%/lado) en
 ejecuciones agresivas, maker (0,16%) en limitadas. Al baseline aleatorio se le

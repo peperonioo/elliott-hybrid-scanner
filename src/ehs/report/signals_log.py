@@ -31,6 +31,10 @@ OUTCOME_STOP = "stop"
 OUTCOME_TIMEOUT = "tiempo"
 OUTCOME_OPEN = "en curso"
 OUTCOME_PENDING = "sin vela de entrada"
+# El backtest descarta las señales cuya invalidación queda del lado equivocado
+# de la entrada (SkipReason.STOP_WRONG_SIDE); el forward test debe hacer LO
+# MISMO o sus estadísticas dejan de ser comparables trade a trade.
+OUTCOME_UNTRADEABLE = "no operable"
 
 MAX_BARS = 30
 TARGET_R = 2.0
@@ -139,10 +143,13 @@ def evaluate(signal: LoggedSignal, frame: pd.DataFrame) -> None:
     entry = float(frame["open"].iloc[entry_index])
     risk = entry - signal.stop
     if risk <= 0:
-        signal.outcome = OUTCOME_STOP
+        # Mismo criterio que el engine: sin riesgo definido no hay operación.
+        # Contarla como -1R inventaría una pérdida que el backtest nunca abrió.
+        signal.outcome = OUTCOME_UNTRADEABLE
         signal.entry = entry
-        signal.result_r = -1.0
-        signal.result_pct = signal.stop / entry - 1
+        signal.target = None
+        signal.result_r = None
+        signal.result_pct = None
         return
     target = entry + TARGET_R * risk
     signal.entry, signal.target = entry, target

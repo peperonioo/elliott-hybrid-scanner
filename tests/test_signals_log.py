@@ -48,7 +48,9 @@ def test_una_senal_que_alcanza_el_objetivo_marca_mas_dos_r():
 
 def test_una_senal_que_toca_el_stop_marca_menos_un_r():
     frame = frame_from_closes(path_closes([(0, 100.0), (20, 80.0)]), timeframe="4h")
-    signal = make_signal(frame, stop=95.0)
+    # El stop queda por debajo de la entrada (~95): riesgo definido, y el
+    # precio cae hasta tocarlo.
+    signal = make_signal(frame, stop=90.0)
 
     evaluate(signal, frame)
 
@@ -113,7 +115,7 @@ def test_summary_stats():
     frame_win = frame_from_closes(path_closes([(0, 100.0), (20, 140.0)]), timeframe="4h")
     frame_loss = frame_from_closes(path_closes([(0, 100.0), (20, 80.0)]), timeframe="4h")
     win = make_signal(frame_win, stop=95.0)
-    loss = make_signal(frame_loss, stop=95.0)
+    loss = make_signal(frame_loss, stop=90.0)
     evaluate(win, frame_win)
     evaluate(loss, frame_loss)
 
@@ -146,3 +148,18 @@ def test_la_seccion_vacia_explica_que_es():
     page = render_html([], [], cfg=make_config(), now=NOW, signals_log=[])
     assert "Forward test" in page
     assert "quedará apuntada aquí" in page
+
+
+def test_una_senal_con_stop_sobre_la_entrada_es_no_operable():
+    """Mismo criterio que el engine (STOP_WRONG_SIDE): sin riesgo definido no
+    hay operación — contarla como -1R inventaría una pérdida."""
+    frame = frame_from_closes(path_closes([(0, 100.0), (20, 120.0)]), timeframe="4h")
+    signal = make_signal(frame, stop=150.0)  # stop por encima de la entrada
+
+    evaluate(signal, frame)
+
+    assert signal.outcome == "no operable"
+    assert signal.result_r is None and signal.result_pct is None
+
+    stats = summary_stats([signal])
+    assert stats["closed"] == 0  # no cuenta ni como ganada ni como perdida

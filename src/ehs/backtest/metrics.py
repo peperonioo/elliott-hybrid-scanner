@@ -76,11 +76,17 @@ def equity_curve(trades: Sequence[Trade]) -> pd.Series:
 
 
 def max_drawdown(curve: pd.Series) -> float:
-    """Caída máxima desde máximo previo, como fracción positiva."""
+    """Caída máxima desde máximo previo, como fracción positiva.
+
+    El capital inicial (1.0) se antepone como primer máximo: sin él, una racha
+    perdedora nada más empezar quedaría fuera del cummax y el drawdown se
+    subestimaría (p. ej. [-5%, +10%] daría 0 en vez de 5%).
+    """
     if curve.empty:
         return 0.0
-    running_max = curve.cummax()
-    return float((1.0 - curve / running_max).max())
+    values = np.concatenate([[1.0], curve.to_numpy(dtype="float64")])
+    running_max = np.maximum.accumulate(values)
+    return float((1.0 - values / running_max).max())
 
 
 def compute_metrics(trades: Sequence[Trade]) -> Metrics:

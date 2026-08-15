@@ -143,10 +143,21 @@ def main() -> int:
     print("-" * 78)
     print(metrics.detail() if trades else "sin operaciones fuera de muestra")
 
+    # Los baselines se contrastan sobre LA MISMA ventana en la que operó el
+    # sistema (los tramos de prueba), no sobre el histórico completo: si el
+    # azar pudiera sortear entradas en periodos donde el sistema ni siquiera
+    # evaluaba (p. ej. el primer año solo-train, o todo 2022-2024 en modo
+    # --holdout), la comparación dejaría de ser un test de permutación válido.
+    eval_start = folds[0].test_start if folds else start
+    eval_end = folds[-1].test_end if folds else end
+    frames_eval = {s: f[(f.index >= eval_start) & (f.index <= eval_end)] for s, f in frames.items()}
+    frames_eval = {s: f for s, f in frames_eval.items() if not f.empty}
+    print(f"\nVentana de contraste de los baselines: {eval_start:%Y-%m-%d} → {eval_end:%Y-%m-%d}")
+
     print("\n" + "-" * 78)
-    print("BASELINE 1 — buy & hold")
+    print("BASELINE 1 — buy & hold (misma ventana)")
     print("-" * 78)
-    holds = [buy_and_hold(frame, symbol, costs) for symbol, frame in frames.items()]
+    holds = [buy_and_hold(frame, symbol, costs) for symbol, frame in frames_eval.items()]
     print(summarise_buy_and_hold(holds))
 
     print("\n" + "-" * 78)
@@ -171,7 +182,7 @@ def main() -> int:
             f"(el mismo que pagó el sistema)"
         )
         baseline = random_baseline(
-            frames,
+            frames_eval,
             trades,
             rules=rules,
             costs=costes_equivalentes,

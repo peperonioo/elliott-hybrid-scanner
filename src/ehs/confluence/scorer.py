@@ -309,24 +309,32 @@ def fibonacci_levels(count: WaveCount, params: ConfluenceParams) -> list[tuple[s
     for ratio in params.fib_extensions:
         levels.append((f"extensión {ratio}", last.start.price + span * ratio))
 
-    if not params.fib_clusters:
-        return levels
+    if params.fib_clusters:
+        if count.hypothesis == CORRECTIVE_ABC:
+            # Proyección de igualdad: C = A medida desde el final de B.
+            wave_a, wave_b = count.waves[0], count.waves[1]
+            direction = 1.0 if wave_a.end.price > wave_a.start.price else -1.0
+            levels.append(("igualdad C=A", wave_b.end.price + direction * wave_a.length))
+            levels.append(("C=1.618·A", wave_b.end.price + direction * wave_a.length * 1.618))
+        elif count.hypothesis in COMPLETED_FIVE:
+            # Retrocesos de la estructura completa: los imanes clásicos tras un
+            # impulso terminado (la zona de la onda 4 previa suele coincidir).
+            origin, end = count.pivots[0].price, count.pivots[-1].price
+            total = end - origin
+            for ratio in (0.382, 0.5, 0.618):
+                levels.append((f"retroceso {ratio} del impulso", end - total * ratio))
 
-    if count.hypothesis == CORRECTIVE_ABC:
-        # Proyección de igualdad: C = A medida desde el final de B.
-        wave_a, wave_b = count.waves[0], count.waves[1]
-        direction = 1.0 if wave_a.end.price > wave_a.start.price else -1.0
-        levels.append(("igualdad C=A", wave_b.end.price + direction * wave_a.length))
-        levels.append(("C=1.618·A", wave_b.end.price + direction * wave_a.length * 1.618))
-    elif count.hypothesis in COMPLETED_FIVE:
-        # Retrocesos de la estructura completa: los imanes clásicos tras un
-        # impulso terminado (la zona de la onda 4 previa suele coincidir).
-        origin, end = count.pivots[0].price, count.pivots[-1].price
-        total = end - origin
-        for ratio in (0.382, 0.5, 0.618):
-            levels.append((f"retroceso {ratio} del impulso", end - total * ratio))
-
-    return levels
+    # Coherencia geométrica: un nivel situado en o más allá de la invalidación
+    # de la señal no es un nivel de ESTA hipótesis — si el precio llegara ahí,
+    # la señal ya estaría muerta (para un 1-2-3 alcista, un retroceso profundo
+    # de la onda 3 que invade el territorio de la onda 1 viola el solape). Sin
+    # este filtro el factor puntuaba alto exactamente donde la hipótesis muere
+    # y las capas posteriores tiraban la señal por geometría no operable.
+    inv = signal_invalidation(count)
+    bullish_signal = signal_direction(count) == BULLISH
+    return [
+        (name, level) for name, level in levels if level != inv and (level > inv) == bullish_signal
+    ]
 
 
 def factor_fibonacci(
@@ -340,6 +348,18 @@ def factor_fibonacci(
     """
     levels = fibonacci_levels(count, params)
     tolerance = params.fib_tolerance_atr * atr
+
+    if not levels:
+        return FactorScore(
+            name=FIBONACCI,
+            score=0.0,
+            threshold=params.thresholds.get(FIBONACCI, 0.6),
+            weight=params.weights.get(FIBONACCI, 0.0),
+            detail=(
+                "sin niveles de Fibonacci compatibles con la invalidación de la señal: "
+                "todos caen del lado donde la hipótesis ya estaría anulada"
+            ),
+        )
 
     best_name, best_level, best_score = "", float("nan"), 0.0
     in_reach = 0
@@ -707,11 +727,13 @@ def score_confluence(
 def _interest_zone(
     count: WaveCount, price: float, atr: float, params: ConfluenceParams
 ) -> tuple[float, float] | None:
-    """Banda de precio alrededor del nivel de Fibonacci más cercano."""
-    last = count.waves[-1]
-    span = last.end.price - last.start.price
-    levels = [last.end.price - span * r for r in params.fib_retracements]
-    levels += [last.start.price + span * e for e in params.fib_extensions]
+    """Banda de precio alrededor del nivel de Fibonacci más cercano.
+
+    Usa la misma lista (ya filtrada por coherencia con la invalidación) que
+    `factor_fibonacci`: la zona no puede señalar un nivel que el factor
+    considera incompatible con la hipótesis.
+    """
+    levels = [level for _, level in fibonacci_levels(count, params)]
     if not levels:
         return None
     nearest = min(levels, key=lambda level: abs(price - level))

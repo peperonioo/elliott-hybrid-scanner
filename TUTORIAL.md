@@ -15,12 +15,14 @@ por confluencia técnica, y publica un informe con lo que encuentra.
 ningún exchange, no tiene API keys. Solo lee precios públicos y escribe un
 informe. La decisión de operar —o no— es siempre tuya y manual.
 
-**Estado de validación**: el backtest con periodo reservado dio resultados
-prometedores (+0,58% por operación en desarrollo, p=0,035 contra azar;
-positivo también en el holdout), pero el holdout tenía solo 20 operaciones.
-La prueba de verdad es el *forward test*: dejar que el sistema publique
-señales durante meses y comprobar qué pasa. Este tutorial explica cómo
-llevar ese registro.
+**Estado de validación** (actualizado 2026-08-15 tras la auditoría matemática):
+en el periodo de desarrollo (2023→2025-01) el sistema bate al azar con
+contundencia (+2,08% por operación, p=0,001). Pero **fuera de muestra**
+(feb 2025 → ago 2026, 128 operaciones, contraste corregido) la esperanza fue
+**−0,18% por operación**: no cubrió sus costes en un tramo mayormente bajista,
+siendo un sistema que solo compra. La prueba de verdad es el *forward test*
+público de la web: hasta que no acumule ~30-40 señales con esperanza positiva,
+esto se estudia sobre el papel — no se opera con dinero.
 
 ---
 

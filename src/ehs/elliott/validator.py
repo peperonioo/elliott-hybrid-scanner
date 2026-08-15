@@ -350,6 +350,22 @@ def _rule_diagonal_wedge(waves: tuple[Wave, ...], *, contracting: bool) -> RuleR
     )
 
 
+def _rule_wave4_not_beyond_wave2(waves: tuple[Wave, ...], direction: str) -> RuleResult:
+    """En una diagonal la onda 4 puede solapar la 1, pero no superar el final de la 2.
+
+    En la cuña contractiva esta cota ya está implicada por 4<2 junto con la
+    regla de forma; en la expansiva no, así que hay que exigirla aparte.
+    """
+    end_wave2 = waves[1].end.price
+    end_wave4 = waves[3].end.price
+    passed = end_wave4 > end_wave2 if direction == BULLISH else end_wave4 < end_wave2
+    return RuleResult(
+        name="onda4_no_supera_el_final_de_la_onda2",
+        passed=passed,
+        detail=f"la onda 4 termina en {end_wave4:,.4f} y la onda 2 en {end_wave2:,.4f}",
+    )
+
+
 def _rule_wave3_exceeds_wave1(waves: tuple[Wave, ...], direction: str) -> RuleResult:
     """Condición de forma: sin esto la secuencia no es un impulso."""
     end_wave1 = waves[0].end.price
@@ -558,17 +574,20 @@ def _analyse_five_legs(pivots: tuple[Pivot, ...], params: ElliottParams) -> list
 
         for hypothesis, contracting in varieties:
             forma = "contractiva" if contracting else "expansiva"
+            diagonal_rules = [
+                *base_rules,
+                overlap_required,
+                _rule_diagonal_wedge(waves, contracting=contracting),
+            ]
+            if not contracting:
+                diagonal_rules.append(_rule_wave4_not_beyond_wave2(waves, direction))
             counts.append(
                 WaveCount(
                     hypothesis=hypothesis,
                     direction=direction,
                     pivots=pivots,
                     waves=waves,
-                    rules=(
-                        *base_rules,
-                        overlap_required,
-                        _rule_diagonal_wedge(waves, contracting=contracting),
-                    ),
+                    rules=tuple(diagonal_rules),
                     guides=guides,
                     notes=(
                         f"Cuña {forma}: el solape de la onda 4 con la 1 no es un defecto, "
@@ -638,7 +657,14 @@ def _analyse_three_legs(pivots: tuple[Pivot, ...], params: ElliottParams) -> lis
         ),
     )
 
-    partial_rules = (_rule_wave2_retracement(impulse_waves, params.wave2_max_retrace),)
+    # La onda 3 de un 1-2-3 ya está completa (termina en un pivote confirmado),
+    # así que "la onda 3 supera el final de la onda 1" SÍ es aplicable aquí; lo
+    # que no puede comprobarse aún es "nunca la más corta" (necesita la onda 5)
+    # ni el solape de la onda 4.
+    partial_rules = (
+        _rule_wave2_retracement(impulse_waves, params.wave2_max_retrace),
+        _rule_wave3_exceeds_wave1(impulse_waves, direction),
+    )
     partial_guides = (
         _guide_wave2_retracement(
             impulse_waves, *params.wave2_retrace_range, params.weight_wave2_retracement
@@ -659,8 +685,9 @@ def _analyse_three_legs(pivots: tuple[Pivot, ...], params: ElliottParams) -> lis
         rules=partial_rules,
         guides=partial_guides,
         notes=(
-            "Impulso incompleto: faltarían las ondas 4 y 5. Las reglas de la onda 3 y "
-            "del solape de la onda 4 todavía no son aplicables.",
+            "Impulso incompleto: faltarían las ondas 4 y 5. 'Onda 3 nunca la más corta' "
+            "y el solape de la onda 4 todavía no son aplicables; que la onda 3 supere "
+            "el final de la 1 sí, porque la onda 3 ya está terminada.",
         ),
     )
 

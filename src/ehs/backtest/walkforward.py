@@ -145,8 +145,15 @@ def trades_for(
     entry: EntryRules | None = None,
     filters: TradeFilters | None = None,
     allow_overlap: bool = False,
+    resolve_by: pd.Timestamp | None = None,
 ) -> list[Trade]:
-    """Operaciones de una ventana temporal con un mínimo de factores dado."""
+    """Operaciones de una ventana temporal con un mínimo de factores dado.
+
+    `resolve_by` es el embargo del walk-forward: en entrenamiento se descartan
+    las operaciones que se resuelven DESPUÉS de la frontera del train — su
+    desenlace ocurre dentro de la ventana de prueba y usarlo para elegir el
+    parámetro sería una fuga temporal (pequeña, pero fuga).
+    """
     trades: list[Trade] = []
     for symbol, symbol_signals in signals.items():
         frame = frames.get(symbol)
@@ -166,6 +173,8 @@ def trades_for(
             filters=filters,
             allow_overlap=allow_overlap,
         )
+        if resolve_by is not None:
+            symbol_trades = [t for t in symbol_trades if t.exit_time <= resolve_by]
         trades.extend(symbol_trades)
     return trades
 
@@ -204,6 +213,7 @@ def walk_forward(
                 entry=entry,
                 filters=filters,
                 allow_overlap=allow_overlap,
+                resolve_by=fold.train_end,
             )
             if len(train_trades) < min_train_trades:
                 continue

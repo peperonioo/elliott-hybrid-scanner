@@ -596,3 +596,20 @@ def test_los_parametros_se_leen_del_yaml():
     assert params.fib_retracements == (0.618, 0.786)
     assert params.fib_extensions == (1.618,)
     assert params.trend_ema_period == 50
+
+
+def test_los_niveles_fib_incompatibles_con_la_invalidacion_se_descartan():
+    """Un retroceso profundo de la onda 3 que invade el territorio de la onda 1
+    no es un nivel operable de un 1-2-3: si el precio llega ahi, la senal murio."""
+    from ehs.confluence.scorer import fibonacci_levels, signal_invalidation
+    from ehs.elliott.validator import IMPULSE_PARTIAL
+
+    # 1-2-3 alcista: la onda 1 termina en 200 (la invalidacion de la senal).
+    pivots = impulse_pivots([(0, 100.0), (10, 200.0), (20, 150.0), (30, 300.0)])
+    parcial = next(c for c in validate_sequence(pivots, ELLIOTT) if c.hypothesis == IMPULSE_PARTIAL)
+    inv = signal_invalidation(parcial)
+    assert inv == 200.0
+
+    levels = fibonacci_levels(parcial, PARAMS)
+    assert levels, "deben quedar niveles operables"
+    assert all(level > inv for _, level in levels)

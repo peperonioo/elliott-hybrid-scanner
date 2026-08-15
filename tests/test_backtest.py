@@ -123,7 +123,7 @@ def test_la_entrada_ocurre_en_la_apertura_de_la_vela_siguiente():
         signal_index=3,
         direction=BULLISH,
         stop_price=95.0,
-        rules=RULES,
+        rules=ExitRules(target_r=2.0, max_bars=5),  # horizonte dentro de los datos
         costs=FREE,
     )
     assert trade.entry_index == 4
@@ -741,3 +741,44 @@ def test_el_filtro_recompensa_coste_deja_pasar_objetivos_suficientes():
         filters=exigente,
     )
     assert not isinstance(trade, str)
+
+
+# --------------------------------------------------------------------------
+# Fixes de la auditoría matemática (2026-08-15)
+# --------------------------------------------------------------------------
+
+
+def test_el_drawdown_cuenta_desde_el_capital_inicial():
+    """[-5%, +10%] tiene un drawdown real del 5% aunque la curva acabe en positivo."""
+    curva = pd.Series([0.95, 1.045])
+    assert max_drawdown(curva) == pytest.approx(0.05)
+
+
+def test_sin_desenlace_dentro_de_los_datos_no_hay_operacion():
+    """Si la serie acaba antes del horizonte sin tocar stop ni objetivo, el
+    desenlace es desconocido: contarlo como 'tiempo' censuraría la operación."""
+    frame = flat_frame(path_closes([(0, 100.0), (9, 101.0)]))  # 10 velas, sin movimiento
+    resultado = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=3,
+        direction=BULLISH,
+        stop_price=95.0,
+        rules=RULES,  # max_bars=30 > velas disponibles
+        costs=FREE,
+    )
+    assert resultado == SkipReason.UNRESOLVED
+
+
+def test_si_el_stop_se_toca_antes_del_fin_de_datos_si_hay_operacion():
+    frame = flat_frame(path_closes([(0, 100.0), (5, 90.0), (9, 90.0)]))
+    trade = simulate_trade(
+        frame,
+        symbol="X",
+        signal_index=0,
+        direction=BULLISH,
+        stop_price=95.0,
+        rules=RULES,
+        costs=FREE,
+    )
+    assert trade.exit_reason == "stop"

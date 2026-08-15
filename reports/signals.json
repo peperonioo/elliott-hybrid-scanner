@@ -17,8 +17,8 @@
   "recorded_at": "2026-08-13T21:08:31.510619+00:00",
   "entry": 0.334,
   "target": null,
-  "outcome": "stop",
-  "result_r": -1.0,
-  "result_pct": 0.010778443113772518
+  "outcome": "no operable",
+  "result_r": null,
+  "result_pct": null
  }
 ]

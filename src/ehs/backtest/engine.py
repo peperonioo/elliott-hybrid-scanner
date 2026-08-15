@@ -238,6 +238,7 @@ class SkipReason:
     NO_ZONE = "sin zona de entrada"
     REWARD_TOO_SMALL = "objetivo insuficiente para cubrir el coste"
     DIRECTION_FILTERED = "dirección excluida"
+    UNRESOLVED = "sin desenlace dentro de los datos disponibles"
 
 
 def _fill(
@@ -347,6 +348,13 @@ def simulate_trade(
         if hit_target:
             exit_index, exit_price, exit_reason = i, target_price, EXIT_TARGET
             break
+
+    # Si la serie se acaba antes del horizonte y ni el stop ni el objetivo
+    # llegaron a tocarse, el desenlace es DESCONOCIDO, no "cierre por tiempo":
+    # contarlo como timeout censura la operación en la frontera del frame y
+    # distorsiona la distribución de salidas.
+    if exit_reason == EXIT_TIMEOUT and entry_index + rules.max_bars > len(closes) - 1:
+        return SkipReason.UNRESOLVED
 
     sign = 1.0 if long else -1.0
     gross = sign * (exit_price / entry_price - 1.0)

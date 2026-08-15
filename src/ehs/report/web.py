@@ -659,9 +659,23 @@ def _projection_html(proj: dict[str, Any] | None) -> str:
     <span><b class="c-red">▼ {s:.0f}%</b> tocó el stop (−1R)</span>
   </div>
   <div class="proj-note">Ese reparto ganó de media {float(proj["expectancy_pct"]):+.1f}% por
-  operación. No es una predicción del precio: es lo que hizo el mercado tras señales
-  como esta en 2022–2025. El gráfico dibuja los dos caminos en línea discontinua.</div>
+  operación <b>en el periodo de desarrollo (2022–2025)</b>. No es una predicción del
+  precio. El gráfico dibuja los dos caminos en línea discontinua.{_oos_note(proj)}</div>
 </div>"""
+
+
+def _oos_note(proj: dict[str, Any]) -> str:
+    """La letra NO pequeña: qué hizo el sistema fuera de muestra."""
+    oos = proj.get("out_of_sample")
+    if not oos:
+        return ""
+    return (
+        f' <b class="c-red">Aviso honesto:</b> fuera de muestra ({_esc(oos["window"])}, '
+        f"{int(oos['n_trades'])} operaciones) la media fue "
+        f"<b>{float(oos['expectancy_pct']):+.2f}% por operación</b> — el sistema no cubrió "
+        "sus costes en ese tramo, mayormente bajista y siendo un sistema que solo compra. "
+        "El 📒 forward test de abajo es el juez final."
+    )
 
 
 def _action_html(entry: ReportEntry, price_now: float, target: float | None) -> str:
@@ -1197,6 +1211,8 @@ def _forward_test_html(log: list[LoggedSignal]) -> str:
         elif sig.outcome == "tiempo":
             pct = f"{(sig.result_pct or 0) * 100:+.1f}%"
             res = f'<span class="res flat">tiempo {pct}</span>'
+        elif sig.outcome == "no operable":
+            res = '<span class="res flat">no operable — descartada</span>'
         else:
             pct = f"{(sig.result_pct or 0) * 100:+.1f}%"
             res = f'<span class="res open">en curso {pct}</span>'
