@@ -81,7 +81,8 @@ def test_sin_datos_no_se_carga_ninguna_libreria():
     entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
     page = render_html([entry], [], cfg=make_config(), now=NOW)
     assert "lightweight-charts" not in page
-    assert "<script" not in page
+    assert "<script src=" not in page  # sin datos, nada externo (el tema es inline)
+    assert "EHS_DATA" not in page
 
 
 def test_el_html_escapa_el_contenido():
@@ -378,5 +379,12 @@ def test_el_branding_de_app_esta_presente():
     page = render_html([], [], cfg=make_config(), now=NOW)
     assert '<header class="appbar">' in page  # logo + wordmark
     assert 'class="tabbar"' in page  # barra de pestañas móvil
-    assert "prefers-color-scheme: light" in page  # oscuro por defecto, claro automático
+    assert ':root[data-theme="light"]' in page  # oscuro por defecto, claro opcional
     assert "#0ecb81" in page  # verde de la marca (velas/estados)
+
+
+def test_el_tema_oscuro_es_el_de_serie_y_hay_conmutador():
+    page = render_html([], [], cfg=make_config(), now=NOW)
+    assert 'id="btn-theme"' in page  # el conmutador 🌓
+    assert 'data-theme="light"' in page  # el claro existe, pero solo si se elige
+    assert "prefers-color-scheme" not in page  # ya no depende del sistema

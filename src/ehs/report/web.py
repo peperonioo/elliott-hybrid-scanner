@@ -73,13 +73,11 @@ CSS = """
   --green:#0ecb81; --red:#f6465d; --amber:#f0b90b;
   --zone:rgba(76,141,255,.14); --glow:rgba(76,141,255,.35);
 }
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg:#f4f6fa; --fg:#141a24; --muted:#5d6a80; --card:#ffffff;
-    --card2:#eef1f7; --border:#dfe5ef; --accent:#2563eb; --accent2:#6d4fd8;
-    --green:#059f68; --red:#dc2f4e; --amber:#b45309;
-    --zone:rgba(37,99,235,.10); --glow:rgba(37,99,235,.25);
-  }
+:root[data-theme="light"] {
+  --bg:#f4f6fa; --fg:#141a24; --muted:#5d6a80; --card:#ffffff;
+  --card2:#eef1f7; --border:#dfe5ef; --accent:#2563eb; --accent2:#6d4fd8;
+  --green:#059f68; --red:#dc2f4e; --amber:#b45309;
+  --zone:rgba(37,99,235,.10); --glow:rgba(37,99,235,.25);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -88,6 +86,9 @@ body{margin:0;background:var(--bg);color:var(--fg);
   -webkit-font-smoothing:antialiased}
 .wrap{max-width:920px;margin:0 auto;padding:18px 16px 56px}
 .appbar{display:flex;align-items:center;gap:12px;margin:0 0 4px}
+.themebtn{margin-left:auto;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;font-size:1rem;padding:7px 10px;cursor:pointer;color:var(--fg)}
+.themebtn:hover{border-color:var(--accent)}
 .logo{width:38px;height:38px;flex:none;border-radius:11px;
   filter:drop-shadow(0 2px 8px var(--glow))}
 h1{font-size:1.3rem;margin:0;letter-spacing:-.02em;font-weight:800;line-height:1.15}
@@ -1563,6 +1564,21 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b0e14">
+<script>
+(function () {{
+  if (localStorage.getItem("ehs-theme") === "light")
+    document.documentElement.dataset.theme = "light";
+  document.addEventListener("DOMContentLoaded", function () {{
+    var b = document.getElementById("btn-theme");
+    if (!b) return;
+    b.addEventListener("click", function () {{
+      var light = document.documentElement.dataset.theme === "light";
+      localStorage.setItem("ehs-theme", light ? "dark" : "light");
+      location.reload();
+    }});
+  }});
+}})();
+</script>
 <style>{CSS}</style>
 </head>
 <body>
@@ -1579,6 +1595,8 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
     </svg>
     <h1>Elliott <span class="thin">Hybrid Scanner</span>
       <span class="bsub">ondas de elliott · spot · se rehace cada 4 h</span></h1>
+    <button class="themebtn" id="btn-theme" type="button"
+      title="cambiar entre tema oscuro y claro">🌓</button>
   </header>
   <div class="updated">Análisis: {now:%d-%m-%Y %H:%M} UTC
     <span id="an-age"></span> · se rehace solo cada 4 h ·

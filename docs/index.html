@@ -7,6 +7,21 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b0e14">
+<script>
+(function () {
+  if (localStorage.getItem("ehs-theme") === "light")
+    document.documentElement.dataset.theme = "light";
+  document.addEventListener("DOMContentLoaded", function () {
+    var b = document.getElementById("btn-theme");
+    if (!b) return;
+    b.addEventListener("click", function () {
+      var light = document.documentElement.dataset.theme === "light";
+      localStorage.setItem("ehs-theme", light ? "dark" : "light");
+      location.reload();
+    });
+  });
+})();
+</script>
 <style>
 :root {
   --bg:#0b0e14; --fg:#e9edf5; --muted:#8a93a6; --card:#131926;
@@ -14,13 +29,11 @@
   --green:#0ecb81; --red:#f6465d; --amber:#f0b90b;
   --zone:rgba(76,141,255,.14); --glow:rgba(76,141,255,.35);
 }
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg:#f4f6fa; --fg:#141a24; --muted:#5d6a80; --card:#ffffff;
-    --card2:#eef1f7; --border:#dfe5ef; --accent:#2563eb; --accent2:#6d4fd8;
-    --green:#059f68; --red:#dc2f4e; --amber:#b45309;
-    --zone:rgba(37,99,235,.10); --glow:rgba(37,99,235,.25);
-  }
+:root[data-theme="light"] {
+  --bg:#f4f6fa; --fg:#141a24; --muted:#5d6a80; --card:#ffffff;
+  --card2:#eef1f7; --border:#dfe5ef; --accent:#2563eb; --accent2:#6d4fd8;
+  --green:#059f68; --red:#dc2f4e; --amber:#b45309;
+  --zone:rgba(37,99,235,.10); --glow:rgba(37,99,235,.25);
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -29,6 +42,9 @@ body{margin:0;background:var(--bg);color:var(--fg);
   -webkit-font-smoothing:antialiased}
 .wrap{max-width:920px;margin:0 auto;padding:18px 16px 56px}
 .appbar{display:flex;align-items:center;gap:12px;margin:0 0 4px}
+.themebtn{margin-left:auto;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;font-size:1rem;padding:7px 10px;cursor:pointer;color:var(--fg)}
+.themebtn:hover{border-color:var(--accent)}
 .logo{width:38px;height:38px;flex:none;border-radius:11px;
   filter:drop-shadow(0 2px 8px var(--glow))}
 h1{font-size:1.3rem;margin:0;letter-spacing:-.02em;font-weight:800;line-height:1.15}
@@ -217,8 +233,10 @@ h2{scroll-margin-top:56px}
     </svg>
     <h1>Elliott <span class="thin">Hybrid Scanner</span>
       <span class="bsub">ondas de elliott · spot · se rehace cada 4 h</span></h1>
+    <button class="themebtn" id="btn-theme" type="button"
+      title="cambiar entre tema oscuro y claro">🌓</button>
   </header>
-  <div class="updated">Análisis: 18-08-2026 01:12 UTC
+  <div class="updated">Análisis: 18-08-2026 01:18 UTC
     <span id="an-age"></span> · se rehace solo cada 4 h ·
     BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX · velas de 4h</div>
   <div class="disclaimer">Herramienta informativa generada automáticamente — no es
@@ -946,7 +964,7 @@ fecha: no se puede reescribir a posteriori.</p>
   });
 })();
 </script>
-<script>var EHS_LIVE = [{"sym":"BTC/USDT","base":"BTC","zone":[64256.7652555746,64938.8074244254]},{"sym":"ETH/USDT","base":"ETH","zone":[1895.8685046077,1921.8698953923]},{"sym":"SOL/USDT","base":"SOL","zone":[74.2618662718,75.4512537282]},{"sym":"BNB/USDT","base":"BNB","zone":[638.7313861667,645.9376138333]},{"sym":"XRP/USDT","base":"XRP","zone":[1.0696702314,1.0838869686]},{"sym":"ADA/USDT","base":"ADA","zone":[0.1646579256,0.1691772744]},{"sym":"AVAX/USDT","base":"AVAX","zone":null},{"sym":"LINK/USDT","base":"LINK","zone":[8.276635193,8.467728807]},{"sym":"DOT/USDT","base":"DOT","zone":[0.7906714381,0.8053325619]},{"sym":"PEPE/USDT","base":"PEPE","zone":[2.8664e-06,2.9455e-06]},{"sym":"DOGE/USDT","base":"DOGE","zone":[0.0696483239,0.0708086761]},{"sym":"SUI/USDT","base":"SUI","zone":[0.7271955168,0.7399052832]},{"sym":"TRX/USDT","base":"TRX","zone":[0.3404127546,0.3427672454]}];var EHS_GEN = 1787015572;</script>
+<script>var EHS_LIVE = [{"sym":"BTC/USDT","base":"BTC","zone":[64256.7652555746,64938.8074244254]},{"sym":"ETH/USDT","base":"ETH","zone":[1895.8685046077,1921.8698953923]},{"sym":"SOL/USDT","base":"SOL","zone":[74.2618662718,75.4512537282]},{"sym":"BNB/USDT","base":"BNB","zone":[638.7313861667,645.9376138333]},{"sym":"XRP/USDT","base":"XRP","zone":[1.0696702314,1.0838869686]},{"sym":"ADA/USDT","base":"ADA","zone":[0.1646579256,0.1691772744]},{"sym":"AVAX/USDT","base":"AVAX","zone":null},{"sym":"LINK/USDT","base":"LINK","zone":[8.276635193,8.467728807]},{"sym":"DOT/USDT","base":"DOT","zone":[0.7906714381,0.8053325619]},{"sym":"PEPE/USDT","base":"PEPE","zone":[2.8664e-06,2.9455e-06]},{"sym":"DOGE/USDT","base":"DOGE","zone":[0.0696483239,0.0708086761]},{"sym":"SUI/USDT","base":"SUI","zone":[0.7271955168,0.7399052832]},{"sym":"TRX/USDT","base":"TRX","zone":[0.3404127546,0.3427672454]}];var EHS_GEN = 1787015915;</script>
 
 <script>
 (function () {
