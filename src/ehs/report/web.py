@@ -197,6 +197,22 @@ h2{scroll-margin-top:52px}
 .chg{font-size:.72rem;font-weight:700;margin-left:5px}
 .chg.up{color:var(--green)}
 .chg.dn{color:var(--red)}
+.hero{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:0 0 16px;
+  padding:12px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:12px;font-size:.92rem}
+.hero b{font-size:1.05rem}
+.ghdr{margin:38px 0 -14px;font-size:.72rem;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted)}
+.wdet{margin:10px 0}
+.wdet>summary{cursor:pointer;display:flex;gap:10px;align-items:center;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;list-style:none}
+.wdet>summary::-webkit-details-marker{display:none}
+.wdet>summary::after{content:"▾";margin-left:auto;color:var(--muted)}
+.wdet[open]>summary::after{content:"▴"}
+.wdet>summary:hover{border-color:var(--accent)}
+.wsum{color:var(--muted);font-size:.82rem}
+.wdet .card{margin-top:6px}
 .btn:disabled,.btn[disabled]{opacity:.75;cursor:default}
 .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.35);
   border-top-color:#fff;border-radius:50%;display:inline-block;flex:none;
@@ -560,6 +576,32 @@ def build_watch(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[str, 
     return out
 
 
+def build_levels(cfg: Config) -> dict[str, dict[str, float]]:
+    """Soporte y resistencia del último swing, para TODAS las monedas.
+
+    La resistencia es la «zona de venta rápida»: el techo técnico más cercano
+    donde tiene sentido recoger beneficios si no se quiere esperar al 2R.
+    """
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    out: dict[str, dict[str, float]] = {}
+    for base in cfg.bases:
+        _, structure, _ = _read_pair(cfg, cache, base, params)
+        if structure.empty:
+            continue
+        pivots = detect_swings(structure, **params.swing)
+        highs = [p.price for p in pivots if p.kind == "H"]
+        lows = [p.price for p in pivots if p.kind == "L"]
+        info: dict[str, float] = {}
+        if highs:
+            info["res"] = highs[-1]
+        if lows:
+            info["sup"] = lows[-1]
+        if info:
+            out[base] = info
+    return out
+
+
 def build_direction(cfg: Config) -> list[dict[str, Any]]:
     """Panel «¿sube o baja?»: estado actual + frecuencias históricas a 24h."""
     cache = ParquetCache(cfg.path("paths.cache_dir"))
@@ -782,6 +824,7 @@ def _card(
     has_chart: bool,
     current_price: float | None = None,
     proj: dict[str, Any] | None = None,
+    res: float | None = None,
 ) -> str:
     r = entry.result
     base = r.symbol.split("/")[0]
@@ -816,15 +859,22 @@ def _card(
             f'<div class="level buy"><div class="lab">Zona de compra · swing</div>'
             f'<div class="val">{_fmt(r.zone[0])} – {_fmt(r.zone[1])}</div></div>'
         )
+    if target is not None:
+        levels.append(
+            f'<div class="level target"><div class="lab">Zona de venta · objetivo 2R</div>'
+            f'<div class="val">{_fmt(target)}</div></div>'
+        )
+    # Venta rápida: la resistencia del último swing, para quien no quiera
+    # esperar al 2R. Solo tiene sentido si queda por encima del precio.
+    if res is not None and res > price_now and (target is None or res < target):
+        levels.append(
+            f'<div class="level target"><div class="lab">Venta rápida · resistencia</div>'
+            f'<div class="val">{_fmt(res)}</div></div>'
+        )
     levels.append(
         f'<div class="level stop"><div class="lab">Stop</div>'
         f'<div class="val">{_fmt(r.signal_invalidation)}</div></div>'
     )
-    if target is not None:
-        levels.append(
-            f'<div class="level target"><div class="lab">Venta objetivo (2R)</div>'
-            f'<div class="val">{_fmt(target)}</div></div>'
-        )
 
     if entry.is_signal:
         badge = '<span class="badge long">COMPRA</span>'
@@ -983,6 +1033,15 @@ LEGEND = """
   nuevos). <b>Si está entre la zona y el stop, nada</b>: demasiado tarde para el plan.
   Comprar fuera de la zona rompe la relación riesgo/beneficio con la que se validó
   el sistema.</dd>
+  <dt>¿Dónde vendo? ¿Qué es la "venta rápida"?</dt>
+  <dd>Cada tarjeta con plan muestra hasta dos niveles de venta: la <b>zona de venta ·
+  objetivo 2R</b> (la salida con la que se validó el sistema, gana el doble de lo que
+  arriesga) y la <b>venta rápida · resistencia</b>, el techo técnico más cercano — el
+  último máximo del swing. Para trading más ágil se puede vender ahí (o parcial: la
+  mitad en la resistencia y el resto al 2R), sabiendo que salir antes del 2R
+  <b>reduce la esperanza con la que se validó el sistema</b>: es un intercambio de
+  beneficio por velocidad, no una mejora gratis. El stop no se negocia en ninguna de
+  las dos variantes.</dd>
   <dt>¿Qué es el panel "¿Sube o baja?"</dt>
   <dd>Una tabla pensada para responder rápido: clasifica el estado actual de cada
   moneda con tres variables clásicas (tendencia larga, momentum de 24 h, zona de RSI)
@@ -1320,6 +1379,7 @@ def render_html(
     watch: dict[str, dict[str, Any]] | None = None,
     dca: list[dict[str, Any]] | None = None,
     direction: list[dict[str, Any]] | None = None,
+    levels: dict[str, dict[str, float]] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -1336,6 +1396,24 @@ def render_html(
         return (-len(r.active_factors), distance)
 
     near = sorted((e for e in entries if not e.is_signal), key=_near_rank)
+
+    # Resumen ejecutivo: lo primero que responde la página en una línea.
+    mejor_24h = ""
+    for fila in direction or []:
+        s = fila["stats"]
+        if s.reliable and (s.p_up >= 0.52 or s.p_up <= 0.48):
+            flecha, pct = ("▲", s.p_up) if s.p_up >= 0.52 else ("▼", 1 - s.p_up)
+            mejor_24h = (
+                f"<span>⚡ mejor apuesta 24h: <b>{_esc(fila['base'])} {flecha} {pct:.0%}</b></span>"
+            )
+            break
+    hero = (
+        '<div class="hero">'
+        f"<span>🎯 señales activas: <b>{len(signals)}</b></span>"
+        f"<span>👀 en radar: <b>{len(near)}</b></span>"
+        f"{mejor_24h}"
+        "</div>"
+    )
     vistazo = (
         '<h2 id="sec-vistazo">🧭 El mercado de un vistazo</h2>' + _overview_html(overview)
         if overview
@@ -1347,8 +1425,17 @@ def render_html(
         candles = chart_data.get(symbol, {}).get("candles")
         return float(candles[-1]["close"]) if candles else None
 
+    levels = levels or {}
+
     def card(e: ReportEntry) -> str:
-        return _card(e, e.result.symbol in chart_data, last_close(e.result.symbol), proj)
+        base = e.result.symbol.split("/")[0]
+        return _card(
+            e,
+            e.result.symbol in chart_data,
+            last_close(e.result.symbol),
+            proj,
+            levels.get(base, {}).get("res"),
+        )
 
     if signals:
         cuerpo_senales = "".join(card(e) for e in signals)
@@ -1373,12 +1460,23 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
 
     watch = watch or {}
     if watch:
-        tarjetas_watch = "".join(
-            _watch_card(info, info["symbol"] in chart_data) for info in watch.values()
-        )
+        plegadas = []
+        for info in watch.values():
+            resumen_niveles = " · ".join(
+                f"{lab} {_fmt(info[k])}"
+                for k, lab in (("sup", "sup"), ("res", "res"))
+                if info.get(k) is not None
+            )
+            plegadas.append(
+                f'<details class="wdet"><summary><b>{_esc(info["base"])}</b> '
+                f'<span class="st {info["cls"]}">{_esc(info["label"])}</span> '
+                f'<span class="wsum">{_esc(resumen_niveles)}</span></summary>'
+                f"{_watch_card(info, info['symbol'] in chart_data)}</details>"
+            )
         cuerpo_watch = (
             f'<h2 id="sec-watch">🔎 En observación ({len(watch)}) — sin jugada alcista ahora</h2>'
-            f"{tarjetas_watch}"
+            '<p style="color:var(--muted);font-size:.85rem">Toca una moneda para ver su '
+            "diagnóstico completo, niveles y gráfico.</p>" + "".join(plegadas)
         )
     else:
         cuerpo_watch = ""
@@ -1457,9 +1555,11 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
     <a href="#sec-guia">📖 Guía</a>
   </nav>
 
+  {hero}
+
   {vistazo}
 
-  {_direction_html(direction or [])}
+  <div class="ghdr">🟢 Para operar — el plan validado</div>
 
   <h2 id="sec-senales">🎯 Señales de compra activas ({len(signals)})</h2>
   {cuerpo_senales}
@@ -1467,14 +1567,20 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
   <h2 id="sec-radar">👀 En el radar ({len(near)})</h2>
   {cuerpo_radar}
 
+  <div class="ghdr">🧠 Contexto y apuestas</div>
+
+  {_direction_html(direction or [])}
+
   {cuerpo_watch}
 
   {_dca_html(dca or [])}
 
-  {avisos}
+  <div class="ghdr">📚 Registro y ayuda</div>
 
   <h2 id="sec-forward">📒 Forward test — registro de señales</h2>
   {_forward_test_html(signals_log or [])}
+
+  {avisos}
 
   <div id="sec-guia">{LEGEND}</div>
 
@@ -1497,6 +1603,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     watch = build_watch(cfg, entries)
     dca = build_dca(cfg)
     direction = build_direction(cfg)
+    levels = build_levels(cfg)
     chart_data = build_chart_data(cfg, entries, watch)
     overview = build_overview(cfg, entries, watch)
 
@@ -1522,6 +1629,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
         watch=watch,
         dca=dca,
         direction=direction,
+        levels=levels,
     )
 
     web_dir = cfg.path("paths.web_dir")

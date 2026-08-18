@@ -138,6 +138,22 @@ h2{scroll-margin-top:52px}
 .chg{font-size:.72rem;font-weight:700;margin-left:5px}
 .chg.up{color:var(--green)}
 .chg.dn{color:var(--red)}
+.hero{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:0 0 16px;
+  padding:12px 16px;background:var(--card);border:1px solid var(--border);
+  border-radius:12px;font-size:.92rem}
+.hero b{font-size:1.05rem}
+.ghdr{margin:38px 0 -14px;font-size:.72rem;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted)}
+.wdet{margin:10px 0}
+.wdet>summary{cursor:pointer;display:flex;gap:10px;align-items:center;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;list-style:none}
+.wdet>summary::-webkit-details-marker{display:none}
+.wdet>summary::after{content:"▾";margin-left:auto;color:var(--muted)}
+.wdet[open]>summary::after{content:"▴"}
+.wdet>summary:hover{border-color:var(--accent)}
+.wsum{color:var(--muted);font-size:.82rem}
+.wdet .card{margin-top:6px}
 .btn:disabled,.btn[disabled]{opacity:.75;cursor:default}
 .spinner{width:13px;height:13px;border:2px solid rgba(255,255,255,.35);
   border-top-color:#fff;border-radius:50%;display:inline-block;flex:none;
@@ -150,7 +166,7 @@ h2{scroll-margin-top:52px}
 <body>
 <div class="wrap">
   <h1>📡 Elliott Hybrid Scanner</h1>
-  <div class="updated">Análisis: 18-08-2026 00:56 UTC
+  <div class="updated">Análisis: 18-08-2026 01:05 UTC
     <span id="an-age"></span> · se rehace solo cada 4 h ·
     BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX · velas de 4h</div>
   <div class="disclaimer">Herramienta informativa generada automáticamente — no es
@@ -177,24 +193,11 @@ h2{scroll-margin-top:52px}
     <a href="#sec-guia">📖 Guía</a>
   </nav>
 
+  <div class="hero"><span>🎯 señales activas: <b>1</b></span><span>👀 en radar: <b>11</b></span><span>⚡ mejor apuesta 24h: <b>TRX ▲ 54%</b></span></div>
+
   <h2 id="sec-vistazo">🧭 El mercado de un vistazo</h2><div class="ovgrid"><a class="chip" href="#card-BTC"><span class="mono" style="background:hsl(119,62%,45%)">B</span><span><span class="nm">BTC<span class="chg" id="chg-BTC"></span></span><br><span class="pr" id="ov-BTC">62,968</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-ETH"><span class="mono" style="background:hsl(135,62%,45%)">E</span><span><span class="nm">ETH<span class="chg" id="chg-ETH"></span></span><br><span class="pr" id="ov-ETH">1,881</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-SOL"><span class="mono" style="background:hsl(26,62%,45%)">S</span><span><span class="nm">SOL<span class="chg" id="chg-SOL"></span></span><br><span class="pr" id="ov-SOL">75.02</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-BNB"><span class="mono" style="background:hsl(150,62%,45%)">B</span><span><span class="nm">BNB<span class="chg" id="chg-BNB"></span></span><br><span class="pr" id="ov-BNB">606.41</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-XRP"><span class="mono" style="background:hsl(230,62%,45%)">X</span><span><span class="nm">XRP<span class="chg" id="chg-XRP"></span></span><br><span class="pr" id="ov-XRP">0.9989</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-ADA"><span class="mono" style="background:hsl(306,62%,45%)">A</span><span><span class="nm">ADA<span class="chg" id="chg-ADA"></span></span><br><span class="pr" id="ov-ADA">0.1797</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-AVAX"><span class="mono" style="background:hsl(248,62%,45%)">A</span><span><span class="nm">AVAX<span class="chg" id="chg-AVAX"></span></span><br><span class="pr" id="ov-AVAX">6.43</span></span><span class="st non">lateral</span></a><a class="chip" href="#card-LINK"><span class="mono" style="background:hsl(154,62%,45%)">L</span><span><span class="nm">LINK<span class="chg" id="chg-LINK"></span></span><br><span class="pr" id="ov-LINK">8.99</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-DOT"><span class="mono" style="background:hsl(57,62%,45%)">D</span><span><span class="nm">DOT<span class="chg" id="chg-DOT"></span></span><br><span class="pr" id="ov-DOT">0.7580</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-PEPE"><span class="mono" style="background:hsl(326,62%,45%)">P</span><span><span class="nm">PEPE<span class="chg" id="chg-PEPE"></span></span><br><span class="pr" id="ov-PEPE">0.000002650</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-DOGE"><span class="mono" style="background:hsl(169,62%,45%)">D</span><span><span class="nm">DOGE<span class="chg" id="chg-DOGE"></span></span><br><span class="pr" id="ov-DOGE">0.06986</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-SUI"><span class="mono" style="background:hsl(167,62%,45%)">S</span><span><span class="nm">SUI<span class="chg" id="chg-SUI"></span></span><br><span class="pr" id="ov-SUI">0.6792</span></span><span class="st rad">radar</span></a><a class="chip" href="#card-TRX"><span class="mono" style="background:hsl(58,62%,45%)">T</span><span><span class="nm">TRX<span class="chg" id="chg-TRX"></span></span><br><span class="pr" id="ov-TRX">0.3330</span></span><span class="st sig">SEÑAL</span></a></div>
 
-  
-<h2 id="sec-dir">⚡ ¿Sube o baja? — histórico a 24 h</h2>
-<p style="color:var(--muted);font-size:.88rem">Cada moneda se clasifica por su estado
-actual (tendencia larga, momentum de 24 h y zona de RSI) y se busca <b>ese mismo
-estado en todo su histórico de velas de 4 h</b>: el porcentaje dice cuántas veces el
-precio estaba más alto 24 horas después. Es <b>frecuencia histórica, no predicción</b>
-— nadie sabe la próxima vela; un ≈50% significa literalmente moneda al aire, y los
-casos se solapan entre sí, así que la muestra efectiva es menor que n. Ordenado de
-más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</p>
-<div class="scroll" style="overflow-x:auto">
-<table>
-  <tr><th>moneda</th><th>estado actual</th><th>¿24 h después?</th>
-    <th>media 24 h</th><th>casos (n)</th></tr>
-  <tr><td><b>TRX</b></td><td>tendencia ↑ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 54%</span></td><td>+0.00%</td><td>1378</td></tr><tr><td><b>ETH</b></td><td>tendencia ↑ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 54%</span></td><td>+0.07%</td><td>1040</td></tr><tr><td><b>BTC</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 54%</span></td><td>+0.05%</td><td>1973</td></tr><tr><td><b>LINK</b></td><td>tendencia ↑ · momentum ↑ · RSI fuerte</td><td><span class="res loss">▼ bajó el 53%</span></td><td>-0.15%</td><td>1713</td></tr><tr><td><b>SUI</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res loss">▼ bajó el 53%</span></td><td>-0.40%</td><td>1780</td></tr><tr><td><b>BNB</b></td><td>tendencia ↑ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 53%</span></td><td>+0.06%</td><td>1168</td></tr><tr><td><b>AVAX</b></td><td>tendencia ↓ · momentum ↑ · RSI fuerte</td><td><span class="res loss">▼ bajó el 53%</span></td><td>-0.13%</td><td>1506</td></tr><tr><td><b>DOGE</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 52%</span></td><td>-0.00%</td><td>2652</td></tr><tr><td><b>ADA</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.13%</td><td>2912</td></tr><tr><td><b>PEPE</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.01%</td><td>1814</td></tr><tr><td><b>DOT</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.16%</td><td>3032</td></tr><tr><td><b>XRP</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>+0.15%</td><td>2531</td></tr><tr><td><b>SOL</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.00%</td><td>2362</td></tr>
-</table>
-</div>
+  <div class="ghdr">🟢 Para operar — el plan validado</div>
 
   <h2 id="sec-senales">🎯 Señales de compra activas (1)</h2>
   
@@ -208,7 +211,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-TRX">⚠️ El precio está un <b>2.2% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action warn"><b>Qué hacer ahora:</b> nada — esta señal ya está <b>anulada</b>: el precio ha caído hasta su stop (0.3376) y el plan ha muerto. No comprar «porque está más barato»: el forward test la apuntará como perdida y el siguiente análisis dirá si nace un plan nuevo.</p>
   <div class="tvchart" id="chart-TRX-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:TRXUSDT" target="_blank" rel="noopener">ver TRX en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-TRX">0.3330</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.3404 – 0.3428</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.3376</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">0.3496</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-TRX">0.3330</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.3404 – 0.3428</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">0.3496</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">0.3385</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.3376</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -245,7 +248,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-SOL"><span class="inzone">✅ El precio está DENTRO de la zona de compra</span></p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (2 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-SOL-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:SOLUSDT" target="_blank" rel="noopener">ver SOL en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-SOL">75.02</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">74.26 – 75.45</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">70.58</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">83.41</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-SOL">75.02</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">74.26 – 75.45</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">83.41</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">77.84</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">70.58</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -279,7 +282,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-BTC">⚠️ El precio está un <b>2.0% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (2 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-BTC-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:BTCUSDT" target="_blank" rel="noopener">ver BTC en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-BTC">62,968</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">64,257 – 64,939</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">62,742</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">68,308</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-BTC">62,968</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">64,257 – 64,939</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">68,308</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">65,474</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">62,742</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -313,7 +316,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-DOT">⚠️ El precio está un <b>4.1% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (2 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-DOT-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:DOTUSDT" target="_blank" rel="noopener">ver DOT en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-DOT">0.7580</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.7907 – 0.8053</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.7430</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">0.9080</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-DOT">0.7580</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.7907 – 0.8053</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">0.9080</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">0.8700</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.7430</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -347,7 +350,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-DOGE"><span class="inzone">✅ El precio está DENTRO de la zona de compra</span></p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (1 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-DOGE-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:DOGEUSDT" target="_blank" rel="noopener">ver DOGE en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-DOGE">0.06986</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.06965 – 0.07081</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.06822</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">0.07425</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-DOGE">0.06986</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.06965 – 0.07081</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">0.07425</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">0.07315</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.06822</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -381,7 +384,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-ETH">⚠️ El precio está un <b>0.8% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (1 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-ETH-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:ETHUSDT" target="_blank" rel="noopener">ver ETH en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-ETH">1,881</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">1,896 – 1,922</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">1,854</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">2,019</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-ETH">1,881</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">1,896 – 1,922</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">2,019</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">1,925</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">1,854</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -415,7 +418,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-BNB">⚠️ El precio está un <b>5.1% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (1 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-BNB-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:BNBUSDT" target="_blank" rel="noopener">ver BNB en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-BNB">606.41</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">638.73 – 645.94</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">605.50</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">716.00</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-BNB">606.41</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">638.73 – 645.94</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">716.00</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">620.55</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">605.50</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -449,7 +452,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-LINK">El precio está un <b>6.2% por encima</b> de la zona de compra — tocaría esperar a que baje</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (1 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-LINK-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:LINKUSDT" target="_blank" rel="noopener">ver LINK en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-LINK">8.99</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">8.28 – 8.47</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">8.07</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">8.98</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-LINK">8.99</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">8.28 – 8.47</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">8.98</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">8.07</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -483,7 +486,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-SUI">⚠️ El precio está un <b>6.6% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (1 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-SUI-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:SUIUSDT" target="_blank" rel="noopener">ver SUI en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-SUI">0.6792</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.7272 – 0.7399</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.7003</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">0.8001</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-SUI">0.6792</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.7272 – 0.7399</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">0.8001</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">0.7071</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.7003</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -517,7 +520,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-PEPE">⚠️ El precio está un <b>7.5% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (1 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-PEPE-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:PEPEUSDT" target="_blank" rel="noopener">ver PEPE en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-PEPE">0.000002650</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.000002866 – 0.000002946</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.000002770</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">0.000003178</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-PEPE">0.000002650</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.000002866 – 0.000002946</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">0.000003178</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">0.000002960</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.000002770</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -551,7 +554,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-XRP">⚠️ El precio está un <b>6.6% por debajo</b> de la zona — cerca del stop, prudencia</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (0 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-XRP-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:XRPUSDT" target="_blank" rel="noopener">ver XRP en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-XRP">0.9989</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">1.07 – 1.08</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">1.05</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">1.14</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-XRP">0.9989</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">1.07 – 1.08</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">1.14</div></div><div class="level target"><div class="lab">Venta rápida · resistencia</div><div class="val">1.09</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">1.05</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -585,7 +588,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="meta2" id="zt-ADA">El precio está un <b>6.2% por encima</b> de la zona de compra — tocaría esperar a que baje</p>
   <p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal (0 de 5 comprobaciones). Si la estructura se confirma con 3 de 5, pasará a «Señales activas» y se abrirá el aviso automático.</p>
   <div class="tvchart" id="chart-ADA-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:ADAUSDT" target="_blank" rel="noopener">ver ADA en TradingView ↗</a></p>
-  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-ADA">0.1797</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.1647 – 0.1692</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.1578</div></div><div class="level target"><div class="lab">Venta objetivo (2R)</div><div class="val">0.1852</div></div></div>
+  <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-ADA">0.1797</div></div><div class="level buy"><div class="lab">Zona de compra · swing</div><div class="val">0.1647 – 0.1692</div></div><div class="level target"><div class="lab">Zona de venta · objetivo 2R</div><div class="val">0.1852</div></div><div class="level stop"><div class="lab">Stop</div><div class="val">0.1578</div></div></div>
   
 <div class="proj">
   <div class="proj-t">🔮 Posible siguiente movimiento (histórico de 166 operaciones)</div>
@@ -610,7 +613,26 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   </details>
 </div>
 
-  <h2 id="sec-watch">🔎 En observación (1) — sin jugada alcista ahora</h2>
+  <div class="ghdr">🧠 Contexto y apuestas</div>
+
+  
+<h2 id="sec-dir">⚡ ¿Sube o baja? — histórico a 24 h</h2>
+<p style="color:var(--muted);font-size:.88rem">Cada moneda se clasifica por su estado
+actual (tendencia larga, momentum de 24 h y zona de RSI) y se busca <b>ese mismo
+estado en todo su histórico de velas de 4 h</b>: el porcentaje dice cuántas veces el
+precio estaba más alto 24 horas después. Es <b>frecuencia histórica, no predicción</b>
+— nadie sabe la próxima vela; un ≈50% significa literalmente moneda al aire, y los
+casos se solapan entre sí, así que la muestra efectiva es menor que n. Ordenado de
+más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</p>
+<div class="scroll" style="overflow-x:auto">
+<table>
+  <tr><th>moneda</th><th>estado actual</th><th>¿24 h después?</th>
+    <th>media 24 h</th><th>casos (n)</th></tr>
+  <tr><td><b>TRX</b></td><td>tendencia ↑ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 54%</span></td><td>+0.00%</td><td>1378</td></tr><tr><td><b>ETH</b></td><td>tendencia ↑ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 54%</span></td><td>+0.07%</td><td>1040</td></tr><tr><td><b>BTC</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 54%</span></td><td>+0.05%</td><td>1973</td></tr><tr><td><b>LINK</b></td><td>tendencia ↑ · momentum ↑ · RSI fuerte</td><td><span class="res loss">▼ bajó el 53%</span></td><td>-0.15%</td><td>1713</td></tr><tr><td><b>SUI</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res loss">▼ bajó el 53%</span></td><td>-0.40%</td><td>1780</td></tr><tr><td><b>BNB</b></td><td>tendencia ↑ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 53%</span></td><td>+0.06%</td><td>1168</td></tr><tr><td><b>AVAX</b></td><td>tendencia ↓ · momentum ↑ · RSI fuerte</td><td><span class="res loss">▼ bajó el 53%</span></td><td>-0.13%</td><td>1506</td></tr><tr><td><b>DOGE</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res win">▲ subió el 52%</span></td><td>-0.00%</td><td>2652</td></tr><tr><td><b>ADA</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.13%</td><td>2912</td></tr><tr><td><b>PEPE</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.01%</td><td>1814</td></tr><tr><td><b>DOT</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.16%</td><td>3032</td></tr><tr><td><b>XRP</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>+0.15%</td><td>2531</td></tr><tr><td><b>SOL</b></td><td>tendencia ↓ · momentum ↓ · RSI débil</td><td><span class="res flat">≈ 50% — moneda al aire</span></td><td>-0.00%</td><td>2362</td></tr>
+</table>
+</div>
+
+  <h2 id="sec-watch">🔎 En observación (1) — sin jugada alcista ahora</h2><p style="color:var(--muted);font-size:.85rem">Toca una moneda para ver su diagnóstico completo, niveles y gráfico.</p><details class="wdet"><summary><b>AVAX</b> <span class="st non">lateral</span> <span class="wsum">sup 6.11 · res 6.99</span></summary>
 <div class="card" id="card-AVAX">
   <h3><span class="mono" style="background:hsl(248,62%,45%)">A</span> AVAX
     <span class="badge score">lateral</span>
@@ -619,7 +641,7 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
   <p class="action"><b>Qué hacer ahora:</b> nada — no hay estructura operable. El escáner revisa cada 4 h y esta tarjeta cambiará sola cuando la haya.</p>
   <div class="tvchart" id="chart-AVAX-USDT"></div><p class="tvlink"><a href="https://www.tradingview.com/chart/?symbol=BINANCE:AVAXUSDT" target="_blank" rel="noopener">ver AVAX en TradingView ↗</a></p>
   <div class="levels"><div class="level"><div class="lab">Precio ahora</div><div class="val" id="now-AVAX">6.43</div></div><div class="level target"><div class="lab">Soporte clave</div><div class="val">6.11</div></div><div class="level stop"><div class="lab">Resistencia clave</div><div class="val">6.99</div></div></div>
-</div>
+</div></details>
 
   
 <h2 id="sec-dca">🐢 Zona DCA — acumulación a largo plazo (meses/años)</h2>
@@ -636,7 +658,7 @@ swing; nunca convertir un swing fallido en "DCA".</p>
 </table>
 </div>
 
-  
+  <div class="ghdr">📚 Registro y ayuda</div>
 
   <h2 id="sec-forward">📒 Forward test — registro de señales</h2>
   <div class="ftstats"><span>señales: <b>2</b></span><span>cerradas: <b>0</b></span><span>ganadas: <b>0</b> · perdidas: <b>0</b></span><span>resultado acumulado: <b>+0.0R</b></span></div>
@@ -650,6 +672,8 @@ swing; nunca convertir un swing fallido en "DCA".</p>
 <p style="color:var(--muted);font-size:.82rem">Desenlaces calculados con las mismas
 reglas que el backtest. El fichero de registro se guarda en el historial de git con
 fecha: no se puede reescribir a posteriori.</p>
+
+  
 
   <div id="sec-guia">
 <details><summary>📖 Cómo leer esta página</summary>
@@ -698,6 +722,15 @@ fecha: no se puede reescribir a posteriori.</p>
   nuevos). <b>Si está entre la zona y el stop, nada</b>: demasiado tarde para el plan.
   Comprar fuera de la zona rompe la relación riesgo/beneficio con la que se validó
   el sistema.</dd>
+  <dt>¿Dónde vendo? ¿Qué es la "venta rápida"?</dt>
+  <dd>Cada tarjeta con plan muestra hasta dos niveles de venta: la <b>zona de venta ·
+  objetivo 2R</b> (la salida con la que se validó el sistema, gana el doble de lo que
+  arriesga) y la <b>venta rápida · resistencia</b>, el techo técnico más cercano — el
+  último máximo del swing. Para trading más ágil se puede vender ahí (o parcial: la
+  mitad en la resistencia y el resto al 2R), sabiendo que salir antes del 2R
+  <b>reduce la esperanza con la que se validó el sistema</b>: es un intercambio de
+  beneficio por velocidad, no una mejora gratis. El stop no se negocia en ninguna de
+  las dos variantes.</dd>
   <dt>¿Qué es el panel "¿Sube o baja?"</dt>
   <dd>Una tabla pensada para responder rápido: clasifica el estado actual de cada
   moneda con tres variables clásicas (tendencia larga, momentum de 24 h, zona de RSI)
@@ -853,7 +886,7 @@ fecha: no se puede reescribir a posteriori.</p>
   });
 })();
 </script>
-<script>var EHS_LIVE = [{"sym":"BTC/USDT","base":"BTC","zone":[64256.7652555746,64938.8074244254]},{"sym":"ETH/USDT","base":"ETH","zone":[1895.8685046077,1921.8698953923]},{"sym":"SOL/USDT","base":"SOL","zone":[74.2618662718,75.4512537282]},{"sym":"BNB/USDT","base":"BNB","zone":[638.7313861667,645.9376138333]},{"sym":"XRP/USDT","base":"XRP","zone":[1.0696702314,1.0838869686]},{"sym":"ADA/USDT","base":"ADA","zone":[0.1646579256,0.1691772744]},{"sym":"AVAX/USDT","base":"AVAX","zone":null},{"sym":"LINK/USDT","base":"LINK","zone":[8.276635193,8.467728807]},{"sym":"DOT/USDT","base":"DOT","zone":[0.7906714381,0.8053325619]},{"sym":"PEPE/USDT","base":"PEPE","zone":[2.8664e-06,2.9455e-06]},{"sym":"DOGE/USDT","base":"DOGE","zone":[0.0696483239,0.0708086761]},{"sym":"SUI/USDT","base":"SUI","zone":[0.7271955168,0.7399052832]},{"sym":"TRX/USDT","base":"TRX","zone":[0.3404127546,0.3427672454]}];var EHS_GEN = 1787014565;</script>
+<script>var EHS_LIVE = [{"sym":"BTC/USDT","base":"BTC","zone":[64256.7652555746,64938.8074244254]},{"sym":"ETH/USDT","base":"ETH","zone":[1895.8685046077,1921.8698953923]},{"sym":"SOL/USDT","base":"SOL","zone":[74.2618662718,75.4512537282]},{"sym":"BNB/USDT","base":"BNB","zone":[638.7313861667,645.9376138333]},{"sym":"XRP/USDT","base":"XRP","zone":[1.0696702314,1.0838869686]},{"sym":"ADA/USDT","base":"ADA","zone":[0.1646579256,0.1691772744]},{"sym":"AVAX/USDT","base":"AVAX","zone":null},{"sym":"LINK/USDT","base":"LINK","zone":[8.276635193,8.467728807]},{"sym":"DOT/USDT","base":"DOT","zone":[0.7906714381,0.8053325619]},{"sym":"PEPE/USDT","base":"PEPE","zone":[2.8664e-06,2.9455e-06]},{"sym":"DOGE/USDT","base":"DOGE","zone":[0.0696483239,0.0708086761]},{"sym":"SUI/USDT","base":"SUI","zone":[0.7271955168,0.7399052832]},{"sym":"TRX/USDT","base":"TRX","zone":[0.3404127546,0.3427672454]}];var EHS_GEN = 1787015148;</script>
 
 <script>
 (function () {

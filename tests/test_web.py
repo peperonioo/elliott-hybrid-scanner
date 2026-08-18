@@ -30,7 +30,7 @@ def test_una_senal_se_renderiza_con_niveles_y_lenguaje_llano():
     assert "Precio ahora" in page
     assert "Zona de compra" in page and "60,000" in page
     assert "Stop" in page and "58,000" in page
-    assert "Venta objetivo (2R)" in page
+    assert "Zona de venta · objetivo 2R" in page
     assert "ni ejecuta órdenes" in page
     assert "Cómo leer esta página" in page
     assert "precio en nivel Fibonacci" in page
@@ -316,3 +316,59 @@ def test_la_proyeccion_incluye_el_aviso_fuera_de_muestra():
     assert "Aviso honesto" in page
     assert "no cubrió" in page
     assert "-0.18%" in page or "−0.18%" in page or "-0.18" in page
+
+
+def test_la_tarjeta_ofrece_venta_rapida_en_la_resistencia():
+    # Señal: precio 63,000, objetivo 65,500. Resistencia entre medias → venta rápida.
+    entry = make_entry([0.9, 0.8, 0.7, 0.1, 0.1], is_signal=True)
+    page = render_html([entry], [], cfg=make_config(), now=NOW, levels={"BTC": {"res": 64200.0}})
+    assert "Venta rápida · resistencia" in page and "64,200" in page
+
+    # Resistencia por debajo del precio actual: no se ofrece.
+    page = render_html([entry], [], cfg=make_config(), now=NOW, levels={"BTC": {"res": 62000.0}})
+    assert "Venta rápida" not in page
+
+
+def test_el_resumen_ejecutivo_y_los_bloques_ordenan_la_pagina():
+    from ehs.report.direction import DirectionStats
+
+    rows = [
+        {
+            "base": "TRX",
+            "stats": DirectionStats(
+                trend_up=True,
+                momentum_up=False,
+                rsi_zone="débil",
+                p_up=0.54,
+                avg_move=0.001,
+                n=1378,
+                reliable=True,
+            ),
+        }
+    ]
+    page = render_html([], [], cfg=make_config(), now=NOW, direction=rows)
+
+    assert "señales activas: <b>0</b>" in page
+    assert "mejor apuesta 24h: <b>TRX ▲ 54%</b>" in page
+    assert "Para operar — el plan validado" in page
+    assert "Contexto y apuestas" in page
+    assert "Registro y ayuda" in page
+
+
+def test_la_observacion_va_plegada_con_resumen():
+    watch = {
+        "ETH": {
+            "base": "ETH",
+            "symbol": "ETH/USDT",
+            "price": 1915.0,
+            "res": 1981.0,
+            "sup": 1822.0,
+            "label": "lectura bajista",
+            "cls": "bear",
+            "text": "texto",
+            "anula": 1981.0,
+        }
+    }
+    page = render_html([], [], cfg=make_config(), now=NOW, watch=watch)
+    assert '<details class="wdet">' in page
+    assert "sup 1,822 · res 1,981" in page

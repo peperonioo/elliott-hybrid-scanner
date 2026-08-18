@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-18 00:55 UTC
+# Elliott Hybrid Scanner — 2026-08-18 01:05 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
