@@ -96,6 +96,7 @@ h1 .thin{font-weight:500;color:var(--muted)}
 .bsub{display:block;font-size:.72rem;font-weight:600;color:var(--muted);
   letter-spacing:.08em;text-transform:uppercase}
 .updated{color:var(--muted);font-size:.82rem;margin:8px 0 10px}
+.secdesc{color:var(--muted);font-size:.84rem;margin:-2px 0 12px;max-width:70ch}
 .disclaimer{color:var(--muted);font-size:.78rem;margin-bottom:16px;
   border-left:2px solid var(--border);padding-left:10px}
 h2{font-size:1.05rem;margin:30px 0 10px;padding-bottom:8px;font-weight:800;
@@ -684,7 +685,7 @@ def _direction_html(rows: list[dict[str, Any]]) -> str:
         )
     return f"""
 <h2 id="sec-dir">⚡ ¿Sube o baja? — histórico a 24 h</h2>
-<p style="color:var(--muted);font-size:.88rem">Cada moneda se clasifica por su estado
+<p class="secdesc">Cada moneda se clasifica por su estado
 actual (tendencia larga, momentum de 24 h y zona de RSI) y se busca <b>ese mismo
 estado en todo su histórico de velas de 4 h</b>: el porcentaje dice cuántas veces el
 precio estaba más alto 24 horas después. Es <b>frecuencia histórica, no predicción</b>
@@ -760,7 +761,7 @@ def _dca_html(rows: list[dict[str, Any]]) -> str:
     )
     return f"""
 <h2 id="sec-dca">🐢 Zona DCA — acumulación a largo plazo (meses/años)</h2>
-<p style="color:var(--muted);font-size:.88rem">Estrategia <b>separada</b> del swing de
+<p class="secdesc">Estrategia <b>separada</b> del swing de
 arriba: banda de retroceso profundo (0.618–0.786) de todo el ciclo, donde
 históricamente se acumula <b>por tramos</b> pensando en años, sin stop y solo si se
 cree en el activo a largo. <b>No está validada por el backtest</b> — es un marco
@@ -1456,7 +1457,11 @@ def render_html(
         "</div>"
     )
     vistazo = (
-        '<h2 id="sec-vistazo">🧭 El mercado de un vistazo</h2>' + _overview_html(overview)
+        '<h2 id="sec-vistazo">🧭 El mercado de un vistazo</h2>'
+        '<p class="secdesc">Las 13 monedas con su precio, variación de 24 h y estado: '
+        "<b>SEÑAL</b> (compra validada), <b>radar</b> (candidata), <b>lectura bajista /"
+        " lateral</b> (sin jugada). Toca una para saltar a su tarjeta.</p>"
+        + _overview_html(overview)
         if overview
         else ""
     )
@@ -1516,8 +1521,10 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
             )
         cuerpo_watch = (
             f'<h2 id="sec-watch">🔎 En observación ({len(watch)}) — sin jugada alcista ahora</h2>'
-            '<p style="color:var(--muted);font-size:.85rem">Toca una moneda para ver su '
-            "diagnóstico completo, niveles y gráfico.</p>" + "".join(plegadas)
+            '<p class="secdesc">Monedas donde ahora mismo <b>no hay compra posible</b>: '
+            "la mejor lectura es bajista, el movimiento es lateral, o la geometría no da "
+            "un trade sano. Cada una lleva su diagnóstico y el nivel que lo cambiaría. "
+            "Toca una para desplegar niveles y gráfico.</p>" + "".join(plegadas)
         )
     else:
         cuerpo_watch = ""
@@ -1632,9 +1639,17 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
   <div class="ghdr">🟢 Para operar — el plan validado</div>
 
   <h2 id="sec-senales">🎯 Señales de compra activas ({len(signals)})</h2>
+  <p class="secdesc">Compras <b>validadas</b>: estructura de Elliott confirmada con al
+  menos 3 de las 5 comprobaciones a favor — la regla que se probó en el backtest.
+  Cada tarjeta trae el plan entero: zona de compra, zonas de venta y stop. Salen
+  pocas al mes; eso es el filtro funcionando.</p>
   {cuerpo_senales}
 
   <h2 id="sec-radar">👀 En el radar ({len(near)})</h2>
+  <p class="secdesc">La <b>sala de espera</b>: hay estructura alcista y los niveles ya
+  están dibujados, pero faltan comprobaciones (menos de 3 de 5). <b>No son compras</b>
+  — son las candidatas a próxima señal, ordenadas por cercanía a disparar. Si una se
+  confirma, pasa sola a Señales y llega el aviso.</p>
   {cuerpo_radar}
 
   <div class="ghdr">🧠 Contexto y apuestas</div>
@@ -1648,6 +1663,10 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
   <div class="ghdr">📚 Registro y ayuda</div>
 
   <h2 id="sec-forward">📒 Forward test — registro de señales</h2>
+  <p class="secdesc">El <b>marcador público</b> del sistema: cada señal emitida queda
+  apuntada con fecha en el historial (imposible de reescribir) y su desenlace —
+  objetivo, stop o cierre por tiempo — se calcula solo. Con ~30-40 señales, este
+  registro dirá si el sistema gana o no en datos que nadie pudo mirar.</p>
   {_forward_test_html(signals_log or [])}
 
   {avisos}

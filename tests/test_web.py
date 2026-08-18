@@ -388,3 +388,23 @@ def test_el_tema_oscuro_es_el_de_serie_y_hay_conmutador():
     assert 'id="btn-theme"' in page  # el conmutador 🌓
     assert 'data-theme="light"' in page  # el claro existe, pero solo si se elige
     assert "prefers-color-scheme" not in page  # ya no depende del sistema
+
+
+def test_cada_seccion_lleva_su_explicacion_breve():
+    entry = make_entry([0.9, 0.8, 0.1, 0.1, 0.1], is_signal=False)
+    overview = [
+        {
+            "base": "BTC",
+            "symbol": "BTC/USDT",
+            "price": 64810.0,
+            "state": "radar",
+            "cls": "rad",
+            "link": True,
+        }
+    ]
+    page = render_html([entry], [], cfg=make_config(), now=NOW, overview=overview)
+
+    assert page.count('class="secdesc"') >= 4  # vistazo, señales, radar, forward
+    assert "sala de espera" in page  # el radar explicado en la propia página
+    assert "No son compras" in page
+    assert "marcador público" in page
