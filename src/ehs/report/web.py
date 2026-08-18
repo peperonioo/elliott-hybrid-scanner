@@ -28,6 +28,7 @@ from ehs.data.cache import ParquetCache
 from ehs.elliott.validator import scan_recent
 from ehs.pipeline import PipelineParams
 from ehs.report.daily import ReportEntry, _read_pair, collect_entries
+from ehs.report.direction import compute_direction_stats
 from ehs.report.signals_log import LoggedSignal, summary_stats, update_log
 from ehs.structure.swings import detect_swings
 
@@ -559,6 +560,63 @@ def build_watch(cfg: Config, entries: list[ReportEntry]) -> dict[str, dict[str, 
     return out
 
 
+def build_direction(cfg: Config) -> list[dict[str, Any]]:
+    """Panel «¿sube o baja?»: estado actual + frecuencias históricas a 24h."""
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    rows: list[dict[str, Any]] = []
+    for base in cfg.bases:
+        _, structure, _ = _read_pair(cfg, cache, base, params)
+        if structure.empty:
+            continue
+        stats = compute_direction_stats(structure)
+        if stats is None:
+            continue
+        rows.append({"base": base, "stats": stats})
+    # Primero lo más decidido: donde el histórico más se aleja del 50/50.
+    rows.sort(key=lambda r: -abs(r["stats"].p_up - 0.5))
+    return rows
+
+
+def _direction_html(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return ""
+    filas = []
+    for r in rows:
+        s = r["stats"]
+        if not s.reliable:
+            veredicto = f'<span class="res flat">muestra insuficiente (n={s.n})</span>'
+        elif s.p_up >= 0.52:
+            veredicto = f'<span class="res win">▲ subió el {s.p_up:.0%}</span>'
+        elif s.p_up <= 0.48:
+            veredicto = f'<span class="res loss">▼ bajó el {1 - s.p_up:.0%}</span>'
+        else:
+            veredicto = '<span class="res flat">≈ 50% — moneda al aire</span>'
+        filas.append(
+            f"<tr><td><b>{_esc(r['base'])}</b></td>"
+            f"<td>{_esc(s.estado_txt)}</td>"
+            f"<td>{veredicto}</td>"
+            f"<td>{s.avg_move * 100:+.2f}%</td>"
+            f"<td>{s.n}</td></tr>"
+        )
+    return f"""
+<h2 id="sec-dir">⚡ ¿Sube o baja? — histórico a 24 h</h2>
+<p style="color:var(--muted);font-size:.88rem">Cada moneda se clasifica por su estado
+actual (tendencia larga, momentum de 24 h y zona de RSI) y se busca <b>ese mismo
+estado en todo su histórico de velas de 4 h</b>: el porcentaje dice cuántas veces el
+precio estaba más alto 24 horas después. Es <b>frecuencia histórica, no predicción</b>
+— nadie sabe la próxima vela; un ≈50% significa literalmente moneda al aire, y los
+casos se solapan entre sí, así que la muestra efectiva es menor que n. Ordenado de
+más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</p>
+<div class="scroll" style="overflow-x:auto">
+<table>
+  <tr><th>moneda</th><th>estado actual</th><th>¿24 h después?</th>
+    <th>media 24 h</th><th>casos (n)</th></tr>
+  {"".join(filas)}
+</table>
+</div>"""
+
+
 DCA_RETR = (0.618, 0.786)  # retroceso profundo del ciclo completo
 
 
@@ -925,6 +983,14 @@ LEGEND = """
   nuevos). <b>Si está entre la zona y el stop, nada</b>: demasiado tarde para el plan.
   Comprar fuera de la zona rompe la relación riesgo/beneficio con la que se validó
   el sistema.</dd>
+  <dt>¿Qué es el panel "¿Sube o baja?"</dt>
+  <dd>Una tabla pensada para responder rápido: clasifica el estado actual de cada
+  moneda con tres variables clásicas (tendencia larga, momentum de 24 h, zona de RSI)
+  y cuenta, en todo su histórico, qué pasó 24 horas después en ese mismo estado.
+  <b>Es frecuencia histórica, no una predicción</b>: 55% significa "ventaja pequeña",
+  no certeza; ≈50% es moneda al aire, y conviene decirlo: la mayoría del tiempo el
+  mercado a 24 h es casi moneda al aire. Este panel es descriptivo y NO forma parte
+  del sistema de señales validado.</dd>
   <dt>¿Qué es "posible siguiente movimiento"?</dt>
   <dd>No es una predicción — nadie sabe el siguiente movimiento. Es la <b>frecuencia
   histórica</b>: de las operaciones del backtest (2022–2025), qué porcentaje llegó al
@@ -1253,6 +1319,7 @@ def render_html(
     signals_log: list[LoggedSignal] | None = None,
     watch: dict[str, dict[str, Any]] | None = None,
     dca: list[dict[str, Any]] | None = None,
+    direction: list[dict[str, Any]] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -1381,6 +1448,7 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
 
   <nav class="nav">
     <a href="#sec-vistazo">🧭 Vistazo</a>
+    {'<a href="#sec-dir">⚡ ¿Sube o baja?</a>' if direction else ""}
     <a href="#sec-senales">🎯 Señales</a>
     <a href="#sec-radar">👀 Radar</a>
     {'<a href="#sec-watch">🔎 Observación</a>' if watch else ""}
@@ -1390,6 +1458,8 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
   </nav>
 
   {vistazo}
+
+  {_direction_html(direction or [])}
 
   <h2 id="sec-senales">🎯 Señales de compra activas ({len(signals)})</h2>
   {cuerpo_senales}
@@ -1426,6 +1496,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     entries, warnings = collect_entries(cfg)
     watch = build_watch(cfg, entries)
     dca = build_dca(cfg)
+    direction = build_direction(cfg)
     chart_data = build_chart_data(cfg, entries, watch)
     overview = build_overview(cfg, entries, watch)
 
@@ -1450,6 +1521,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
         signals_log=log,
         watch=watch,
         dca=dca,
+        direction=direction,
     )
 
     web_dir = cfg.path("paths.web_dir")
