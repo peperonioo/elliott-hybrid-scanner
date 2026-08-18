@@ -372,3 +372,11 @@ def test_la_observacion_va_plegada_con_resumen():
     page = render_html([], [], cfg=make_config(), now=NOW, watch=watch)
     assert '<details class="wdet">' in page
     assert "sup 1,822 · res 1,981" in page
+
+
+def test_el_branding_de_app_esta_presente():
+    page = render_html([], [], cfg=make_config(), now=NOW)
+    assert '<header class="appbar">' in page  # logo + wordmark
+    assert 'class="tabbar"' in page  # barra de pestañas móvil
+    assert "prefers-color-scheme: light" in page  # oscuro por defecto, claro automático
+    assert "#0ecb81" in page  # verde de la marca (velas/estados)
