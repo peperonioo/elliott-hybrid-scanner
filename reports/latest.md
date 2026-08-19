@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-19 16:51 UTC
+# Elliott Hybrid Scanner — 2026-08-19 20:49 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -18,18 +18,18 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| LINK/USDT | `impulse_1_2_3` | 0.477 | market_structure, volume_profile, higher_timeframe_trend | 10.6549–10.9111 | 8.4550 |
+| LINK/USDT | `impulse_1_2_3` | 0.477 | market_structure, volume_profile, higher_timeframe_trend | 10.6480–10.9180 | 8.4550 |
 | XRP/USDT | `corrective_abc` | 0.358 | fibonacci, volume_profile | 1.0612–1.0795 | 0.9862 |
-| TRX/USDT | `impulse_1_2_3` | 0.277 | volume_profile, higher_timeframe_trend | 0.3406–0.3426 | 0.3376 |
+| SUI/USDT | `corrective_abc` | 0.294 | fibonacci, volume_profile | 0.6835–0.7017 | 0.6643 |
+| TRX/USDT | `impulse_1_2_3` | 0.277 | volume_profile, higher_timeframe_trend | 0.3405–0.3426 | 0.3376 |
 | ETH/USDT | `corrective_abc` | 0.274 | higher_timeframe_trend | 1,900.13–1,923.62 | 1,863.67 |
-| BNB/USDT | `impulse_1_2_3` | 0.207 | higher_timeframe_trend | 639.33–645.33 | 605.50 |
-| SUI/USDT | `corrective_abc` | 0.202 | volume_profile | 0.6779–0.6952 | 0.6643 |
+| BNB/USDT | `impulse_1_2_3` | 0.207 | higher_timeframe_trend | 639.21–645.46 | 605.50 |
 | PEPE/USDT | `corrective_abc` | 0.167 | volume_profile | 0.0000–0.0000 | 0.0000 |
-| SOL/USDT | `corrective_abc` | 0.136 | higher_timeframe_trend | 75.8696–77.4079 | 74.1000 |
-| DOT/USDT | `corrective_abc` | 0.134 | — | 0.7618–0.7816 | 0.7230 |
-| BTC/USDT | `corrective_abc` | 0.114 | — | 64,200.52–65,277.01 | 62,275.00 |
-| DOGE/USDT | `impulse_1_2_3` | 0.107 | — | 0.0751–0.0762 | 0.0716 |
+| SOL/USDT | `corrective_abc` | 0.136 | higher_timeframe_trend | 75.8448–77.4328 | 74.1000 |
+| BTC/USDT | `corrective_abc` | 0.114 | — | 64,176.18–65,301.35 | 62,275.00 |
+| DOGE/USDT | `impulse_1_2_3` | 0.107 | — | 0.0751–0.0763 | 0.0716 |
 | AVAX/USDT | `corrective_abc` | 0.099 | — | 6.5435–6.7086 | 6.2200 |
+| DOT/USDT | `corrective_abc` | 0.082 | — | 0.7619–0.7816 | 0.7230 |
 | ADA/USDT | `impulse_1_2_3` | 0.070 | — | 0.1927–0.1973 | 0.1694 |
 
 ---
