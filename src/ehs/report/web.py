@@ -29,6 +29,7 @@ from ehs.elliott.validator import scan_recent
 from ehs.pipeline import PipelineParams
 from ehs.report.daily import ReportEntry, _read_pair, collect_entries
 from ehs.report.direction import compute_direction_stats
+from ehs.report.orders import PROB_AMBITIOUS, PROB_LIKELY, compute_order_levels
 from ehs.report.signals_log import LoggedSignal, summary_stats, update_log
 from ehs.structure.swings import detect_swings
 
@@ -642,6 +643,57 @@ def build_levels(cfg: Config) -> dict[str, dict[str, float]]:
         if info:
             out[base] = info
     return out
+
+
+def build_orders(cfg: Config) -> list[dict[str, Any]]:
+    """Órdenes límite sugeridas por moneda, con su probabilidad de ejecución."""
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    rows: list[dict[str, Any]] = []
+    for base in cfg.bases:
+        _, structure, _ = _read_pair(cfg, cache, base, params)
+        if structure.empty:
+            continue
+        levels = compute_order_levels(structure)
+        if levels is None:
+            continue
+        rows.append({"base": base, "lv": levels})
+    return rows
+
+
+def _orders_html(rows: list[dict[str, Any]]) -> str:
+    if not rows:
+        return ""
+    prob_l = f"{PROB_LIKELY:.0%}"
+    prob_a = f"{PROB_AMBITIOUS:.0%}"
+    filas = "".join(
+        f"<tr><td><b>{_esc(r['base'])}</b></td>"
+        f"<td id=\"now-ord-{_esc(r['base'])}\">{_fmt(r['lv'].price)}</td>"
+        f"<td class=\"c-green\">{_fmt(r['lv'].buy_likely)}</td>"
+        f"<td class=\"c-green\">{_fmt(r['lv'].buy_deep)}</td>"
+        f"<td class=\"c-red\">{_fmt(r['lv'].sell_likely)}</td>"
+        f"<td class=\"c-red\">{_fmt(r['lv'].sell_ambitious)}</td>"
+        f"<td>{r['lv'].median_down * 100:+.1f}% / {r['lv'].median_up * 100:+.1f}%</td></tr>"
+        for r in rows
+    )
+    return f"""
+<h2 id="sec-ordenes">📋 Órdenes límite — dónde se llenan (24 h)</h2>
+<p class="secdesc">Para operar rápido: a qué precio poner una orden límite para que
+el mercado la visite. Los porcentajes son <b>probabilidad de ejecución</b> medida en
+todo el histórico de cada moneda (hasta dónde llegó el precio en las siguientes 24 h),
+no probabilidad de ganar. <b>Ojo con la trampa</b>: una compra que se llena casi
+siempre se llena porque el precio está cayendo, y una venta muy ambiciosa casi nunca
+se ejecuta. Lo sensato es cruzarlo con las otras secciones: compra donde además haya
+zona de compra del plan, vende donde además haya resistencia.</p>
+<div class="scroll" style="overflow-x:auto">
+<table>
+  <tr><th>moneda</th><th>precio</th>
+    <th>compra {prob_l}</th><th>compra {prob_a}</th>
+    <th>venta {prob_l}</th><th>venta {prob_a}</th>
+    <th>rango típico 24 h</th></tr>
+  {filas}
+</table>
+</div>"""
 
 
 def build_direction(cfg: Config) -> list[dict[str, Any]]:
@@ -1422,6 +1474,7 @@ def render_html(
     dca: list[dict[str, Any]] | None = None,
     direction: list[dict[str, Any]] | None = None,
     levels: dict[str, dict[str, float]] | None = None,
+    orders: list[dict[str, Any]] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -1624,6 +1677,7 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
   <nav class="nav">
     <a href="#sec-vistazo">🧭 Vistazo</a>
     {'<a href="#sec-dir">⚡ ¿Sube o baja?</a>' if direction else ""}
+    {'<a href="#sec-ordenes">📋 Órdenes</a>' if orders else ""}
     <a href="#sec-senales">🎯 Señales</a>
     <a href="#sec-radar">👀 Radar</a>
     {'<a href="#sec-watch">🔎 Observación</a>' if watch else ""}
@@ -1655,6 +1709,8 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
   <div class="ghdr">🧠 Contexto y apuestas</div>
 
   {_direction_html(direction or [])}
+
+  {_orders_html(orders or [])}
 
   {cuerpo_watch}
 
@@ -1701,6 +1757,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     dca = build_dca(cfg)
     direction = build_direction(cfg)
     levels = build_levels(cfg)
+    orders = build_orders(cfg)
     chart_data = build_chart_data(cfg, entries, watch)
     overview = build_overview(cfg, entries, watch)
 
@@ -1727,6 +1784,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
         dca=dca,
         direction=direction,
         levels=levels,
+        orders=orders,
     )
 
     web_dir = cfg.path("paths.web_dir")

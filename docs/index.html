@@ -237,7 +237,7 @@ h2{scroll-margin-top:56px}
     <button class="themebtn" id="btn-theme" type="button"
       title="cambiar entre tema oscuro y claro">🌓</button>
   </header>
-  <div class="updated">Análisis: 19-08-2026 08:59 UTC
+  <div class="updated">Análisis: 19-08-2026 09:52 UTC
     <span id="an-age"></span> · se rehace solo cada 4 h ·
     BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX · velas de 4h</div>
   <div class="disclaimer">Herramienta informativa generada automáticamente — no es
@@ -256,6 +256,7 @@ h2{scroll-margin-top:56px}
   <nav class="nav">
     <a href="#sec-vistazo">🧭 Vistazo</a>
     <a href="#sec-dir">⚡ ¿Sube o baja?</a>
+    <a href="#sec-ordenes">📋 Órdenes</a>
     <a href="#sec-senales">🎯 Señales</a>
     <a href="#sec-radar">👀 Radar</a>
     <a href="#sec-watch">🔎 Observación</a>
@@ -714,6 +715,25 @@ más a menos decidido. Para niveles concretos, mira la tarjeta de cada moneda.</
 </table>
 </div>
 
+  
+<h2 id="sec-ordenes">📋 Órdenes límite — dónde se llenan (24 h)</h2>
+<p class="secdesc">Para operar rápido: a qué precio poner una orden límite para que
+el mercado la visite. Los porcentajes son <b>probabilidad de ejecución</b> medida en
+todo el histórico de cada moneda (hasta dónde llegó el precio en las siguientes 24 h),
+no probabilidad de ganar. <b>Ojo con la trampa</b>: una compra que se llena casi
+siempre se llena porque el precio está cayendo, y una venta muy ambiciosa casi nunca
+se ejecuta. Lo sensato es cruzarlo con las otras secciones: compra donde además haya
+zona de compra del plan, vende donde además haya resistencia.</p>
+<div class="scroll" style="overflow-x:auto">
+<table>
+  <tr><th>moneda</th><th>precio</th>
+    <th>compra 60%</th><th>compra 30%</th>
+    <th>venta 60%</th><th>venta 30%</th>
+    <th>rango típico 24 h</th></tr>
+  <tr><td><b>BTC</b></td><td id="now-ord-BTC">64,296</td><td class="c-green">63,656</td><td class="c-green">62,851</td><td class="c-red">64,932</td><td class="c-red">65,714</td><td>-1.3% / +1.3%</td></tr><tr><td><b>ETH</b></td><td id="now-ord-ETH">1,916</td><td class="c-green">1,890</td><td class="c-green">1,858</td><td class="c-red">1,941</td><td class="c-red">1,972</td><td>-1.8% / +1.8%</td></tr><tr><td><b>SOL</b></td><td id="now-ord-SOL">76.96</td><td class="c-green">75.39</td><td class="c-green">73.62</td><td class="c-red">78.44</td><td class="c-red">80.21</td><td>-2.7% / +2.5%</td></tr><tr><td><b>BNB</b></td><td id="now-ord-BNB">601.80</td><td class="c-green">595.04</td><td class="c-green">586.65</td><td class="c-red">608.36</td><td class="c-red">616.29</td><td>-1.5% / +1.4%</td></tr><tr><td><b>XRP</b></td><td id="now-ord-XRP">1.00</td><td class="c-green">0.9879</td><td class="c-green">0.9693</td><td class="c-red">1.02</td><td class="c-red">1.03</td><td>-2.1% / +1.8%</td></tr><tr><td><b>ADA</b></td><td id="now-ord-ADA">0.1754</td><td class="c-green">0.1721</td><td class="c-green">0.1684</td><td class="c-red">0.1782</td><td class="c-red">0.1818</td><td>-2.5% / +2.2%</td></tr><tr><td><b>AVAX</b></td><td id="now-ord-AVAX">6.35</td><td class="c-green">6.22</td><td class="c-green">6.07</td><td class="c-red">6.46</td><td class="c-red">6.62</td><td>-2.7% / +2.4%</td></tr><tr><td><b>LINK</b></td><td id="now-ord-LINK">9.70</td><td class="c-green">9.51</td><td class="c-green">9.30</td><td class="c-red">9.88</td><td class="c-red">10.09</td><td>-2.5% / +2.4%</td></tr><tr><td><b>DOT</b></td><td id="now-ord-DOT">0.7620</td><td class="c-green">0.7475</td><td class="c-green">0.7316</td><td class="c-red">0.7743</td><td class="c-red">0.7894</td><td>-2.5% / +2.1%</td></tr><tr><td><b>PEPE</b></td><td id="now-ord-PEPE">0.000002590</td><td class="c-green">0.000002515</td><td class="c-green">0.000002440</td><td class="c-red">0.000002655</td><td class="c-red">0.000002735</td><td>-3.7% / +3.3%</td></tr><tr><td><b>DOGE</b></td><td id="now-ord-DOGE">0.06994</td><td class="c-green">0.06863</td><td class="c-green">0.06704</td><td class="c-red">0.07109</td><td class="c-red">0.07265</td><td>-2.5% / +2.2%</td></tr><tr><td><b>SUI</b></td><td id="now-ord-SUI">0.6572</td><td class="c-green">0.6411</td><td class="c-green">0.6233</td><td class="c-red">0.6708</td><td class="c-red">0.6887</td><td>-3.2% / +2.8%</td></tr><tr><td><b>TRX</b></td><td id="now-ord-TRX">0.3334</td><td class="c-green">0.3310</td><td class="c-green">0.3276</td><td class="c-red">0.3362</td><td class="c-red">0.3395</td><td>-1.0% / +1.1%</td></tr>
+</table>
+</div>
+
   <h2 id="sec-watch">🔎 En observación (1) — sin jugada alcista ahora</h2><p class="secdesc">Monedas donde ahora mismo <b>no hay compra posible</b>: la mejor lectura es bajista, el movimiento es lateral, o la geometría no da un trade sano. Cada una lleva su diagnóstico y el nivel que lo cambiaría. Toca una para desplegar niveles y gráfico.</p><details class="wdet"><summary><b>AVAX</b> <span class="st bear">lectura bajista</span> <span class="wsum">sup 6.11 · res 6.88</span></summary>
 <div class="card" id="card-AVAX">
   <h3><span class="mono" style="background:hsl(248,62%,45%)">A</span> AVAX
@@ -980,7 +1000,7 @@ fecha: no se puede reescribir a posteriori.</p>
   });
 })();
 </script>
-<script>var EHS_LIVE = [{"sym":"BTC/USDT","base":"BTC","zone":[63916.5221848938,64507.7939751062]},{"sym":"ETH/USDT","base":"ETH","zone":[1900.1310459698,1923.6197140302]},{"sym":"SOL/USDT","base":"SOL","zone":[75.597961904,76.594318096]},{"sym":"BNB/USDT","base":"BNB","zone":[640.0399794314,644.6290205686]},{"sym":"XRP/USDT","base":"XRP","zone":[1.0707904262,1.0827667738]},{"sym":"ADA/USDT","base":"ADA","zone":[0.1649968948,0.1688383052]},{"sym":"AVAX/USDT","base":"AVAX","zone":null},{"sym":"LINK/USDT","base":"LINK","zone":[8.5966699378,8.8213220622]},{"sym":"DOT/USDT","base":"DOT","zone":[0.7527374187,0.7698945813]},{"sym":"PEPE/USDT","base":"PEPE","zone":[2.8728e-06,2.9391e-06]},{"sym":"DOGE/USDT","base":"DOGE","zone":[0.0698497521,0.0706072479]},{"sym":"SUI/USDT","base":"SUI","zone":[0.7267818489,0.7403189511]},{"sym":"TRX/USDT","base":"TRX","zone":[0.340589229,0.342590771]}];var EHS_GEN = 1787129985;</script>
+<script>var EHS_LIVE = [{"sym":"BTC/USDT","base":"BTC","zone":[63916.5221848938,64507.7939751062]},{"sym":"ETH/USDT","base":"ETH","zone":[1900.1310459698,1923.6197140302]},{"sym":"SOL/USDT","base":"SOL","zone":[75.597961904,76.594318096]},{"sym":"BNB/USDT","base":"BNB","zone":[640.0399794314,644.6290205686]},{"sym":"XRP/USDT","base":"XRP","zone":[1.0707904262,1.0827667738]},{"sym":"ADA/USDT","base":"ADA","zone":[0.1649968948,0.1688383052]},{"sym":"AVAX/USDT","base":"AVAX","zone":null},{"sym":"LINK/USDT","base":"LINK","zone":[8.5966699378,8.8213220622]},{"sym":"DOT/USDT","base":"DOT","zone":[0.7527374187,0.7698945813]},{"sym":"PEPE/USDT","base":"PEPE","zone":[2.8728e-06,2.9391e-06]},{"sym":"DOGE/USDT","base":"DOGE","zone":[0.0698497521,0.0706072479]},{"sym":"SUI/USDT","base":"SUI","zone":[0.7267818489,0.7403189511]},{"sym":"TRX/USDT","base":"TRX","zone":[0.340589229,0.342590771]}];var EHS_GEN = 1787133174;</script>
 
 <script>
 (function () {
