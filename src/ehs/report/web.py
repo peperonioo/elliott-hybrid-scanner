@@ -30,6 +30,7 @@ from ehs.pipeline import PipelineParams
 from ehs.report.daily import ReportEntry, _read_pair, collect_entries
 from ehs.report.direction import compute_direction_stats
 from ehs.report.orders import PROB_AMBITIOUS, PROB_LIKELY, compute_order_levels
+from ehs.report.regime import Regime, classify_regime, coin_context, pullback_zone
 from ehs.report.signals_log import LoggedSignal, summary_stats, update_log
 from ehs.structure.swings import detect_swings
 
@@ -98,6 +99,16 @@ h1 .thin{font-weight:500;color:var(--muted)}
   letter-spacing:.08em;text-transform:uppercase}
 .updated{color:var(--muted);font-size:.82rem;margin:8px 0 10px}
 .secdesc{color:var(--muted);font-size:.84rem;margin:-2px 0 12px;max-width:70ch}
+.regime{border:1px solid var(--border);border-left-width:4px;border-radius:14px;
+  padding:13px 16px;margin:0 0 18px;background:var(--card)}
+.regime.win{border-left-color:var(--green)}
+.regime.loss{border-left-color:var(--red)}
+.regime.flat{border-left-color:var(--muted)}
+.rg-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:7px}
+.rg-num{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+.rg-txt{margin:0;font-size:.87rem;color:var(--muted);max-width:72ch}
+.level.pull{border-left-color:var(--amber)}
+.level.pull .val{color:var(--amber)}
 .disclaimer{color:var(--muted);font-size:.78rem;margin-bottom:16px;
   border-left:2px solid var(--border);padding-left:10px}
 h2{font-size:1.05rem;margin:30px 0 10px;padding-bottom:8px;font-weight:800;
@@ -645,6 +656,40 @@ def build_levels(cfg: Config) -> dict[str, dict[str, float]]:
     return out
 
 
+def build_regime(cfg: Config) -> tuple[Regime | None, dict[str, tuple[float, float]]]:
+    """Régimen del mercado y zonas de retroceso corto por moneda."""
+    cache = ParquetCache(cfg.path("paths.cache_dir"))
+    params = PipelineParams.from_config(cfg)
+    readings: list[tuple[float, bool]] = []
+    pullbacks: dict[str, tuple[float, float]] = {}
+
+    for base in cfg.bases:
+        _, structure, context = _read_pair(cfg, cache, base, params)
+        if structure.empty or context.empty:
+            continue
+        lectura = coin_context(context)
+        if lectura is not None:
+            readings.append(lectura)
+        price = float(structure["close"].iloc[-1])
+        zona = pullback_zone(detect_swings(structure, **params.swing), price)
+        if zona is not None:
+            pullbacks[base] = zona
+
+    return classify_regime(readings), pullbacks
+
+
+def _regime_html(regime: Regime | None) -> str:
+    if regime is None:
+        return ""
+    return f"""
+<div class="regime {regime.cls}">
+  <div class="rg-top"><span class="res {regime.cls}">{_esc(regime.label)}</span>
+    <span class="rg-num">{regime.move_pct:+.1f}% mediana 7 días ·
+    {regime.breadth:.0%} de las monedas sobre su media</span></div>
+  <p class="rg-txt">{regime.text}</p>
+</div>"""
+
+
 def build_orders(cfg: Config) -> list[dict[str, Any]]:
     """Órdenes límite sugeridas por moneda, con su probabilidad de ejecución."""
     cache = ParquetCache(cfg.path("paths.cache_dir"))
@@ -872,15 +917,28 @@ def _oos_note(proj: dict[str, Any]) -> str:
     )
 
 
-def _action_html(entry: ReportEntry, price_now: float, target: float | None) -> str:
+def _action_html(
+    entry: ReportEntry,
+    price_now: float,
+    target: float | None,
+    pullback: tuple[float, float] | None = None,
+) -> str:
     """La pregunta que responde la tarjeta: ¿y yo qué hago AHORA MISMO?"""
     r = entry.result
     n = len(r.active_factors)
     if not entry.is_signal:
+        extra = ""
+        zona = entry.result.zone
+        if pullback is not None and zona and price_now > zona[1] * 1.03:
+            extra = (
+                " El precio se ha ido en impulso: si operas la tendencia por tu cuenta, "
+                f"el <b>retroceso corto</b> está en {_fmt(pullback[0])} – "
+                f"{_fmt(pullback[1])} (contexto, <b>no validado</b> por el backtest)."
+            )
         return (
             '<p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal '
             f"({n} de 5 comprobaciones). Si la estructura se confirma con 3 de 5, "
-            "pasará a «Señales activas» y se abrirá el aviso automático.</p>"
+            f"pasará a «Señales activas» y se abrirá el aviso automático.{extra}</p>"
         )
     if r.zone is None:
         return ""
@@ -900,11 +958,20 @@ def _action_html(entry: ReportEntry, price_now: float, target: float | None) -> 
             f"{objetivo}. Nunca sin stop.</p>"
         )
     if price_now > hi:
+        lejos = (price_now / hi - 1) * 100
+        extra = ""
+        if lejos >= 3 and pullback is not None:
+            extra = (
+                f" El precio se ha ido en impulso y esa zona queda un {lejos:.0f}% abajo: "
+                f"si operas la tendencia por tu cuenta, el <b>retroceso corto</b> está en "
+                f"{_fmt(pullback[0])} – {_fmt(pullback[1])} (nivel de contexto, "
+                "<b>no validado</b> por el backtest)."
+            )
         return (
             '<p class="action"><b>Qué hacer ahora:</b> no comprar persiguiendo el precio. '
             f"Dos opciones sanas: dejar una <b>orden límite</b> dentro de la zona "
             f"({_fmt(lo)} – {_fmt(hi)}) por si el precio la visita, o dejarla pasar — "
-            "cada 4 h se recalculan planes nuevos.</p>"
+            f"cada 4 h se recalculan planes nuevos.{extra}</p>"
         )
     return (
         '<p class="action warn"><b>Qué hacer ahora:</b> nada — el precio está entre la zona '
@@ -919,6 +986,7 @@ def _card(
     current_price: float | None = None,
     proj: dict[str, Any] | None = None,
     res: float | None = None,
+    pullback: tuple[float, float] | None = None,
 ) -> str:
     r = entry.result
     base = r.symbol.split("/")[0]
@@ -965,6 +1033,11 @@ def _card(
             f'<div class="level target"><div class="lab">Venta rápida · resistencia</div>'
             f'<div class="val">{_fmt(res)}</div></div>'
         )
+    if pullback is not None and r.zone and price_now > r.zone[1] * 1.03:
+        levels.append(
+            f'<div class="level pull"><div class="lab">Retroceso corto · impulso</div>'
+            f'<div class="val">{_fmt(pullback[0])} – {_fmt(pullback[1])}</div></div>'
+        )
     levels.append(
         f'<div class="level stop"><div class="lab">Stop</div>'
         f'<div class="val">{_fmt(r.signal_invalidation)}</div></div>'
@@ -1004,7 +1077,7 @@ def _card(
     )
 
     zona_html = f'<p class="meta2" id="zt-{_esc(base)}">{zona_txt}</p>' if zona_txt else ""
-    accion_html = _action_html(entry, price_now, target)
+    accion_html = _action_html(entry, price_now, target, pullback)
     proj_html = _projection_html(proj) if target is not None else ""
 
     return f"""
@@ -1127,6 +1200,16 @@ LEGEND = """
   nuevos). <b>Si está entre la zona y el stop, nada</b>: demasiado tarde para el plan.
   Comprar fuera de la zona rompe la relación riesgo/beneficio con la que se validó
   el sistema.</dd>
+  <dt>¿Y si el mercado se dispara y todo dice "espera a que baje"?</dt>
+  <dd>Es la respuesta honesta del sistema, no un fallo: sus zonas son
+  <b>retrocesos profundos</b> de la estructura anterior, así que tras un impulso
+  vertical quedan lejos por debajo y el precio rara vez vuelve. La franja de arriba
+  nombra el <b>régimen de mercado</b> para que se vea de un vistazo. Si aun así
+  quieres operar la tendencia, las tarjetas muestran el <b>retroceso corto</b>
+  (0.236–0.382 del tramo en marcha), que es donde compra quien sigue tendencias —
+  con la misma advertencia que la zona DCA: <b>no está validado por el backtest</b>.
+  La alternativa disciplinada es esperar: cada 4 h el sistema recalcula y, cuando se
+  forme una estructura nueva a este precio, aparecerá una señal con su plan completo.</dd>
   <dt>¿Dónde vendo? ¿Qué es la "venta rápida"?</dt>
   <dd>Cada tarjeta con plan muestra hasta dos niveles de venta: la <b>zona de venta ·
   objetivo 2R</b> (la salida con la que se validó el sistema, gana el doble de lo que
@@ -1475,6 +1558,8 @@ def render_html(
     direction: list[dict[str, Any]] | None = None,
     levels: dict[str, dict[str, float]] | None = None,
     orders: list[dict[str, Any]] | None = None,
+    regime: Regime | None = None,
+    pullbacks: dict[str, tuple[float, float]] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -1525,6 +1610,7 @@ def render_html(
         return float(candles[-1]["close"]) if candles else None
 
     levels = levels or {}
+    pullbacks = pullbacks or {}
 
     def card(e: ReportEntry) -> str:
         base = e.result.symbol.split("/")[0]
@@ -1534,6 +1620,7 @@ def render_html(
             last_close(e.result.symbol),
             proj,
             levels.get(base, {}).get("res"),
+            pullbacks.get(base),
         )
 
     if signals:
@@ -1688,6 +1775,8 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
 
   {hero}
 
+  {_regime_html(regime)}
+
   {vistazo}
 
   <div class="ghdr">🟢 Para operar — el plan validado</div>
@@ -1758,6 +1847,7 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
     direction = build_direction(cfg)
     levels = build_levels(cfg)
     orders = build_orders(cfg)
+    regime, pullbacks = build_regime(cfg)
     chart_data = build_chart_data(cfg, entries, watch)
     overview = build_overview(cfg, entries, watch)
 
@@ -1785,6 +1875,8 @@ def write_web(cfg: Config, *, now: pd.Timestamp | None = None) -> Path:
         direction=direction,
         levels=levels,
         orders=orders,
+        regime=regime,
+        pullbacks=pullbacks,
     )
 
     web_dir = cfg.path("paths.web_dir")
