@@ -30,7 +30,13 @@ from ehs.pipeline import PipelineParams
 from ehs.report.daily import ReportEntry, _read_pair, collect_entries
 from ehs.report.direction import compute_direction_stats
 from ehs.report.orders import PROB_AMBITIOUS, PROB_LIKELY, compute_order_levels
-from ehs.report.regime import Regime, classify_regime, coin_context, pullback_zone
+from ehs.report.regime import (
+    PullbackZone,
+    Regime,
+    classify_regime,
+    coin_context,
+    pullback_zone,
+)
 from ehs.report.signals_log import LoggedSignal, summary_stats, update_log
 from ehs.structure.swings import detect_swings
 
@@ -99,6 +105,8 @@ h1 .thin{font-weight:500;color:var(--muted)}
   letter-spacing:.08em;text-transform:uppercase}
 .updated{color:var(--muted);font-size:.82rem;margin:8px 0 10px}
 .secdesc{color:var(--muted);font-size:.84rem;margin:-2px 0 12px;max-width:70ch}
+.drift{display:none;background:rgba(240,185,11,.12);border:1px solid var(--amber);
+  border-radius:12px;padding:11px 14px;margin:0 0 14px;font-size:.86rem}
 .regime{border:1px solid var(--border);border-left-width:4px;border-radius:14px;
   padding:13px 16px;margin:0 0 18px;background:var(--card)}
 .regime.win{border-left-color:var(--green)}
@@ -656,12 +664,12 @@ def build_levels(cfg: Config) -> dict[str, dict[str, float]]:
     return out
 
 
-def build_regime(cfg: Config) -> tuple[Regime | None, dict[str, tuple[float, float]]]:
+def build_regime(cfg: Config) -> tuple[Regime | None, dict[str, PullbackZone]]:
     """Régimen del mercado y zonas de retroceso corto por moneda."""
     cache = ParquetCache(cfg.path("paths.cache_dir"))
     params = PipelineParams.from_config(cfg)
     readings: list[tuple[float, bool]] = []
-    pullbacks: dict[str, tuple[float, float]] = {}
+    pullbacks: dict[str, PullbackZone] = {}
 
     for base in cfg.bases:
         _, structure, context = _read_pair(cfg, cache, base, params)
@@ -714,10 +722,10 @@ def _orders_html(rows: list[dict[str, Any]]) -> str:
     filas = "".join(
         f"<tr><td><b>{_esc(r['base'])}</b></td>"
         f"<td id=\"now-ord-{_esc(r['base'])}\">{_fmt(r['lv'].price)}</td>"
-        f"<td class=\"c-green\">{_fmt(r['lv'].buy_likely)}</td>"
-        f"<td class=\"c-green\">{_fmt(r['lv'].buy_deep)}</td>"
-        f"<td class=\"c-red\">{_fmt(r['lv'].sell_likely)}</td>"
-        f"<td class=\"c-red\">{_fmt(r['lv'].sell_ambitious)}</td>"
+        f"<td class=\"c-green\" id=\"ord-{r['base']}-b1\">{_fmt(r['lv'].buy_likely)}</td>"
+        f"<td class=\"c-green\" id=\"ord-{r['base']}-b2\">{_fmt(r['lv'].buy_deep)}</td>"
+        f"<td class=\"c-red\" id=\"ord-{r['base']}-s1\">{_fmt(r['lv'].sell_likely)}</td>"
+        f"<td class=\"c-red\" id=\"ord-{r['base']}-s2\">{_fmt(r['lv'].sell_ambitious)}</td>"
         f"<td>{r['lv'].median_down * 100:+.1f}% / {r['lv'].median_up * 100:+.1f}%</td></tr>"
         for r in rows
     )
@@ -921,7 +929,7 @@ def _action_html(
     entry: ReportEntry,
     price_now: float,
     target: float | None,
-    pullback: tuple[float, float] | None = None,
+    pullback: PullbackZone | None = None,
 ) -> str:
     """La pregunta que responde la tarjeta: ¿y yo qué hago AHORA MISMO?"""
     r = entry.result
@@ -932,8 +940,8 @@ def _action_html(
         if pullback is not None and zona and price_now > zona[1] * 1.03:
             extra = (
                 " El precio se ha ido en impulso: si operas la tendencia por tu cuenta, "
-                f"el <b>retroceso corto</b> está en {_fmt(pullback[0])} – "
-                f"{_fmt(pullback[1])} (contexto, <b>no validado</b> por el backtest)."
+                f"el <b>retroceso corto</b> está en {_fmt(pullback.lower)} – "
+                f"{_fmt(pullback.upper)} (contexto, <b>no validado</b> por el backtest)."
             )
         return (
             '<p class="action"><b>Qué hacer ahora:</b> nada — todavía no es señal '
@@ -964,7 +972,7 @@ def _action_html(
             extra = (
                 f" El precio se ha ido en impulso y esa zona queda un {lejos:.0f}% abajo: "
                 f"si operas la tendencia por tu cuenta, el <b>retroceso corto</b> está en "
-                f"{_fmt(pullback[0])} – {_fmt(pullback[1])} (nivel de contexto, "
+                f"{_fmt(pullback.lower)} – {_fmt(pullback.upper)} (nivel de contexto, "
                 "<b>no validado</b> por el backtest)."
             )
         return (
@@ -986,7 +994,7 @@ def _card(
     current_price: float | None = None,
     proj: dict[str, Any] | None = None,
     res: float | None = None,
-    pullback: tuple[float, float] | None = None,
+    pullback: PullbackZone | None = None,
 ) -> str:
     r = entry.result
     base = r.symbol.split("/")[0]
@@ -1036,7 +1044,8 @@ def _card(
     if pullback is not None and r.zone and price_now > r.zone[1] * 1.03:
         levels.append(
             f'<div class="level pull"><div class="lab">Retroceso corto · impulso</div>'
-            f'<div class="val">{_fmt(pullback[0])} – {_fmt(pullback[1])}</div></div>'
+            f'<div class="val" id="pull-{_esc(base)}">'
+            f"{_fmt(pullback.lower)} – {_fmt(pullback.upper)}</div></div>"
         )
     levels.append(
         f'<div class="level stop"><div class="lab">Stop</div>'
@@ -1200,6 +1209,16 @@ LEGEND = """
   nuevos). <b>Si está entre la zona y el stop, nada</b>: demasiado tarde para el plan.
   Comprar fuera de la zona rompe la relación riesgo/beneficio con la que se validó
   el sistema.</dd>
+  <dt>¿Qué se actualiza al instante y qué no?</dt>
+  <dd>Al abrir la página (y al pulsar «Actualizar precios») se piden los precios reales
+  a Binance y se recalculan <b>al momento</b>: precios, variación de 24 h, distancia a
+  la zona, la tabla de <b>órdenes límite</b> y el <b>retroceso corto</b> — porque son
+  distancias porcentuales sobre el precio, no dependen de cuándo se hizo el análisis.
+  Lo que <b>no</b> se puede recalcular en el navegador son las <b>zonas de compra,
+  stops, objetivos 2R y el régimen</b>: salen del conteo de ondas completo, que se
+  rehace cada 4 h. Si el mercado se mueve más de un 2% desde el último análisis,
+  aparece un aviso ámbar avisándote de esa diferencia — y con «re-análisis completo»
+  lo fuerzas tú en unos minutos.</dd>
   <dt>¿Y si el mercado se dispara y todo dice "espera a que baje"?</dt>
   <dd>Es la respuesta honesta del sistema, no un fallo: sus zonas son
   <b>retrocesos profundos</b> de la estructura anterior, así que tras un impulso
@@ -1399,7 +1418,9 @@ LIVE_SCRIPT = """
     el.classList.add("flash");
     return true;
   }
+  var derivas = [];
   function refresh() {
+    derivas = [];
     var jobs = EHS_LIVE.map(function (o) {
       var pair = o.sym.replace("/", "");
       return fetch("https://data-api.binance.vision/api/v3/klines?symbol=" + pair +
@@ -1410,6 +1431,26 @@ LIVE_SCRIPT = """
           var px = parseFloat(rows[rows.length - 1][4]);
           setText(document.getElementById("now-" + o.base), fmt(px));
           setText(document.getElementById("ov-" + o.base), fmt(px));
+          // Las órdenes límite son distancias porcentuales: se recalculan
+          // exactas sobre el precio de ahora, no envejecen entre análisis.
+          if (o.ord) {
+            [["b1", o.ord.b1], ["b2", o.ord.b2],
+             ["s1", o.ord.s1], ["s2", o.ord.s2]].forEach(function (par) {
+              setText(document.getElementById("ord-" + o.base + "-" + par[0]),
+                      fmt(px * (1 + par[1])));
+            });
+            setText(document.getElementById("now-ord-" + o.base), fmt(px));
+          }
+          // Retroceso corto: en un impulso el máximo del tramo se va con el
+          // precio, así que la banda se recalcula con el máximo de ahora.
+          if (o.pull) {
+            var lo0 = o.pull[0], hi = Math.max(o.pull[1], px), span = hi - lo0;
+            if (span > 0 && px > hi - span * 0.236) {
+              setText(document.getElementById("pull-" + o.base),
+                      fmt(hi - span * 0.382) + " – " + fmt(hi - span * 0.236));
+            }
+          }
+          if (o.px0 > 0) derivas.push(px / o.px0 - 1);
           if (rows.length >= 7) {
             var prev = parseFloat(rows[rows.length - 7][4]);
             var chg = document.getElementById("chg-" + o.base);
@@ -1454,6 +1495,23 @@ LIVE_SCRIPT = """
     Promise.all([refresh(), minimo]).then(function (res) {
       setLoading(false);
       var ok = res[0].filter(Boolean).length;
+      // Aviso de deriva: los niveles estructurales (zona, stop, 2R, régimen)
+      // se calcularon con otro precio y no se pueden recalcular en el navegador.
+      var avi = document.getElementById("drift-warn");
+      if (avi && derivas.length) {
+        var med = derivas.slice().sort(function (a, b) { return a - b; })[
+          Math.floor(derivas.length / 2)];
+        if (Math.abs(med) >= 0.02) {
+          avi.style.display = "block";
+          avi.innerHTML = "⚡ El mercado se ha movido <b>" +
+            (med * 100).toFixed(1) + "%</b> de media desde el análisis. Las órdenes " +
+            "límite y el retroceso corto ya están recalculados con el precio de ahora; " +
+            "las <b>zonas de compra, stops y objetivos 2R son de antes</b> — para " +
+            "rehacerlos, pulsa «re-análisis completo».";
+        } else {
+          avi.style.display = "none";
+        }
+      }
       var st = document.getElementById("live-stamp");
       if (!st) return;
       if (ok === 0) {
@@ -1559,7 +1617,7 @@ def render_html(
     levels: dict[str, dict[str, float]] | None = None,
     orders: list[dict[str, Any]] | None = None,
     regime: Regime | None = None,
-    pullbacks: dict[str, tuple[float, float]] | None = None,
+    pullbacks: dict[str, PullbackZone] | None = None,
 ) -> str:
     chart_data = chart_data or {}
     signals = [e for e in entries if e.is_signal]
@@ -1675,8 +1733,33 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
         b = e.result.symbol.split("/")[0]
         if b not in zone_by_base and e.result.zone:
             zone_by_base[b] = [round(e.result.zone[0], 10), round(e.result.zone[1], 10)]
+    ord_by_base = {
+        r["base"]: {
+            "b1": r["lv"].buy_likely / r["lv"].price - 1,
+            "b2": r["lv"].buy_deep / r["lv"].price - 1,
+            "s1": r["lv"].sell_likely / r["lv"].price - 1,
+            "s2": r["lv"].sell_ambitious / r["lv"].price - 1,
+        }
+        for r in (orders or [])
+        if r["lv"].price > 0
+    }
     live_payload = [
-        {"sym": o["symbol"], "base": o["base"], "zone": zone_by_base.get(o["base"])}
+        {
+            "sym": o["symbol"],
+            "base": o["base"],
+            "zone": zone_by_base.get(o["base"]),
+            # Precio en el momento del análisis: mide cuánto se ha ido el mercado.
+            "px0": o.get("price"),
+            # Distancias de las órdenes límite: son porcentajes, así que se
+            # recalculan exactas sobre el precio en vivo.
+            "ord": ord_by_base.get(o["base"]),
+            # Anclajes del retroceso corto: el máximo se extiende en vivo.
+            "pull": (
+                [pullbacks[o["base"]].low, pullbacks[o["base"]].high]
+                if o["base"] in pullbacks
+                else None
+            ),
+        }
         for o in (overview or [])
         if o.get("symbol")
     ]
@@ -1772,6 +1855,8 @@ comprobaciones a favor — pocas veces al mes. El radar muestra lo más cercano.
     <a href="#sec-forward">📒 Forward test</a>
     <a href="#sec-guia">📖 Guía</a>
   </nav>
+
+  <div id="drift-warn" class="drift"></div>
 
   {hero}
 

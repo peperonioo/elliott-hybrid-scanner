@@ -5,7 +5,12 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from ehs.report.regime import classify_regime, coin_context, pullback_zone
+from ehs.report.regime import (
+    PullbackZone,
+    classify_regime,
+    coin_context,
+    pullback_zone,
+)
 from ehs.report.web import render_html
 from ehs.structure.swings import Pivot
 from tests_report_fixtures import NOW, make_config, make_entry
@@ -74,8 +79,8 @@ def test_el_retroceso_corto_solo_existe_por_debajo_del_precio():
     zona = pullback_zone(pivots, price=195.0)
 
     assert zona is not None
-    lower, upper = zona
-    assert 150 < lower < upper < 195  # 0.382 y 0.236 del tramo 100→200
+    assert 150 < zona.lower < zona.upper < 195  # 0.382 y 0.236 del tramo 100→200
+    assert zona.low == 100.0 and zona.high == 200.0  # anclajes para el recálculo
     # Si el precio ya cayó dentro de la banda, no es un nivel futuro.
     assert pullback_zone(pivots, price=170.0) is None
     assert pullback_zone([], price=100.0) is None
@@ -91,10 +96,59 @@ def test_la_web_muestra_el_regimen_y_el_retroceso_en_la_tarjeta():
         cfg=make_config(),
         now=NOW,
         regime=reg,
-        pullbacks={"BTC": (61500.0, 62200.0)},
+        pullbacks={"BTC": PullbackZone(lower=61500.0, upper=62200.0, low=59000.0, high=63500.0)},
     )
 
     assert "impulso alcista fuerte" in page
     assert "Retroceso corto · impulso" in page
     assert "61,500 – 62,200" in page
     assert "no validado" in page  # la advertencia viaja con el nivel
+
+
+def test_los_niveles_por_porcentaje_se_recalculan_en_el_navegador():
+    """En un mercado rápido, órdenes y retroceso no pueden esperar 4 h."""
+    from ehs.report.orders import OrderLevels
+
+    overview = [
+        {
+            "base": "BTC",
+            "symbol": "BTC/USDT",
+            "price": 70000.0,
+            "state": "radar",
+            "cls": "rad",
+            "link": True,
+        }
+    ]
+    orders = [
+        {
+            "base": "BTC",
+            "lv": OrderLevels(
+                price=70000.0,
+                buy_likely=69300.0,
+                buy_deep=68600.0,
+                sell_likely=70700.0,
+                sell_ambitious=71400.0,
+                median_up=0.01,
+                median_down=-0.01,
+                n=1900,
+            ),
+        }
+    ]
+    page = render_html(
+        [],
+        [],
+        cfg=make_config(),
+        now=NOW,
+        overview=overview,
+        orders=orders,
+        pullbacks={"BTC": PullbackZone(lower=68000.0, upper=69000.0, low=65000.0, high=71000.0)},
+    )
+
+    # Las distancias viajan como fracción, no como precio congelado.
+    assert '"px0":70000.0' in page
+    assert '"ord":' in page and '"s1":0.01' in page
+    assert '"pull":[65000.0,71000.0]' in page
+    # Y el navegador tiene dónde escribirlas.
+    assert 'id="ord-BTC-s1"' in page
+    assert 'id="drift-warn"' in page
+    assert "El mercado se ha movido" in page  # aviso de deriva

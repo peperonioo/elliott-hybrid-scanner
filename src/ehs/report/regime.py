@@ -40,6 +40,20 @@ BREADTH_WIDE = 0.70  # fracción de monedas sobre su media
 
 
 @dataclass
+class PullbackZone:
+    """Retroceso corto y los anclajes con los que se calculó.
+
+    `low` y `high` viajan a la web para poder recalcular la banda en el
+    navegador cuando el precio marca un máximo nuevo entre análisis.
+    """
+
+    lower: float
+    upper: float
+    low: float
+    high: float
+
+
+@dataclass
 class Regime:
     """Estado agregado del mercado y qué implica para la herramienta."""
 
@@ -118,7 +132,7 @@ def classify_regime(readings: list[tuple[float, bool]]) -> Regime | None:
     return Regime(label=label, cls=cls, move_pct=move, breadth=breadth, n=n, text=text)
 
 
-def pullback_zone(pivots: list[Pivot], price: float) -> tuple[float, float] | None:
+def pullback_zone(pivots: list[Pivot], price: float) -> PullbackZone | None:
     """Retroceso corto (0.236-0.382) del tramo alcista en marcha.
 
     Definido sobre el último mínimo del ZigZag y el máximo alcanzado después.
@@ -140,4 +154,4 @@ def pullback_zone(pivots: list[Pivot], price: float) -> tuple[float, float] | No
     lower = high - span * PULLBACK_RETR[1]
     if price <= upper:
         return None
-    return lower, upper
+    return PullbackZone(lower=lower, upper=upper, low=low.price, high=high)
