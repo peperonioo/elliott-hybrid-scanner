@@ -139,6 +139,7 @@ cd ~/Documents/CLAUDE/Notion/elliott-hybrid-scanner
 | Ver qué está evaluando ahora mismo y por qué | `.venv/bin/python scripts/scan.py --all --explain` |
 | Re-ejecutar el backtest completo | `.venv/bin/python scripts/backtest.py` |
 | Pasar los tests | `.venv/bin/python -m pytest` |
+| Comprobar que la web dice la verdad ahora | `.venv/bin/python scripts/healthcheck.py` |
 
 Los gráficos se escriben en `plots/` y los informes en `reports/`.
 
