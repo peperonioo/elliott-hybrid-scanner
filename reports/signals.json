@@ -41,5 +41,89 @@
   "outcome": "tiempo",
   "result_r": 1.0832544938505195,
   "result_pct": 0.12037426408746832
+ },
+ {
+  "symbol": "ADA/USDT",
+  "timestamp": "2026-08-22T16:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 0.2312,
+  "zone_low": 0.3039940757503517,
+  "zone_high": 0.3205851242496484,
+  "stop": 0.2117,
+  "score": 0.55,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-22T20:44:31.112981+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "XRP/USDT",
+  "timestamp": "2026-08-22T16:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 1.5011,
+  "zone_low": 1.3473366825653383,
+  "zone_high": 1.4720377174346617,
+  "stop": 1.3441,
+  "score": 0.54,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-22T20:44:31.112981+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "AVAX/USDT",
+  "timestamp": "2026-08-22T16:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 7.566,
+  "zone_low": 6.817295593256224,
+  "zone_high": 7.224812406743775,
+  "stop": 6.877,
+  "score": 0.54,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-22T20:44:31.112981+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "DOGE/USDT",
+  "timestamp": "2026-08-22T16:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 0.09352,
+  "zone_low": 0.08001808860240697,
+  "zone_high": 0.08588623139759302,
+  "stop": 0.07418,
+  "score": 0.53,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-22T20:44:31.112981+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
  }
 ]

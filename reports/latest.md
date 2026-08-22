@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-08-22 16:44 UTC
+# Elliott Hybrid Scanner — 2026-08-22 20:43 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -6,31 +6,139 @@
 
 Universo: BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX | timeframe de estructura: 4h | mínimo de factores: 3
 
-## Señales activas (0)
+## Señales activas (4)
 
-Hoy no hay ninguna señal que supere el umbral de confluencia. Es el
-comportamiento esperado la mayoría de los días: el sistema emite unas
-cuatro señales al mes en todo el universo.
+### ADA/USDT — largo sobre `impulse_1_2_3` (score 0.550, 3/5 factores)
 
-## Cerca del umbral (13)
+- **Timeframe**: 4h, señal confirmada el 2026-08-22 16:00 UTC (0 velas atrás)
+- **Precio en la señal**: 0.2312
+- **Zona de interés**: 0.3040 – 0.3206
+- **Invalidación de la señal**: 0.2117
+- **Invalidación del conteo**: 0.1533
+- **Hipótesis alternativas**: `corrective_abc` — el conteo es ambiguo
+
+| factor | score | umbral | activo |
+|---|---|---|---|
+| fibonacci | 0.000 | 0.60 | — |
+| rsi_divergence | 0.000 | 0.60 | — |
+| market_structure | 1.000 | 0.60 | ✅ |
+| volume_profile | 1.000 | 0.60 | ✅ |
+| higher_timeframe_trend | 1.000 | 0.60 | ✅ |
+
+<details><summary>detalle de factores</summary>
+
+- **fibonacci**: precio 0.2312 lejos de todo nivel; el más próximo es extensión 1.618 en 0.3123 (7.33 ATR)
+- **rsi_divergence**: un impulso 1-2-3 no tiene todavía dos extremos comparables
+- **market_structure**: BOS alcista sobre 0.2117, cierre 0.2291, ruptura hace 0 velas
+- **volume_profile**: vol 3/1 = 1.55; la onda 4 aún no existe
+- **higher_timeframe_trend**: cierre 0.2291 contra EMA50 0.1826 (fuerza +1.00); señal bullish
+
+> Impulso incompleto: faltarían las ondas 4 y 5. 'Onda 3 nunca la más corta' y el solape de la onda 4 todavía no son aplicables; que la onda 3 supere el final de la 1 sí, porque la onda 3 ya está terminada.
+
+</details>
+
+### XRP/USDT — largo sobre `impulse_1_2_3` (score 0.540, 3/5 factores)
+
+- **Timeframe**: 4h, señal confirmada el 2026-08-22 16:00 UTC (0 velas atrás)
+- **Precio en la señal**: 1.5011
+- **Zona de interés**: 1.3473 – 1.4720
+- **Invalidación de la señal**: 1.3441
+- **Invalidación del conteo**: 0.9862
+- **Hipótesis alternativas**: `corrective_abc` — el conteo es ambiguo
+
+| factor | score | umbral | activo |
+|---|---|---|---|
+| fibonacci | 0.000 | 0.60 | — |
+| rsi_divergence | 0.000 | 0.60 | — |
+| market_structure | 0.950 | 0.60 | ✅ |
+| volume_profile | 1.000 | 0.60 | ✅ |
+| higher_timeframe_trend | 1.000 | 0.60 | ✅ |
+
+<details><summary>detalle de factores</summary>
+
+- **fibonacci**: precio 1.5011 lejos de todo nivel; el más próximo es retroceso 0.618 en 1.4097 (1.10 ATR)
+- **rsi_divergence**: un impulso 1-2-3 no tiene todavía dos extremos comparables
+- **market_structure**: CHoCH alcista sobre 1.1646, cierre 1.4544, ruptura hace 1 velas
+- **volume_profile**: vol 3/1 = 5.00; la onda 4 aún no existe
+- **higher_timeframe_trend**: cierre 1.4544 contra EMA50 1.0978 (fuerza +1.00); señal bullish
+
+> Impulso incompleto: faltarían las ondas 4 y 5. 'Onda 3 nunca la más corta' y el solape de la onda 4 todavía no son aplicables; que la onda 3 supere el final de la 1 sí, porque la onda 3 ya está terminada.
+
+</details>
+
+### AVAX/USDT — largo sobre `impulse_1_2_3` (score 0.540, 3/5 factores)
+
+- **Timeframe**: 4h, señal confirmada el 2026-08-22 16:00 UTC (0 velas atrás)
+- **Precio en la señal**: 7.5660
+- **Zona de interés**: 6.8173 – 7.2248
+- **Invalidación de la señal**: 6.8770
+- **Invalidación del conteo**: 6.1100
+- **Hipótesis alternativas**: `corrective_abc` — el conteo es ambiguo
+
+| factor | score | umbral | activo |
+|---|---|---|---|
+| fibonacci | 0.000 | 0.60 | — |
+| rsi_divergence | 0.000 | 0.60 | — |
+| market_structure | 0.950 | 0.60 | ✅ |
+| volume_profile | 1.000 | 0.60 | ✅ |
+| higher_timeframe_trend | 1.000 | 0.60 | ✅ |
+
+<details><summary>detalle de factores</summary>
+
+- **fibonacci**: precio 7.5660 lejos de todo nivel; el más próximo es retroceso 0.618 en 7.0211 (2.01 ATR)
+- **rsi_divergence**: un impulso 1-2-3 no tiene todavía dos extremos comparables
+- **market_structure**: BOS alcista sobre 6.8770, cierre 7.8380, ruptura hace 1 velas
+- **volume_profile**: vol 3/1 = 1.54; la onda 4 aún no existe
+- **higher_timeframe_trend**: cierre 7.8380 contra EMA50 6.6969 (fuerza +1.00); señal bullish
+
+> Impulso incompleto: faltarían las ondas 4 y 5. 'Onda 3 nunca la más corta' y el solape de la onda 4 todavía no son aplicables; que la onda 3 supere el final de la 1 sí, porque la onda 3 ya está terminada.
+
+</details>
+
+### DOGE/USDT — largo sobre `impulse_1_2_3` (score 0.530, 3/5 factores)
+
+- **Timeframe**: 4h, señal confirmada el 2026-08-22 16:00 UTC (0 velas atrás)
+- **Precio en la señal**: 0.0935
+- **Zona de interés**: 0.0800 – 0.0859
+- **Invalidación de la señal**: 0.0742
+- **Invalidación del conteo**: 0.0689
+- **Hipótesis alternativas**: `corrective_abc` — el conteo es ambiguo
+
+| factor | score | umbral | activo |
+|---|---|---|---|
+| fibonacci | 0.000 | 0.60 | — |
+| rsi_divergence | 0.000 | 0.60 | — |
+| market_structure | 0.900 | 0.60 | ✅ |
+| volume_profile | 1.000 | 0.60 | ✅ |
+| higher_timeframe_trend | 1.000 | 0.60 | ✅ |
+
+<details><summary>detalle de factores</summary>
+
+- **fibonacci**: precio 0.0935 lejos de todo nivel; el más próximo es retroceso 0.618 en 0.0830 (2.70 ATR)
+- **rsi_divergence**: un impulso 1-2-3 no tiene todavía dos extremos comparables
+- **market_structure**: CHoCH alcista sobre 0.0740, cierre 0.0916, ruptura hace 2 velas
+- **volume_profile**: vol 3/1 = 7.49; la onda 4 aún no existe
+- **higher_timeframe_trend**: cierre 0.0916 contra EMA50 0.0744 (fuerza +1.00); señal bullish
+
+> Impulso incompleto: faltarían las ondas 4 y 5. 'Onda 3 nunca la más corta' y el solape de la onda 4 todavía no son aplicables; que la onda 3 supere el final de la 1 sí, porque la onda 3 ya está terminada.
+
+</details>
+
+## Cerca del umbral (9)
 
 La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. NO son señales (les faltan factores): son los niveles a vigilar.
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| XRP/USDT | `corrective_abc` | 0.568 | market_structure, volume_profile, higher_timeframe_trend | 1.0074–1.1334 | 0.9862 |
-| SUI/USDT | `impulse_1_2_3` | 0.550 | market_structure, volume_profile, higher_timeframe_trend | 0.7021–0.7650 | 0.7003 |
+| SUI/USDT | `impulse_1_2_3` | 0.550 | market_structure, volume_profile, higher_timeframe_trend | 0.7028–0.7643 | 0.7003 |
 | TRX/USDT | `impulse_1_2_3` | 0.530 | market_structure, volume_profile, higher_timeframe_trend | 0.3397–0.3435 | 0.3376 |
 | PEPE/USDT | `corrective_abc` | 0.507 | market_structure, volume_profile, higher_timeframe_trend | 0.0000–0.0000 | 0.0000 |
-| ETH/USDT | `corrective_abc` | 0.502 | market_structure, volume_profile, higher_timeframe_trend | 1,879.80–1,967.98 | 1,853.62 |
-| DOGE/USDT | `impulse_1_2_3` | 0.468 | market_structure, higher_timeframe_trend | 0.0728–0.0786 | 0.0716 |
-| LINK/USDT | `impulse_1_2_3` | 0.447 | market_structure, volume_profile, higher_timeframe_trend | 10.4415–11.1245 | 8.4550 |
-| BNB/USDT | `impulse_1_2_3` | 0.445 | market_structure, higher_timeframe_trend | 631.32–653.34 | 605.50 |
-| DOT/USDT | `corrective_abc` | 0.443 | market_structure, higher_timeframe_trend | 0.7461–0.7973 | 0.7230 |
-| ADA/USDT | `impulse_1_2_3` | 0.400 | market_structure, higher_timeframe_trend | 0.1866–0.2034 | 0.1694 |
-| AVAX/USDT | `corrective_abc` | 0.390 | market_structure, higher_timeframe_trend | 6.5274–6.9454 | 6.2200 |
-| BTC/USDT | `corrective_abc` | 0.380 | market_structure, higher_timeframe_trend | 63,733.73–65,743.80 | 62,275.00 |
-| SOL/USDT | `corrective_abc` | 0.380 | market_structure, higher_timeframe_trend | 74.4240–78.8536 | 74.1000 |
+| ETH/USDT | `corrective_abc` | 0.502 | market_structure, volume_profile, higher_timeframe_trend | 1,881.03–1,966.75 | 1,853.62 |
+| LINK/USDT | `impulse_1_2_3` | 0.447 | market_structure, volume_profile, higher_timeframe_trend | 10.4501–11.1159 | 8.4550 |
+| BNB/USDT | `impulse_1_2_3` | 0.445 | market_structure, higher_timeframe_trend | 631.50–653.17 | 605.50 |
+| DOT/USDT | `corrective_abc` | 0.443 | market_structure, higher_timeframe_trend | 0.7468–0.7966 | 0.7230 |
+| BTC/USDT | `corrective_abc` | 0.380 | market_structure, higher_timeframe_trend | 63,773.82–65,703.71 | 62,275.00 |
+| SOL/USDT | `corrective_abc` | 0.380 | market_structure, higher_timeframe_trend | 74.4895–78.7881 | 74.1000 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
