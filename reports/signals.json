@@ -57,11 +57,11 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-22T20:44:31.112981+00:00",
-  "entry": null,
-  "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "entry": 0.2313,
+  "target": 0.2705,
+  "outcome": "en curso",
+  "result_r": -0.270408163265306,
+  "result_pct": -0.022913964548205823
  },
  {
   "symbol": "XRP/USDT",
@@ -78,11 +78,11 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-22T20:44:31.112981+00:00",
-  "entry": null,
-  "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "entry": 1.5012,
+  "target": 1.8154000000000001,
+  "outcome": "en curso",
+  "result_r": -0.25015913430935777,
+  "result_pct": -0.02617905675459642
  },
  {
   "symbol": "AVAX/USDT",
@@ -99,11 +99,11 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-22T20:44:31.112981+00:00",
-  "entry": null,
-  "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "entry": 7.565,
+  "target": 8.941000000000003,
+  "outcome": "en curso",
+  "result_r": -0.10319767441860546,
+  "result_pct": -0.009385327164573742
  },
  {
   "symbol": "DOGE/USDT",
@@ -120,10 +120,10 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-22T20:44:31.112981+00:00",
-  "entry": null,
-  "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "entry": 0.09352,
+  "target": 0.13220000000000004,
+  "outcome": "en curso",
+  "result_r": -0.08479834539813866,
+  "result_pct": -0.01753635585970914
  }
 ]
