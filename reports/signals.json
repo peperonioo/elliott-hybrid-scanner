@@ -60,8 +60,8 @@
   "entry": 0.2313,
   "target": 0.2705,
   "outcome": "en curso",
-  "result_r": -0.6020408163265307,
-  "result_pct": -0.05101599654128841
+  "result_r": -0.6938775510204079,
+  "result_pct": -0.05879809770860356
  },
  {
   "symbol": "XRP/USDT",
@@ -81,8 +81,8 @@
   "entry": 1.5012,
   "target": 1.8154000000000001,
   "outcome": "en curso",
-  "result_r": -0.16740929344366637,
-  "result_pct": -0.01751931787903005
+  "result_r": -0.2507956715467861,
+  "result_pct": -0.026245670130562337
  },
  {
   "symbol": "AVAX/USDT",
@@ -102,8 +102,8 @@
   "entry": 7.565,
   "target": 8.941000000000003,
   "outcome": "en curso",
-  "result_r": -0.2281976744186045,
-  "result_pct": -0.020753469927296764
+  "result_r": -0.27906976744186046,
+  "result_pct": -0.02538003965631197
  },
  {
   "symbol": "DOGE/USDT",
@@ -123,7 +123,70 @@
   "entry": 0.09352,
   "target": 0.13220000000000004,
   "outcome": "en curso",
-  "result_r": -0.12461220268872844,
-  "result_pct": -0.02576988879384101
+  "result_r": -0.16701137538779778,
+  "result_pct": -0.034538066723695526
+ },
+ {
+  "symbol": "BNB/USDT",
+  "timestamp": "2026-08-23T04:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 683.95,
+  "zone_low": 637.6806617768121,
+  "zone_high": 658.6444582231878,
+  "stop": 620.55,
+  "score": 0.53,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-23T08:53:22.595084+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "ETH/USDT",
+  "timestamp": "2026-08-23T04:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 2389.02,
+  "zone_low": 2083.791307031461,
+  "zone_high": 2165.4447329685386,
+  "stop": 1925.0,
+  "score": 0.52,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-23T08:53:22.595084+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "LINK/USDT",
+  "timestamp": "2026-08-23T04:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 11.301,
+  "zone_low": 10.196109489670494,
+  "zone_high": 10.848906510329506,
+  "stop": 9.746,
+  "score": 0.47,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-23T08:53:22.595084+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
  }
 ]
