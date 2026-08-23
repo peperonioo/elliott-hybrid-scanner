@@ -60,8 +60,8 @@
   "entry": 0.2313,
   "target": 0.2705,
   "outcome": "en curso",
-  "result_r": -0.6938775510204079,
-  "result_pct": -0.05879809770860356
+  "result_r": -0.32142857142857134,
+  "result_pct": -0.027237354085603127
  },
  {
   "symbol": "XRP/USDT",
@@ -81,8 +81,8 @@
   "entry": 1.5012,
   "target": 1.8154000000000001,
   "outcome": "en curso",
-  "result_r": -0.2507956715467861,
-  "result_pct": -0.026245670130562337
+  "result_r": -0.04264799490770305,
+  "result_pct": -0.004463096189714966
  },
  {
   "symbol": "AVAX/USDT",
@@ -102,8 +102,8 @@
   "entry": 7.565,
   "target": 8.941000000000003,
   "outcome": "en curso",
-  "result_r": -0.27906976744186046,
-  "result_pct": -0.02538003965631197
+  "result_r": -0.050872093023255974,
+  "result_pct": -0.004626569729015206
  },
  {
   "symbol": "DOGE/USDT",
@@ -123,8 +123,8 @@
   "entry": 0.09352,
   "target": 0.13220000000000004,
   "outcome": "en curso",
-  "result_r": -0.16701137538779778,
-  "result_pct": -0.034538066723695526
+  "result_r": -0.03981385729058978,
+  "result_pct": -0.00823353293413176
  },
  {
   "symbol": "BNB/USDT",
@@ -141,11 +141,11 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-23T08:53:22.595084+00:00",
-  "entry": null,
-  "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "entry": 683.95,
+  "target": 810.7500000000002,
+  "outcome": "en curso",
+  "result_r": 0.1768138801261815,
+  "result_pct": 0.016390086994663156
  },
  {
   "symbol": "ETH/USDT",
@@ -162,11 +162,11 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-23T08:53:22.595084+00:00",
-  "entry": null,
-  "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "entry": 2389.01,
+  "target": 3317.0300000000007,
+  "outcome": "en curso",
+  "result_r": 0.09626947695092691,
+  "result_pct": 0.018698121816149715
  },
  {
   "symbol": "LINK/USDT",
@@ -183,10 +183,10 @@
    "higher_timeframe_trend"
   ],
   "recorded_at": "2026-08-23T08:53:22.595084+00:00",
-  "entry": null,
-  "target": null,
-  "outcome": "sin vela de entrada",
-  "result_r": null,
-  "result_pct": null
+  "entry": 11.302,
+  "target": 14.413999999999998,
+  "outcome": "en curso",
+  "result_r": 0.0732647814910031,
+  "result_pct": 0.010086710316758118
  }
 ]
