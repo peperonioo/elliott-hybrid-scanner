@@ -60,8 +60,8 @@
   "entry": 0.2313,
   "target": 0.2705,
   "outcome": "en curso",
-  "result_r": -0.5,
-  "result_pct": -0.04236921746649369
+  "result_r": -0.28061224489795933,
+  "result_pct": -0.023778642455685284
  },
  {
   "symbol": "XRP/USDT",
@@ -81,8 +81,8 @@
   "entry": 1.5012,
   "target": 1.8154000000000001,
   "outcome": "en curso",
-  "result_r": -0.12412476129853642,
-  "result_pct": -0.012989608313349388
+  "result_r": 0.07829408020369176,
+  "result_pct": 0.008193445243804831
  },
  {
   "symbol": "AVAX/USDT",
@@ -102,8 +102,8 @@
   "entry": 7.565,
   "target": 8.941000000000003,
   "outcome": "en curso",
-  "result_r": -0.030523255813954618,
-  "result_pct": -0.002775941837409257
+  "result_r": 0.08575581395348725,
+  "result_pct": 0.007799074686054119
  },
  {
   "symbol": "DOGE/USDT",
@@ -123,8 +123,8 @@
   "entry": 0.09352,
   "target": 0.13220000000000004,
   "outcome": "en curso",
-  "result_r": -0.17631851085832514,
-  "result_pct": -0.03646278870829778
+  "result_r": -0.08169596690796335,
+  "result_pct": -0.016894781864841835
  },
  {
   "symbol": "BNB/USDT",
@@ -144,8 +144,8 @@
   "entry": 683.95,
   "target": 810.7500000000002,
   "outcome": "en curso",
-  "result_r": 0.3211356466876951,
-  "result_pct": 0.029768257913590057
+  "result_r": 0.4976340694006295,
+  "result_pct": 0.0461291030046056
  },
  {
   "symbol": "ETH/USDT",
@@ -165,8 +165,8 @@
   "entry": 2389.01,
   "target": 3317.0300000000007,
   "outcome": "en curso",
-  "result_r": 0.2010732527316215,
-  "result_pct": 0.03905383401492646
+  "result_r": 0.23766729165319647,
+  "result_pct": 0.04616138065558517
  },
  {
   "symbol": "LINK/USDT",
@@ -186,7 +186,7 @@
   "entry": 11.302,
   "target": 14.413999999999998,
   "outcome": "en curso",
-  "result_r": 0.2101542416452443,
-  "result_pct": 0.028932932224384977
+  "result_r": 0.2866323907455013,
+  "result_pct": 0.039462042116439555
  }
 ]
