@@ -143,9 +143,9 @@
   "recorded_at": "2026-08-23T08:53:22.595084+00:00",
   "entry": 683.95,
   "target": 810.7500000000002,
-  "outcome": "en curso",
-  "result_r": 0.36230283911671735,
-  "result_pct": 0.03358432633964448
+  "outcome": "tiempo",
+  "result_r": 0.3495268138801252,
+  "result_pct": 0.03240002924190355
  },
  {
   "symbol": "ETH/USDT",
@@ -164,9 +164,9 @@
   "recorded_at": "2026-08-23T08:53:22.595084+00:00",
   "entry": 2389.01,
   "target": 3317.0300000000007,
-  "outcome": "en curso",
-  "result_r": 0.23161138768560968,
-  "result_pct": 0.04498516121740792
+  "outcome": "tiempo",
+  "result_r": 0.2501885735221216,
+  "result_pct": 0.04859335038363155
  },
  {
   "symbol": "LINK/USDT",
@@ -185,8 +185,29 @@
   "recorded_at": "2026-08-23T08:53:22.595084+00:00",
   "entry": 11.302,
   "target": 14.413999999999998,
-  "outcome": "en curso",
-  "result_r": 0.255784061696658,
-  "result_pct": 0.03521500619359408
+  "outcome": "tiempo",
+  "result_r": 0.3084832904884323,
+  "result_pct": 0.04247035922845521
+ },
+ {
+  "symbol": "BTC/USDT",
+  "timestamp": "2026-08-28T16:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 77580.03,
+  "zone_low": 68923.95136270681,
+  "zone_high": 70619.46195729318,
+  "stop": 65474.46,
+  "score": 0.47,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-08-28T22:28:42.874507+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
  }
 ]
