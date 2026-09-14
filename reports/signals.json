@@ -209,5 +209,26 @@
   "outcome": "tiempo",
   "result_r": -0.019827236553091186,
   "result_pct": -0.0030938374218211218
+ },
+ {
+  "symbol": "XRP/USDT",
+  "timestamp": "2026-09-14T08:00:00+00:00",
+  "hypothesis": "corrective_abc",
+  "price": 1.3987,
+  "zone_low": 1.3811474760082072,
+  "zone_high": 1.4165777239917927,
+  "stop": 1.315,
+  "score": 0.524981375530911,
+  "factors": [
+   "fibonacci",
+   "rsi_divergence",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-09-14T15:05:49.095661+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
  }
 ]
