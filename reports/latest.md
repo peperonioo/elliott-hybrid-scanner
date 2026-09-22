@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-09-22 05:08 UTC
+# Elliott Hybrid Scanner — 2026-09-22 13:28 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -18,19 +18,19 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| ADA/USDT | `impulse_1_2_3` | 0.614 | fibonacci, market_structure, higher_timeframe_trend | 0.2414–0.2513 | 0.2272 |
-| DOGE/USDT | `corrective_abc` | 0.584 | rsi_divergence, market_structure, higher_timeframe_trend | 0.0841–0.0882 | 0.0783 |
-| ETH/USDT | `impulse_1_2_3` | 0.550 | market_structure, volume_profile, higher_timeframe_trend | 2,793.41–2,860.10 | 2,546.66 |
-| TRX/USDT | `impulse_1_2_3` | 0.549 | market_structure, volume_profile, higher_timeframe_trend | 0.3485–0.3511 | 0.3411 |
-| BTC/USDT | `impulse_1_2_3` | 0.546 | market_structure, higher_timeframe_trend | 85,221.09–86,839.41 | 81,478.87 |
-| XRP/USDT | `corrective_abc` | 0.532 | rsi_divergence, market_structure, higher_timeframe_trend | 1.3951–1.4482 | 1.3150 |
-| AVAX/USDT | `corrective_abc` | 0.457 | market_structure, higher_timeframe_trend | 7.3094–8.0252 | 7.1690 |
-| SOL/USDT | `corrective_abc` | 0.426 | market_structure, higher_timeframe_trend | 101.21–104.58 | 95.8200 |
-| SUI/USDT | `diagonal_contracting` | 0.380 | market_structure, higher_timeframe_trend | 0.7017–0.7622 | 0.6730 |
-| PEPE/USDT | `impulse_1_2_3` | 0.323 | volume_profile, higher_timeframe_trend | 0.0000–0.0000 | 0.0000 |
-| LINK/USDT | `corrective_abc` | 0.316 | volume_profile, higher_timeframe_trend | 11.4524–11.9038 | 10.6170 |
-| DOT/USDT | `impulse_1_2_3` | 0.218 | higher_timeframe_trend | 1.5509–1.6055 | 1.0320 |
-| BNB/USDT | `impulse_1_2_3` | 0.200 | higher_timeframe_trend | 809.52–823.86 | 741.61 |
+| PEPE/USDT | `impulse_1_2_3` | 0.713 | fibonacci, market_structure, volume_profile, higher_timeframe_trend | 0.0000–0.0000 | 0.0000 |
+| ADA/USDT | `impulse_1_2_3` | 0.694 | fibonacci, market_structure, higher_timeframe_trend | 0.2410–0.2516 | 0.2272 |
+| BTC/USDT | `impulse_1_2_3` | 0.636 | fibonacci, market_structure, higher_timeframe_trend | 85,245.63–86,814.86 | 81,478.87 |
+| DOGE/USDT | `corrective_abc` | 0.584 | rsi_divergence, market_structure, higher_timeframe_trend | 0.0839–0.0885 | 0.0783 |
+| ETH/USDT | `impulse_1_2_3` | 0.550 | market_structure, volume_profile, higher_timeframe_trend | 2,794.82–2,858.70 | 2,546.66 |
+| TRX/USDT | `impulse_1_2_3` | 0.549 | market_structure, volume_profile, higher_timeframe_trend | 0.3484–0.3512 | 0.3411 |
+| XRP/USDT | `corrective_abc` | 0.532 | rsi_divergence, market_structure, higher_timeframe_trend | 1.3950–1.4483 | 1.3150 |
+| AVAX/USDT | `corrective_abc` | 0.457 | market_structure, higher_timeframe_trend | 7.3194–8.0153 | 7.1690 |
+| SOL/USDT | `corrective_abc` | 0.426 | market_structure, higher_timeframe_trend | 101.24–104.55 | 95.8200 |
+| BNB/USDT | `impulse_1_2_3` | 0.400 | market_structure, higher_timeframe_trend | 808.02–825.36 | 741.61 |
+| SUI/USDT | `diagonal_contracting` | 0.380 | market_structure, higher_timeframe_trend | 0.7023–0.7616 | 0.6730 |
+| LINK/USDT | `corrective_abc` | 0.316 | volume_profile, higher_timeframe_trend | 11.4568–11.8994 | 10.6170 |
+| DOT/USDT | `impulse_1_2_3` | 0.218 | higher_timeframe_trend | 1.5508–1.6055 | 1.0320 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
