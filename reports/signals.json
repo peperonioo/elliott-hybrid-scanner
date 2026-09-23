@@ -251,5 +251,112 @@
   "outcome": "objetivo",
   "result_r": 2.0,
   "result_pct": 0.13376691861487067
+ },
+ {
+  "symbol": "DOGE/USDT",
+  "timestamp": "2026-09-23T12:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 0.09277,
+  "zone_low": 0.09002934849169116,
+  "zone_high": 0.09511485150830885,
+  "stop": 0.09135,
+  "score": 0.7705427310382739,
+  "factors": [
+   "fibonacci",
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-09-23T19:44:03.931588+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "PEPE/USDT",
+  "timestamp": "2026-09-23T12:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 4.39e-06,
+  "zone_low": 4.256305032628952e-06,
+  "zone_high": 4.622054967371048e-06,
+  "stop": 4.33e-06,
+  "score": 0.7227682723516022,
+  "factors": [
+   "fibonacci",
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-09-23T19:44:03.931588+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "SUI/USDT",
+  "timestamp": "2026-09-23T12:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 0.9554,
+  "zone_low": 0.8840421673753042,
+  "zone_high": 0.9419006326246958,
+  "stop": 0.8872,
+  "score": 0.52,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-09-23T19:44:03.931588+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "AVAX/USDT",
+  "timestamp": "2026-09-23T12:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 10.23,
+  "zone_low": 12.875042511131902,
+  "zone_high": 13.571937488868098,
+  "stop": 10.825,
+  "score": 0.51,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-09-23T19:44:03.931588+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
+ },
+ {
+  "symbol": "BNB/USDT",
+  "timestamp": "2026-09-23T12:00:00+00:00",
+  "hypothesis": "impulse_1_2_3",
+  "price": 761.18,
+  "zone_low": 836.4207201605848,
+  "zone_high": 854.6845198394153,
+  "stop": 773.76,
+  "score": 0.4908175139718876,
+  "factors": [
+   "market_structure",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-09-23T19:44:03.931588+00:00",
+  "entry": null,
+  "target": null,
+  "outcome": "sin vela de entrada",
+  "result_r": null,
+  "result_pct": null
  }
 ]
