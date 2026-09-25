@@ -313,9 +313,9 @@
   "recorded_at": "2026-09-23T19:44:03.931588+00:00",
   "entry": 0.9553,
   "target": 1.0915000000000001,
-  "outcome": "en curso",
-  "result_r": 0.8311306901615263,
-  "result_pct": 0.05924840364283468
+  "outcome": "objetivo",
+  "result_r": 2.0,
+  "result_pct": 0.14257301371296993
  },
  {
   "symbol": "AVAX/USDT",
