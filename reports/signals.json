@@ -358,5 +358,26 @@
   "outcome": "no operable",
   "result_r": null,
   "result_pct": null
+ },
+ {
+  "symbol": "PEPE/USDT",
+  "timestamp": "2026-10-05T08:00:00+00:00",
+  "hypothesis": "corrective_abc",
+  "price": 4.5e-06,
+  "zone_low": 4.408495198712107e-06,
+  "zone_high": 4.571984801287893e-06,
+  "stop": 4.07e-06,
+  "score": 0.5327998815219623,
+  "factors": [
+   "fibonacci",
+   "volume_profile",
+   "higher_timeframe_trend"
+  ],
+  "recorded_at": "2026-10-05T17:13:53.828983+00:00",
+  "entry": 4.51e-06,
+  "target": 5.39e-06,
+  "outcome": "en curso",
+  "result_r": -0.24999999999999953,
+  "result_pct": -0.024390243902438935
  }
 ]
