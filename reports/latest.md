@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-10-06 18:28 UTC
+# Elliott Hybrid Scanner — 2026-10-06 23:53 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -10,7 +10,7 @@ Universo: BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX | 
 
 ### PEPE/USDT — largo sobre `corrective_abc` (score 0.533, 3/5 factores)
 
-- **Timeframe**: 4h, señal confirmada el 2026-10-05 08:00 UTC (7 velas atrás)
+- **Timeframe**: 4h, señal confirmada el 2026-10-05 08:00 UTC (8 velas atrás)
 - **Precio en la señal**: 0.0000
 - **Zona de interés**: 0.0000 – 0.0000
 - **Invalidación de la señal**: 0.0000
@@ -41,16 +41,16 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| DOT/USDT | `corrective_abc` | 0.446 | fibonacci, higher_timeframe_trend | 1.1774–1.2269 | 1.0780 |
-| AVAX/USDT | `impulse_1_2_3` | 0.350 | volume_profile, higher_timeframe_trend | 13.0559–13.3910 | 10.8250 |
-| SUI/USDT | `impulse_1_2_3` | 0.350 | volume_profile, higher_timeframe_trend | 1.2242–1.2758 | 0.8872 |
-| ETH/USDT | `corrective_abc` | 0.340 | higher_timeframe_trend | 2,541.20–2,579.18 | 2,358.88 |
-| LINK/USDT | `impulse_1_2_3` | 0.332 | volume_profile, higher_timeframe_trend | 13.9618–14.3350 | 12.6950 |
-| BTC/USDT | `corrective_abc` | 0.321 | higher_timeframe_trend | 78,031.45–79,186.04 | 74,967.97 |
+| AVAX/USDT | `impulse_1_2_3` | 0.350 | volume_profile, higher_timeframe_trend | 13.0569–13.3901 | 10.8250 |
+| SUI/USDT | `impulse_1_2_3` | 0.350 | volume_profile, higher_timeframe_trend | 1.2251–1.2749 | 0.8872 |
+| DOT/USDT | `corrective_abc` | 0.347 | higher_timeframe_trend | 1.1779–1.2265 | 1.0780 |
+| LINK/USDT | `impulse_1_2_3` | 0.341 | volume_profile, higher_timeframe_trend | 13.9664–14.3304 | 12.6950 |
+| ETH/USDT | `corrective_abc` | 0.340 | higher_timeframe_trend | 2,541.28–2,579.10 | 2,358.88 |
+| BTC/USDT | `corrective_abc` | 0.321 | higher_timeframe_trend | 78,049.47–79,168.02 | 74,967.97 |
 | DOGE/USDT | `impulse_1_2_3` | 0.320 | volume_profile, higher_timeframe_trend | 0.0914–0.0937 | 0.0914 |
-| BNB/USDT | `impulse_1_2_3` | 0.301 | volume_profile, higher_timeframe_trend | 840.29–850.82 | 773.76 |
-| ADA/USDT | `impulse_1_2_3` | 0.271 | higher_timeframe_trend | 0.2795–0.2914 | 0.2623 |
-| SOL/USDT | `impulse_1_2_3` | 0.265 | higher_timeframe_trend | 126.58–128.96 | 114.32 |
+| BNB/USDT | `impulse_1_2_3` | 0.301 | volume_profile, higher_timeframe_trend | 840.35–850.76 | 773.76 |
+| ADA/USDT | `impulse_1_2_3` | 0.271 | higher_timeframe_trend | 0.2797–0.2912 | 0.2623 |
+| SOL/USDT | `impulse_1_2_3` | 0.265 | higher_timeframe_trend | 126.61–128.93 | 114.32 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
