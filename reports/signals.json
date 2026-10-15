@@ -397,8 +397,8 @@
   "recorded_at": "2026-10-13T19:22:35.411884+00:00",
   "entry": 83434.58,
   "target": 88236.42,
-  "outcome": "en curso",
-  "result_r": -0.6639329923529331,
-  "result_pct": -0.019105387718137967
+  "outcome": "stop",
+  "result_r": -1.0,
+  "result_pct": -0.028776078216010692
  }
 ]
