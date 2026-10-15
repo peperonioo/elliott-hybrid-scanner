@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-10-15 13:31 UTC
+# Elliott Hybrid Scanner — 2026-10-15 19:55 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -10,7 +10,7 @@ Universo: BTC, ETH, SOL, BNB, XRP, ADA, AVAX, LINK, DOT, PEPE, DOGE, SUI, TRX | 
 
 ### BTC/USDT — largo sobre `corrective_abc` (score 0.458, 3/5 factores)
 
-- **Timeframe**: 4h, señal confirmada el 2026-10-13 12:00 UTC (11 velas atrás)
+- **Timeframe**: 4h, señal confirmada el 2026-10-13 12:00 UTC (12 velas atrás)
 - **Precio en la señal**: 83,434.57
 - **Zona de interés**: 83,020.90 – 84,262.85
 - **Invalidación de la señal**: 81,033.66
@@ -48,11 +48,11 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 | PEPE/USDT | `corrective_abc` | 0.430 | fibonacci, volume_profile | 0.0000–0.0000 | 0.0000 |
 | SOL/USDT | `corrective_abc` | 0.407 | rsi_divergence, volume_profile | 107.25–110.60 | 101.69 |
 | LINK/USDT | `corrective_abc` | 0.364 | volume_profile | 12.8064–13.2528 | 12.2590 |
-| AVAX/USDT | `corrective_abc` | 0.286 | volume_profile, higher_timeframe_trend | 10.7667–11.1912 | 9.7640 |
-| SUI/USDT | `corrective_abc` | 0.278 | volume_profile, higher_timeframe_trend | 1.1391–1.1875 | 0.9980 |
-| TRX/USDT | `corrective_abc` | 0.270 | fibonacci | 0.3296–0.3321 | 0.3270 |
-| DOT/USDT | `impulse_1_2_3` | 0.127 | higher_timeframe_trend | 1.4192–1.4747 | 1.2360 |
-| ADA/USDT | `impulse_1_2_3` | 0.100 | — | 0.3057–0.3153 | 0.2654 |
+| AVAX/USDT | `corrective_abc` | 0.286 | volume_profile, higher_timeframe_trend | 10.7522–11.2058 | 9.7640 |
+| SUI/USDT | `corrective_abc` | 0.278 | volume_profile, higher_timeframe_trend | 1.1368–1.1899 | 0.9980 |
+| TRX/USDT | `corrective_abc` | 0.251 | fibonacci | 0.3306–0.3332 | 0.3270 |
+| DOT/USDT | `impulse_1_2_3` | 0.127 | higher_timeframe_trend | 1.4176–1.4762 | 1.2360 |
+| ADA/USDT | `impulse_1_2_3` | 0.100 | — | 0.3053–0.3157 | 0.2654 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
