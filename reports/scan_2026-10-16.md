@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-10-16 04:41 UTC
+# Elliott Hybrid Scanner — 2026-10-16 13:20 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -19,17 +19,17 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
 | XRP/USDT | `corrective_abc` | 0.521 | rsi_divergence, volume_profile | 1.3681–1.4011 | 1.3112 |
-| PEPE/USDT | `corrective_abc` | 0.473 | fibonacci, volume_profile, higher_timeframe_trend | 0.0000–0.0000 | 0.0000 |
-| DOGE/USDT | `corrective_abc` | 0.387 | rsi_divergence, volume_profile | 0.0837–0.0864 | 0.0800 |
-| SOL/USDT | `corrective_abc` | 0.386 | rsi_divergence, volume_profile | 107.26–110.59 | 101.69 |
+| PEPE/USDT | `corrective_abc` | 0.496 | fibonacci, volume_profile, higher_timeframe_trend | 0.0000–0.0000 | 0.0000 |
+| BTC/USDT | `corrective_abc` | 0.389 | volume_profile, higher_timeframe_trend | 82,356.44–83,812.35 | 81,033.66 |
+| DOGE/USDT | `corrective_abc` | 0.387 | rsi_divergence, volume_profile | 0.0838–0.0863 | 0.0800 |
+| AVAX/USDT | `corrective_abc` | 0.380 | volume_profile, higher_timeframe_trend | 10.2274–10.6442 | 9.3370 |
 | BNB/USDT | `corrective_abc` | 0.337 | fibonacci | 725.98–739.95 | 708.64 |
-| BTC/USDT | `corrective_abc` | 0.291 | volume_profile, higher_timeframe_trend | 82,336.53–83,832.26 | 81,033.66 |
-| AVAX/USDT | `corrective_abc` | 0.287 | volume_profile, higher_timeframe_trend | 10.7745–11.1834 | 9.7640 |
-| SUI/USDT | `corrective_abc` | 0.285 | volume_profile, higher_timeframe_trend | 1.1382–1.1884 | 0.9980 |
-| LINK/USDT | `corrective_abc` | 0.249 | volume_profile | 12.8033–13.2560 | 12.2590 |
+| SOL/USDT | `diagonal_contracting` | 0.296 | — | 105.65–108.87 | 100.62 |
+| SUI/USDT | `corrective_abc` | 0.285 | volume_profile, higher_timeframe_trend | 1.1392–1.1875 | 0.9980 |
+| LINK/USDT | `corrective_abc` | 0.249 | volume_profile | 12.8121–13.2472 | 12.2590 |
 | ETH/USDT | `corrective_abc` | 0.214 | fibonacci | 2,418.39–2,490.18 | 2,318.00 |
 | DOT/USDT | `corrective_abc` | 0.127 | higher_timeframe_trend | 1.1717–1.2316 | 1.0490 |
-| ADA/USDT | `impulse_1_2_3` | 0.100 | — | 0.3058–0.3153 | 0.2654 |
+| ADA/USDT | `impulse_1_2_3` | 0.100 | — | 0.3061–0.3150 | 0.2654 |
 | TRX/USDT | `corrective_abc` | 0.076 | — | 0.3306–0.3332 | 0.3270 |
 
 ---
