@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-10-17 18:34 UTC
+# Elliott Hybrid Scanner — 2026-10-17 22:26 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -18,16 +18,16 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| XRP/USDT | `corrective_abc` | 0.394 | rsi_divergence, volume_profile | 1.3686–1.4006 | 1.3112 |
-| DOGE/USDT | `corrective_abc` | 0.386 | rsi_divergence, volume_profile | 0.0839–0.0862 | 0.0800 |
+| XRP/USDT | `corrective_abc` | 0.394 | rsi_divergence, volume_profile | 1.3691–1.4002 | 1.3112 |
+| DOGE/USDT | `corrective_abc` | 0.386 | rsi_divergence, volume_profile | 0.0839–0.0861 | 0.0800 |
 | AVAX/USDT | `corrective_abc` | 0.380 | volume_profile, higher_timeframe_trend | 10.2274–10.6442 | 9.3370 |
 | BNB/USDT | `corrective_abc` | 0.337 | fibonacci | 725.98–739.95 | 708.64 |
 | SOL/USDT | `diagonal_contracting` | 0.296 | — | 105.65–108.87 | 100.62 |
-| BTC/USDT | `corrective_abc` | 0.276 | volume_profile, higher_timeframe_trend | 82,506.37–83,662.42 | 81,033.66 |
-| SUI/USDT | `corrective_abc` | 0.275 | volume_profile, higher_timeframe_trend | 1.1426–1.1840 | 0.9980 |
+| BTC/USDT | `corrective_abc` | 0.276 | volume_profile, higher_timeframe_trend | 82,522.57–83,646.22 | 81,033.66 |
+| SUI/USDT | `corrective_abc` | 0.275 | volume_profile, higher_timeframe_trend | 1.1428–1.1838 | 0.9980 |
 | PEPE/USDT | `corrective_abc` | 0.266 | volume_profile | 0.0000–0.0000 | 0.0000 |
-| LINK/USDT | `corrective_abc` | 0.242 | volume_profile | 12.8411–13.2182 | 12.2590 |
-| ETH/USDT | `corrective_abc` | 0.214 | fibonacci | 2,418.39–2,490.18 | 2,318.00 |
+| LINK/USDT | `corrective_abc` | 0.242 | volume_profile | 12.8410–13.2183 | 12.2590 |
+| ETH/USDT | `corrective_abc` | 0.211 | volume_profile | 2,488.40–2,540.88 | 2,409.09 |
 | DOT/USDT | `corrective_abc` | 0.127 | higher_timeframe_trend | 1.1717–1.2316 | 1.0490 |
 | TRX/USDT | `corrective_abc` | 0.113 | — | 0.3307–0.3331 | 0.3270 |
 | ADA/USDT | `impulse_1_2_3` | 0.087 | — | 0.3068–0.3142 | 0.2654 |
