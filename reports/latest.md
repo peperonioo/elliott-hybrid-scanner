@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-11-03 19:36 UTC
+# Elliott Hybrid Scanner — 2026-11-04 00:41 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -18,18 +18,18 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| ETH/USDT | `corrective_abc` | 0.402 | rsi_divergence, volume_profile | 2,286.92–2,330.04 | 2,174.08 |
-| PEPE/USDT | `impulse_1_2_3` | 0.307 | volume_profile, higher_timeframe_trend | 0.0000–0.0000 | 0.0000 |
-| XRP/USDT | `corrective_abc` | 0.253 | — | 1.2771–1.3015 | 1.2002 |
-| SUI/USDT | `corrective_abc` | 0.231 | volume_profile | 1.0507–1.0771 | 0.9372 |
-| AVAX/USDT | `corrective_abc` | 0.219 | rsi_divergence | 9.1359–9.4029 | 8.0000 |
-| ADA/USDT | `corrective_abc` | 0.159 | volume_profile | 0.2385–0.2435 | 0.2111 |
-| DOT/USDT | `corrective_abc` | 0.157 | rsi_divergence | 1.0608–1.0900 | 0.8690 |
-| DOGE/USDT | `corrective_abc` | 0.150 | volume_profile | 0.0795–0.0812 | 0.0748 |
-| LINK/USDT | `impulse_1_2_3` | 0.138 | volume_profile | 12.2940–12.6365 | 11.9950 |
-| SOL/USDT | `diagonal_contracting` | 0.095 | — | 103.62–105.90 | 100.43 |
-| BNB/USDT | `corrective_abc` | 0.035 | — | 731.64–744.53 | 718.00 |
-| BTC/USDT | `corrective_abc` | 0.013 | — | 81,934.98–83,063.87 | 79,800.00 |
+| PEPE/USDT | `impulse_1_2_3` | 0.316 | volume_profile, higher_timeframe_trend | 0.0000–0.0000 | 0.0000 |
+| ETH/USDT | `corrective_abc` | 0.272 | rsi_divergence, volume_profile | 2,287.49–2,329.46 | 2,174.08 |
+| SUI/USDT | `corrective_abc` | 0.249 | volume_profile | 1.0514–1.0764 | 0.9372 |
+| AVAX/USDT | `corrective_abc` | 0.232 | rsi_divergence | 9.1448–9.3939 | 8.0000 |
+| XRP/USDT | `corrective_abc` | 0.209 | — | 1.2773–1.3013 | 1.2002 |
+| ADA/USDT | `corrective_abc` | 0.159 | volume_profile | 0.2387–0.2434 | 0.2111 |
+| DOT/USDT | `corrective_abc` | 0.157 | rsi_divergence | 1.0616–1.0892 | 0.8690 |
+| DOGE/USDT | `corrective_abc` | 0.151 | volume_profile | 0.0796–0.0811 | 0.0748 |
+| LINK/USDT | `impulse_1_2_3` | 0.130 | volume_profile | 12.3015–12.6290 | 11.9950 |
+| SOL/USDT | `diagonal_contracting` | 0.095 | — | 103.67–105.86 | 100.43 |
+| BNB/USDT | `corrective_abc` | 0.033 | — | 731.83–744.34 | 718.00 |
+| BTC/USDT | `corrective_abc` | 0.031 | — | 81,952.82–83,046.02 | 79,800.00 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
