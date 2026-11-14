@@ -1,4 +1,4 @@
-# Elliott Hybrid Scanner — 2026-11-14 06:41 UTC
+# Elliott Hybrid Scanner — 2026-11-14 15:10 UTC
 
 > Informe generado automáticamente. **No es asesoramiento financiero y el
 > sistema no ejecuta órdenes**: las señales están pensadas para validarse
@@ -18,18 +18,18 @@ La mejor estructura alcista vigente de cada par, re-evaluada al precio actual. N
 
 | par | hipótesis | score | factores activos | zona de compra | stop |
 |---|---|---|---|---|---|
-| BTC/USDT | `corrective_abc` | 0.260 | rsi_divergence, volume_profile | 78,596.06–80,399.76 | 75,736.38 |
-| ADA/USDT | `corrective_abc` | 0.256 | volume_profile | 0.2086–0.2153 | 0.1820 |
-| ETH/USDT | `corrective_abc` | 0.255 | rsi_divergence, volume_profile | 2,276.26–2,340.69 | 2,174.08 |
-| SUI/USDT | `corrective_abc` | 0.248 | rsi_divergence | 0.8956–0.9295 | 0.8277 |
-| TRX/USDT | `corrective_abc` | 0.215 | volume_profile | 0.3291–0.3310 | 0.3274 |
-| SOL/USDT | `corrective_abc` | 0.180 | — | 96.9627–100.05 | 89.8600 |
-| XRP/USDT | `corrective_abc` | 0.167 | — | 1.2708–1.3078 | 1.2002 |
-| LINK/USDT | `corrective_abc` | 0.150 | volume_profile | 11.2561–11.6523 | 10.6310 |
-| DOGE/USDT | `corrective_abc` | 0.150 | volume_profile | 0.0783–0.0808 | 0.0774 |
-| DOT/USDT | `corrective_abc` | 0.146 | rsi_divergence | 1.0583–1.0925 | 0.8690 |
-| AVAX/USDT | `impulse` | 0.038 | — | 8.5764–8.9454 | 8.2770 |
-| BNB/USDT | `corrective_abc` | 0.000 | — | 729.42–746.75 | 718.00 |
+| BTC/USDT | `corrective_abc` | 0.260 | rsi_divergence, volume_profile | 78,640.55–80,355.27 | 75,736.38 |
+| ADA/USDT | `corrective_abc` | 0.256 | volume_profile | 0.2088–0.2152 | 0.1820 |
+| ETH/USDT | `corrective_abc` | 0.255 | rsi_divergence, volume_profile | 2,277.72–2,339.24 | 2,174.08 |
+| SUI/USDT | `corrective_abc` | 0.248 | rsi_divergence | 0.8963–0.9288 | 0.8277 |
+| TRX/USDT | `corrective_abc` | 0.215 | volume_profile | 0.3291–0.3311 | 0.3274 |
+| SOL/USDT | `corrective_abc` | 0.180 | — | 97.0485–99.9631 | 89.8600 |
+| XRP/USDT | `corrective_abc` | 0.167 | — | 1.2716–1.3070 | 1.2002 |
+| LINK/USDT | `corrective_abc` | 0.150 | volume_profile | 11.2662–11.6421 | 10.6310 |
+| DOGE/USDT | `corrective_abc` | 0.150 | volume_profile | 0.0784–0.0807 | 0.0774 |
+| DOT/USDT | `corrective_abc` | 0.146 | rsi_divergence | 1.0591–1.0917 | 0.8690 |
+| AVAX/USDT | `impulse` | 0.038 | — | 8.5873–8.9345 | 8.2770 |
+| BNB/USDT | `corrective_abc` | 0.000 | — | 729.76–746.41 | 718.00 |
 
 ---
 *Backtest de referencia: esperanza +0,58%/op en desarrollo (p=0,035 contra azar) y +0,66%/op en holdout con solo 20 operaciones — prometedor, no probado. Ver README.*
